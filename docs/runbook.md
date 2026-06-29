@@ -8,9 +8,8 @@ sudo dnf -y install dnf-plugins-core
 sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 sudo dnf -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-# 2) data-root 를 /home 으로 (root LV 70GB 회피)
-sudo mkdir -p /etc/docker /home/docker
-echo '{ "data-root": "/home/docker" }' | sudo tee /etc/docker/daemon.json
+# 2) (참고) root LV는 이미 899G로 확장됨 → data-root override 불필요(기본 /var/lib/docker 사용).
+#    필요 시에만 /etc/docker/daemon.json 으로 위치 지정.
 
 # 3) 서비스 활성화 + 권한
 sudo systemctl enable --now docker

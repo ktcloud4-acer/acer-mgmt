@@ -33,16 +33,17 @@
 |------|-----|------|
 | OS | Rocky Linux 9.8 / kernel 5.14 | Docker CE(centos repo) 사용 |
 | CPU / RAM | 20 core / 62 GiB (+swap 31G) | 도메인 단위 선택 기동 |
-| **디스크** | **root LV 70G, VG 여유 0, /home 828G** | 데이터를 `/home` 으로 |
+| **디스크** | **root LV 899G (rl-home 병합 완료), swap 31G** | 데이터 경로 제약 해소 |
 | SELinux | **Enforcing** | bind mount `:Z`, data-root relabel |
 | 기존 런타임 | Podman 5.8 (idle) | 공존 OK, `podman.socket` mask |
 | 방화벽 | firewalld + nftables | Docker DOCKER 체인 자동, 동시 가동 주의 |
 
-### 디스크 배치 결정
-root가 70GB뿐이고 VG 여유가 0(확장 불가), xfs라 `/home` 축소도 불가하므로:
-- **Docker `data-root` → `/home/docker`** (`/etc/docker/daemon.json`).
-- 컨테이너 영속 데이터 → **`DATA_ROOT=/home/mgmt-data`** 하위.
-- 익스포트한 백업/아티팩트(MinIO) 도 `/home` 하위.
+### 디스크 배치 결정 (2026-06-29 갱신)
+기본 설치 시 Anaconda 자동 파티셔닝이 root를 70GiB로 상한 처리하고 나머지(828G)를 별도 `rl-home` LV(/home)로 분리했다. mgmt 워크로드(GitLab/Harbor/ELK/MinIO)에는 root 70G가 부족하고 VG 여유가 0이라, **`rl-home` LV를 제거하고 그 공간을 root LV로 병합(`lvextend +100%FREE` + `xfs_growfs`) → root 899G로 확장**했다. 결과:
+- Docker `data-root` 는 **기본값 `/var/lib/docker` 사용 가능**(override 불필요).
+- 컨테이너 영속 데이터(`DATA_ROOT`)·MinIO 백업도 root FS 상 어디든 배치 가능.
+- `/home` 은 더 이상 별도 LV가 아니라 root FS 상의 일반 디렉토리(user1 홈 보존됨).
+- 원복 대비: 변경 전 fstab은 호스트의 `/etc/fstab.pre-resize.bak` 에 보관.
 
 ## 4. Docker vs Podman 공존
 

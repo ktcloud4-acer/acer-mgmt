@@ -48,7 +48,7 @@ make down s=cicd/gitlab     # 중지
 
 ## ⚠️ 운영 제약 (호스트: Rocky Linux 9.8)
 
-- **디스크**: root LV 70GB뿐(VG 여유 0). 컨테이너 데이터는 용량 828GB인 **`/home` 하위(`DATA_ROOT`)** 에 둡니다. Docker `data-root` 도 `/home/docker` 권장.
+- **디스크**: root LV를 **899GB로 확장 완료**(기본 설치의 70G root에 `rl-home` LV 828G를 병합, 2026-06-29). `/home`은 이제 root FS 상의 일반 디렉토리. 컨테이너 데이터/`data-root`는 기본 경로(`/var/lib/docker`) 또는 `DATA_ROOT` 어디든 배치 가능.
 - **RAM 62GB**: GitLab·ELK·Harbor·SonarQube·Supabase·Kafka 를 *전부 동시* 기동하면 부족 → 도메인/서비스 단위 선택 기동.
 - **SELinux Enforcing**: bind mount 는 `:Z`, data-root 는 relabel 필요.
 - **Podman 5.8 공존**: idle 유지 + `podman.socket` mask 권장(nftables 간섭 회피).
