@@ -2,3 +2,16 @@
     - acer-mgmt:
         - abbr: GH
           href: https://github.com/ktcloud4-acer/acer-mgmt
+          description: ACER 클러스터 관리(mgmt) 프로젝트
+    - acer-argocd:
+        - abbr: GH
+          href: https://github.com/ktcloud4-acer/acer-argocd
+          description: kubernetes web-service 배포
+    - web-service:
+        - abbr: GH
+          href: https://github.com/ktcloud4-acer/web-service
+          description: 웹서비스
+    - acer-aio:
+        - abbr: GH
+          href: https://github.com/ktcloud4-acer/acer-aio
+          description: All-in-one
