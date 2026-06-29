@@ -1,7 +1,25 @@
-# cloudflared (Cloudflare Tunnel) — 스켈레톤 (TODO)
-# 공인 IP 없이 내부 Traefik 으로 인입. ingress 규칙은 config/config.yml.
-# 토큰/크리덴셜은 .env / secrets 에 두고 커밋 금지.
-services: {}
+# cloudflared (Cloudflare Tunnel) — 공인 IP 없이 외부 노출
+# 토큰은 루트 .env 의 CF_TUNNEL_TOKEN (Makefile 이 --env-file 로 주입).
+# 인입 라우팅(Public Hostname)은 Cloudflare Zero Trust 대시보드에서 설정:
+#   <svc>.${BASE_DOMAIN}  →  Service: HTTP  →  traefik:80
+# (토큰 기반 터널은 ingress 를 대시보드에서 관리. config.yml 불필요.)
+# 기동:  make up s=edge/cloudflared
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CF_TUNNEL_TOKEN}
+    networks:
+      - mgmt-proxy           # traefik 과 동일 네트워크 → traefik:80 도달
+    healthcheck:
+      test: ["CMD", "cloudflared", "--version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 networks:
   mgmt-proxy:

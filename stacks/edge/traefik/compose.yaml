@@ -1,4 +1,6 @@
-# Traefik — 내부 단일 인그레스 / 리버스 프록시 (다른 서비스의 라우팅 라벨 패턴 레퍼런스)
+# Traefik — 내부 단일 인그레스 (Cloudflare Tunnel 모드, 평문 HTTP)
+# cloudflared 가 docker 네트워크로 traefik:80 에 접속 → Host 기반 라우팅.
+# 다른 서비스는 아래 라벨 패턴을 복사해서 노출한다(entrypoints=web).
 # 기동:  make up s=edge/traefik
 
 services:
@@ -9,23 +11,20 @@ services:
     command:
       - --configFile=/etc/traefik/traefik.yaml
     ports:
-      - "80:80"
-      - "443:443"
+      - "80:80"          # (선택) LAN/Tailscale 직접 접근용. 터널 경로는 호스트 포트 불필요.
     environment:
       - TZ=${TZ:-Asia/Seoul}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config/traefik.yaml:/etc/traefik/traefik.yaml:ro
       - ./config/dynamic:/etc/traefik/dynamic:ro
-      - ${DATA_ROOT:-/home/mgmt-data}/traefik/acme.json:/acme.json
     networks:
       - mgmt-proxy
     labels:
       - "traefik.enable=true"
-      # ── 다른 서비스에 이 패턴을 복사해서 사용 ──
+      # ── 다른 서비스에 이 패턴 복사 (Host 규칙만 교체) ──
       - "traefik.http.routers.traefik.rule=Host(`traefik.${BASE_DOMAIN}`)"
-      - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik.tls.certresolver=le"
+      - "traefik.http.routers.traefik.entrypoints=web"
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.middlewares=secure-headers@file"
 
