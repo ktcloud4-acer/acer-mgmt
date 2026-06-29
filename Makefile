@@ -5,9 +5,12 @@ SHELL    := /bin/bash
 COMPOSE  := docker compose
 STACKS   := stacks
 PROXY_NET ?= mgmt-proxy
+ENV_FILE ?= .env
 
-# s 인자를 받는 타깃들을 위한 헬퍼
-CF = $(COMPOSE) -f $(STACKS)/$(s)/compose.yaml
+# s 인자를 받는 타깃들을 위한 헬퍼.
+# 루트 .env 가 있으면 모든 서비스에 공통 변수(BASE_DOMAIN 등)로 주입한다.
+ENVFLAG := $(if $(wildcard $(ENV_FILE)),--env-file $(ENV_FILE),)
+CF = $(COMPOSE) $(ENVFLAG) -f $(STACKS)/$(s)/compose.yaml
 
 .PHONY: help net up down restart logs ps pull config
 
