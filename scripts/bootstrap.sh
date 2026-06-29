@@ -13,7 +13,7 @@ echo "[2/4] 커널 파라미터 (Elasticsearch / SonarQube 요구치)"
 sudo sysctl -w vm.max_map_count=262144
 echo 'vm.max_map_count=262144' | sudo tee /etc/sysctl.d/99-mgmt.conf >/dev/null
 
-echo "[3/4] 데이터 루트 준비: ${DATA_ROOT}  (디스크 제약상 /home)"
+echo "[3/4] 데이터 루트 준비: ${DATA_ROOT}"
 sudo mkdir -p "${DATA_ROOT}"
 sudo chown "$(id -u):$(id -g)" "${DATA_ROOT}"
 
