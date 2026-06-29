@@ -14,6 +14,8 @@ services:
       - "80:80"          # (선택) LAN/Tailscale 직접 접근용. 터널 경로는 호스트 포트 불필요.
     environment:
       - TZ=${TZ:-Asia/Seoul}
+      # Docker Engine 29.x(min API 1.40)에서 traefik docker client(기본 1.24) 거부 회피
+      - DOCKER_API_VERSION=1.44
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config/traefik.yaml:/etc/traefik/traefik.yaml:ro
