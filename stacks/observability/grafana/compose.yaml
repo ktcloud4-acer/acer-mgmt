@@ -1,0 +1,8 @@
+# grafana (시각화) — 스켈레톤 (TODO)
+# datasource(prometheus/elk)·dashboard 는 provisioning/ 하위.
+# 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/grafana 하위 사용.
+services: {}
+
+networks:
+  mgmt-proxy:
+    external: true

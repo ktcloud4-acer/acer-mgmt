@@ -1,0 +1,8 @@
+# gitlab (SCM + DevOps) — 스켈레톤 (TODO)
+# RAM 4~8G 소요. config/ 에 gitlab.rb 매핑. 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/gitlab.
+# 라우팅 라벨 패턴은 stacks/edge/traefik/compose.yaml 참조.
+services: {}
+
+networks:
+  mgmt-proxy:
+    external: true

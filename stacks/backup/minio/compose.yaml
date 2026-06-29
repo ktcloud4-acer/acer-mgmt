@@ -1,0 +1,8 @@
+# minio (S3 호환 오브젝트 스토리지) — 스켈레톤 (TODO)
+# 백업 타깃/아티팩트 저장. mc 로 버킷 초기화(Velero/restic 타깃).
+# 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/minio 하위 사용(대용량 → /home 권장).
+services: {}
+
+networks:
+  mgmt-proxy:
+    external: true

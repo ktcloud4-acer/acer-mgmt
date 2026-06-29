@@ -1,0 +1,8 @@
+# restic (호스트 볼륨 증분·암호화 백업) — 스켈레톤 (TODO)
+# DATA_ROOT 하위 볼륨 → minio(S3) 로 cron 백업. 리포 암호 키는 secrets.
+# (Velero 는 K8s 측 배포 — 여기선 백업 타깃 버킷만 minio 에 생성)
+services: {}
+
+networks:
+  mgmt-proxy:
+    external: true

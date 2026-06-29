@@ -1,0 +1,8 @@
+# cloudflared (Cloudflare Tunnel) — 스켈레톤 (TODO)
+# 공인 IP 없이 내부 Traefik 으로 인입. ingress 규칙은 config/config.yml.
+# 토큰/크리덴셜은 .env / secrets 에 두고 커밋 금지.
+services: {}
+
+networks:
+  mgmt-proxy:
+    external: true

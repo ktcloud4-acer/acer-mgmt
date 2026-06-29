@@ -1,0 +1,7 @@
+# gitlab-runner (CI/CD 실행기) — 스켈레톤 (TODO)
+# config/config.toml 에 러너 등록. 등록 토큰은 .env / secrets.
+services: {}
+
+networks:
+  mgmt-proxy:
+    external: true

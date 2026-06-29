@@ -1,0 +1,8 @@
+# sonarqube (정적분석/품질) — 스켈레톤 (TODO)
+# sonarqube + postgres 동거. 내장 ES 때문에 vm.max_map_count=262144 필요(부트스트랩 적용).
+# 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/sonarqube 하위 사용.
+services: {}
+
+networks:
+  mgmt-proxy:
+    external: true

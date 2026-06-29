@@ -1,0 +1,33 @@
+# Traefik static config
+api:
+  dashboard: true
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    exposedByDefault: false        # traefik.enable=true 라벨이 있는 컨테이너만 노출
+    network: mgmt-proxy
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+certificatesResolvers:
+  le:
+    acme:
+      email: "admin@example.com"   # .env / ACME_EMAIL 로 교체
+      storage: /acme.json
+      tlsChallenge: {}
+
+log:
+  level: INFO
+accessLog: {}

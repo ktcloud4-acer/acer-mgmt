@@ -1,0 +1,8 @@
+# vault (시크릿/인증서/키 중앙 관리) — 스켈레톤 (TODO)
+# 설정은 config/vault.hcl. unseal 키/루트 토큰은 secrets 에 안전 보관.
+# 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/vault 하위 사용.
+services: {}
+
+networks:
+  mgmt-proxy:
+    external: true

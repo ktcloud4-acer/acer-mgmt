@@ -1,0 +1,8 @@
+# homepage (포털 대시보드) — 스켈레톤 (TODO)
+# 서비스 링크/상태를 모은 진입 포털. 설정은 config/*.yaml.
+# Traefik 라벨 패턴은 stacks/edge/traefik/compose.yaml 참조.
+services: {}
+
+networks:
+  mgmt-proxy:
+    external: true

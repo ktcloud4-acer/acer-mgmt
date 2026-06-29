@@ -1,0 +1,8 @@
+# prometheus (메트릭 수집) — 스켈레톤 (TODO)
+# K8s 익스포터(node-exporter/kube-state-metrics/OpenCost) 스크레이프 타깃은 config/prometheus.yml.
+# 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/prometheus 하위 사용.
+services: {}
+
+networks:
+  mgmt-proxy:
+    external: true

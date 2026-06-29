@@ -1,0 +1,9 @@
+# ELK (Elasticsearch + Logstash + Kibana) — 스켈레톤 (TODO)
+# 한 compose 프로젝트로 묶음. ES heap 와 vm.max_map_count=262144 필요(부트스트랩 적용).
+# Beats 는 피수집 호스트에서 → 여기 ELK 로 적재. 설정은 config/ 하위.
+# 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/elk 하위 사용.
+services: {}
+
+networks:
+  mgmt-proxy:
+    external: true
