@@ -1,12 +1,26 @@
-# Traefik static config — Cloudflare Tunnel 모드
-# TLS는 Cloudflare 엣지에서 종단. cloudflared → traefik:80(평문 HTTP) → 서비스.
-# 따라서 내부 ACME/HTTPS 리다이렉트는 두지 않는다.
+# Traefik static config — Cloudflare DNS-01 HTTPS / Tailscale 전용 접근
+# *.imcherry5778.xyz 는 Cloudflare DNS 에서 Tailscale IP(100.117.59.96)로 해석되어
+# 테일넷 멤버만 도달한다. Traefik 이 실제 LE 와일드카드 인증서로 HTTPS 를 종단한다.
 api:
   dashboard: true
 
 entryPoints:
   web:
     address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        certResolver: le
+        domains:
+          - main: "imcherry5778.xyz"
+            sans:
+              - "*.imcherry5778.xyz"
 
 providers:
   docker:
@@ -15,6 +29,17 @@ providers:
   file:
     directory: /etc/traefik/dynamic
     watch: true
+
+certificatesResolvers:
+  le:
+    acme:
+      email: "imcherry5778@gmail.com"
+      storage: /acme/acme.json
+      dnsChallenge:
+        provider: cloudflare          # 토큰은 CF_DNS_API_TOKEN env (.env)
+        resolvers:
+          - "1.1.1.1:53"
+          - "8.8.8.8:53"
 
 log:
   level: INFO
