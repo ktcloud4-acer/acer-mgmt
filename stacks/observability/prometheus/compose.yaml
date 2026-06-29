@@ -1,8 +1,58 @@
-# prometheus (메트릭 수집) — 스켈레톤 (TODO)
-# K8s 익스포터(node-exporter/kube-state-metrics/OpenCost) 스크레이프 타깃은 config/prometheus.yml.
-# 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/prometheus 하위 사용.
-services: {}
+# Prometheus + mgmt 호스트 node-exporter
+# K8s exporter 타깃은 config/prometheus.yml 에 추후 추가한다.
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.12.0
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.enable-lifecycle
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/prometheus:/prometheus:Z
+    networks:
+      - default
+      - mgmt-proxy
+    depends_on:
+      - node-exporter
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.middlewares=secure-headers@file"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:v1.11.1
+    container_name: node-exporter
+    restart: unless-stopped
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/rootfs
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro,rslave
+      - /run/udev/data:/run/udev/data:ro
+    networks:
+      - default
+    security_opt:
+      - no-new-privileges:true
 
 networks:
   mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
     external: true

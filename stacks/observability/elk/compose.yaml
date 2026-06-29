@@ -1,9 +1,83 @@
-# ELK (Elasticsearch + Logstash + Kibana) — 스켈레톤 (TODO)
-# 한 compose 프로젝트로 묶음. ES heap 와 vm.max_map_count=262144 필요(부트스트랩 적용).
-# Beats 는 피수집 호스트에서 → 여기 ELK 로 적재. 설정은 config/ 하위.
-# 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/elk 하위 사용.
-services: {}
+# Elasticsearch + Logstash + Kibana 단일 노드
+# Kibana는 Traefik HTTPS, 수집 포트는 Tailscale 주소에만 노출한다.
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.4.2
+    container_name: elasticsearch
+    restart: unless-stopped
+    mem_limit: 4g
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      xpack.security.enrollment.enabled: "false"
+      ES_JAVA_OPTS: -Xms2g -Xmx2g
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/elk/elasticsearch:/usr/share/elasticsearch/data:Z
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health?wait_for_status=yellow >/dev/null"]
+      interval: 20s
+      timeout: 10s
+      retries: 30
+      start_period: 1m
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.4.2
+    container_name: kibana
+    restart: unless-stopped
+    mem_limit: 2g
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      SERVER_PUBLICBASEURL: https://kibana.${BASE_DOMAIN}
+      TELEMETRY_ENABLED: "false"
+    networks:
+      - default
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5601/api/status >/dev/null"]
+      interval: 20s
+      timeout: 10s
+      retries: 30
+      start_period: 1m
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.kibana.rule=Host(`kibana.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.kibana.entrypoints=websecure"
+      - "traefik.http.routers.kibana.middlewares=secure-headers@file"
+      - "traefik.http.services.kibana.loadbalancer.server.port=5601"
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:9.4.2
+    container_name: logstash
+    restart: unless-stopped
+    mem_limit: 2g
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      LS_JAVA_OPTS: -Xms1g -Xmx1g
+      XPACK_MONITORING_ENABLED: "false"
+    volumes:
+      - ./config/pipeline:/usr/share/logstash/pipeline:ro,Z
+    ports:
+      - "${TAILSCALE_IP:?TAILSCALE_IP must be set}:5044:5044"
+      - "${TAILSCALE_IP:?TAILSCALE_IP must be set}:5000:5000"
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9600/_node/pipelines >/dev/null"]
+      interval: 20s
+      timeout: 10s
+      retries: 30
+      start_period: 1m
 
 networks:
   mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
     external: true

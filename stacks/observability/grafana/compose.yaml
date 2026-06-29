@@ -1,8 +1,39 @@
-# grafana (시각화) — 스켈레톤 (TODO)
-# datasource(prometheus/elk)·dashboard 는 provisioning/ 하위.
-# 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/grafana 하위 사용.
-services: {}
+# Grafana — Prometheus datasource는 provisioning으로 자동 등록
+
+services:
+  grafana:
+    image: grafana/grafana:13.0.2
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      GF_SERVER_DOMAIN: grafana.${BASE_DOMAIN}
+      GF_SERVER_ROOT_URL: https://grafana.${BASE_DOMAIN}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER must be set}
+      GF_SECURITY_ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD must be set}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/grafana:/var/lib/grafana:Z
+      - ./provisioning/datasources/prometheus.yaml:/etc/grafana/provisioning/datasources/prometheus.yaml:ro,Z
+    networks:
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.middlewares=secure-headers@file"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
 
 networks:
   mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
     external: true

@@ -1,0 +1,65 @@
+- Observability:
+    - Grafana:
+        icon: grafana.png
+        href: https://grafana.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: Metrics dashboards
+    - Prometheus:
+        icon: prometheus.png
+        href: https://prometheus.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: Metrics collection and queries
+    - Kibana:
+        icon: kibana.png
+        href: https://kibana.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: Central log search and analysis
+
+- Backup:
+    - MinIO:
+        icon: minio.png
+        href: https://minio.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: S3-compatible backup storage
+    - Restic:
+        icon: restic.png
+        description: Daily encrypted host-volume backup
+
+- CI/CD:
+    - GitLab:
+        icon: gitlab.png
+        href: https://gitlab.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: Source control and CI/CD
+    - GitLab Runner:
+        icon: gitlab.png
+        description: Registered Docker CI executor
+    - SonarQube:
+        icon: sonarqube.png
+        href: https://sonar.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: Static analysis and quality
+    - Semaphore:
+        icon: semaphore.png
+        href: https://semaphore.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: Ansible automation
+    - Harbor:
+        icon: harbor.png
+        href: https://harbor.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: OCI image registry
+
+- Data:
+    - Kafka:
+        icon: apache-kafka.png
+        href: https://kafka.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: Event streaming and broker UI
+    - Supabase:
+        icon: supabase.png
+        href: https://supabase.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: Self-hosted backend platform
+
+- Security:
+    - Vault:
+        icon: vault.png
+        href: https://vault.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: Secrets management
+
+- Edge:
+    - Traefik:
+        icon: traefik-proxy.png
+        href: https://traefik.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: Internal ingress dashboard

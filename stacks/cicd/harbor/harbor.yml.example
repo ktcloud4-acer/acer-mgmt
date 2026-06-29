@@ -1,0 +1,43 @@
+hostname: harbor.mgmt.example.com
+
+http:
+  port: 8080
+
+# TLS는 앞단 Traefik이 종료한다.
+external_url: https://harbor.mgmt.example.com
+
+harbor_admin_password: change-me
+
+database:
+  password: change-me
+  max_idle_conns: 100
+  max_open_conns: 900
+
+data_volume: /home/mgmt-data/harbor
+
+trivy:
+  ignore_unfixed: false
+  skip_update: false
+  offline_scan: false
+  security_check: vuln
+  insecure: false
+  timeout: 5m0s
+
+jobservice:
+  max_job_workers: 10
+  job_loggers:
+    - STD_OUTPUT
+    - FILE
+  logger_sweeper_duration: 1
+
+notification:
+  webhook_job_max_retry: 3
+
+log:
+  level: info
+  local:
+    rotate_count: 20
+    rotate_size: 100M
+    location: /home/mgmt-data/harbor/log
+
+_version: 2.14.0

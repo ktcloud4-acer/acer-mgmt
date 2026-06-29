@@ -1,8 +1,36 @@
-# homepage (포털 대시보드) — 스켈레톤 (TODO)
-# 서비스 링크/상태를 모은 진입 포털. 설정은 config/*.yaml.
-# Traefik 라벨 패턴은 stacks/edge/traefik/compose.yaml 참조.
-services: {}
+# Homepage — mgmt 서비스 포털
+# Docker socket은 의도적으로 마운트하지 않는다.
+
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:v1.13.2
+    container_name: homepage
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      HOMEPAGE_ALLOWED_HOSTS: home.${BASE_DOMAIN}
+      HOMEPAGE_VAR_BASE_DOMAIN: ${BASE_DOMAIN}
+      PUID: "1000"
+      PGID: "1000"
+    volumes:
+      - ./config:/app/config:Z
+    networks:
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:3000/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.homepage.rule=Host(`home.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.homepage.entrypoints=websecure"
+      - "traefik.http.routers.homepage.middlewares=secure-headers@file"
+      - "traefik.http.services.homepage.loadbalancer.server.port=3000"
 
 networks:
   mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
     external: true

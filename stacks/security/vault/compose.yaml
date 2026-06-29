@@ -1,8 +1,37 @@
-# vault (시크릿/인증서/키 중앙 관리) — 스켈레톤 (TODO)
-# 설정은 config/vault.hcl. unseal 키/루트 토큰은 secrets 에 안전 보관.
-# 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/vault 하위 사용.
-services: {}
+# Vault Community — single-node Raft integrated storage
+# 초기화 결과는 git 제외된 secrets/vault-init.json 에 저장한다.
+
+services:
+  vault:
+    image: hashicorp/vault:2.0.3
+    container_name: vault
+    restart: unless-stopped
+    command: server
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      VAULT_ADDR: http://127.0.0.1:8200
+    volumes:
+      - ./config/vault.hcl:/vault/config/vault.hcl:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault:/vault/data:Z
+    networks:
+      - mgmt-proxy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - vault status >/dev/null 2>&1; code=$$?; test $$code -eq 0 -o $$code -eq 2
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.vault.rule=Host(`vault.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.vault.entrypoints=websecure"
+      - "traefik.http.routers.vault.middlewares=secure-headers@file"
+      - "traefik.http.services.vault.loadbalancer.server.port=8200"
 
 networks:
   mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
     external: true

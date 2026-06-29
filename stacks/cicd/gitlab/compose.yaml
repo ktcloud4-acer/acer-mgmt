@@ -1,8 +1,56 @@
-# gitlab (SCM + DevOps) — 스켈레톤 (TODO)
-# RAM 4~8G 소요. config/ 에 gitlab.rb 매핑. 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/gitlab.
-# 라우팅 라벨 패턴은 stacks/edge/traefik/compose.yaml 참조.
-services: {}
+# GitLab CE Omnibus — HTTPS는 Traefik에서 종단
+# SSH는 Tailscale IP의 2222 포트만 사용한다.
+
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:19.1.1-ce.0
+    container_name: gitlab
+    hostname: gitlab.${BASE_DOMAIN}
+    restart: unless-stopped
+    shm_size: 256m
+    mem_limit: 8g
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      GITLAB_ROOT_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD must be set}
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://gitlab.${BASE_DOMAIN}'
+        nginx['listen_port'] = 80
+        nginx['listen_https'] = false
+        nginx['proxy_set_headers'] = {
+          'Host' => '$$http_host',
+          'X-Real-IP' => '$$remote_addr',
+          'X-Forwarded-For' => '$$proxy_add_x_forwarded_for',
+          'X-Forwarded-Proto' => 'https',
+          'X-Forwarded-Ssl' => 'on'
+        }
+        letsencrypt['enable'] = false
+        gitlab_rails['gitlab_shell_ssh_port'] = 2222
+        gitlab_rails['time_zone'] = 'Asia/Seoul'
+        prometheus_monitoring['enable'] = false
+        alertmanager['enable'] = false
+    ports:
+      - "${TAILSCALE_IP:-100.117.59.96}:2222:22"
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/gitlab/config:/etc/gitlab:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/gitlab/logs:/var/log/gitlab:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/gitlab/data:/var/opt/gitlab:Z
+    networks:
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/-/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 30
+      start_period: 5m
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.gitlab.rule=Host(`gitlab.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.gitlab.entrypoints=websecure"
+      - "traefik.http.routers.gitlab.middlewares=secure-headers@file"
+      - "traefik.http.services.gitlab.loadbalancer.server.port=80"
 
 networks:
   mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
     external: true

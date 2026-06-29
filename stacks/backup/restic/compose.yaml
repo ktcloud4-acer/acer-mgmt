@@ -1,8 +1,47 @@
-# restic (호스트 볼륨 증분·암호화 백업) — 스켈레톤 (TODO)
-# DATA_ROOT 하위 볼륨 → minio(S3) 로 cron 백업. 리포 암호 키는 secrets.
-# (Velero 는 K8s 측 배포 — 여기선 백업 타깃 버킷만 minio 에 생성)
-services: {}
+# Restic 암호화 백업 — DATA_ROOT를 내부 MinIO의 restic 버킷에 매일 저장
+# 실행 중인 DB의 애플리케이션 정합성 백업은 각 DB dump 작업으로 별도 보강해야 한다.
+
+services:
+  restic:
+    image: restic/restic:0.19.0
+    container_name: restic
+    restart: unless-stopped
+    mem_limit: 1g
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        if ! restic snapshots >/dev/null 2>&1; then
+          restic init
+        fi
+        while true; do
+          restic backup /source \
+            --exclude=/source/minio \
+            --exclude=/source/restic-cache \
+            --exclude-caches \
+            --tag daily
+          restic forget --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune
+          sleep 86400
+        done
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      RESTIC_REPOSITORY: s3:http://minio:9000/restic
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD:?RESTIC_PASSWORD must be set}
+      RESTIC_CACHE_DIR: /cache
+      AWS_ACCESS_KEY_ID: ${RESTIC_ACCESS_KEY:?RESTIC_ACCESS_KEY must be set}
+      AWS_SECRET_ACCESS_KEY: ${RESTIC_SECRET_KEY:?RESTIC_SECRET_KEY must be set}
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}:/source:ro,z
+      - ${DATA_ROOT:-/home/mgmt-data}/restic-cache:/cache:Z
+    networks:
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "restic snapshots --latest 1 >/dev/null"]
+      interval: 5m
+      timeout: 1m
+      retries: 3
+      start_period: 10m
 
 networks:
   mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
     external: true

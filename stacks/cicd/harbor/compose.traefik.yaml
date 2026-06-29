@@ -1,0 +1,18 @@
+services:
+  proxy:
+    ports: !reset []
+    networks:
+      harbor:
+      mgmt-proxy:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.harbor.rule=Host(`harbor.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.harbor.entrypoints=websecure"
+      - "traefik.http.routers.harbor.middlewares=secure-headers@file"
+      - "traefik.http.services.harbor.loadbalancer.server.port=8080"
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true

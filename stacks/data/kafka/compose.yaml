@@ -1,0 +1,70 @@
+# Kafka 4.x KRaft 단일 노드 + Kafbat UI
+# 브로커는 Docker 내부에서만 접근하고, UI만 Traefik HTTPS로 노출한다.
+
+services:
+  kafka:
+    image: apache/kafka:4.3.0
+    container_name: kafka
+    restart: unless-stopped
+    mem_limit: 2g
+    environment:
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENERS: CONTROLLER://:29093,PLAINTEXT://:19092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:19092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: "1"
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      CLUSTER_ID: 4L6g3nShT-eMCtK--X86sw
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/kafka:/var/lib/kafka/data:Z
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:19092 --list >/dev/null"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+      start_period: 40s
+
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:v1.5.0
+    container_name: kafka-ui
+    restart: unless-stopped
+    mem_limit: 1g
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: mgmt
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:19092
+      SERVER_SERVLET_CONTEXT_PATH: /
+    networks:
+      - default
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+      start_period: 45s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.kafka-ui.rule=Host(`kafka.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.kafka-ui.entrypoints=websecure"
+      - "traefik.http.routers.kafka-ui.middlewares=secure-headers@file"
+      - "traefik.http.services.kafka-ui.loadbalancer.server.port=8080"
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true

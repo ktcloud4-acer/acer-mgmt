@@ -1,8 +1,72 @@
-# semaphore (Ansible 플레이북 실행/스케줄 GUI) — 스켈레톤 (TODO)
-# 인프라 자동화(OpenStack/K8s 대상). DB 백엔드 필요.
-# 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/semaphore 하위 사용.
-services: {}
+# Semaphore UI + PostgreSQL
+
+services:
+  semaphore:
+    image: semaphoreui/semaphore:v2.18.12
+    container_name: semaphore
+    restart: unless-stopped
+    depends_on:
+      semaphore-db:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      SEMAPHORE_DB_DIALECT: postgres
+      SEMAPHORE_DB_HOST: semaphore-db
+      SEMAPHORE_DB_PORT: "5432"
+      SEMAPHORE_DB: semaphore
+      SEMAPHORE_DB_NAME: semaphore
+      SEMAPHORE_DB_USER: semaphore
+      SEMAPHORE_DB_PASS: ${SEMAPHORE_DB_PASSWORD:?SEMAPHORE_DB_PASSWORD must be set}
+      SEMAPHORE_ADMIN: ${SEMAPHORE_ADMIN_USER:-admin}
+      SEMAPHORE_ADMIN_NAME: Administrator
+      SEMAPHORE_ADMIN_EMAIL: admin@${BASE_DOMAIN}
+      SEMAPHORE_ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD must be set}
+      SEMAPHORE_ACCESS_KEY_ENCRYPTION: ${SEMAPHORE_ACCESS_KEY_ENCRYPTION:?SEMAPHORE_ACCESS_KEY_ENCRYPTION must be set}
+      SEMAPHORE_COOKIE_HASH: ${SEMAPHORE_COOKIE_HASH:?SEMAPHORE_COOKIE_HASH must be set}
+      SEMAPHORE_COOKIE_ENCRYPTION: ${SEMAPHORE_COOKIE_ENCRYPTION:?SEMAPHORE_COOKIE_ENCRYPTION must be set}
+      SEMAPHORE_SCHEDULE_TIMEZONE: ${TZ:-Asia/Seoul}
+      SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore
+    networks:
+      - default
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:3000/api/ping || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.semaphore.rule=Host(`semaphore.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.semaphore.entrypoints=websecure"
+      - "traefik.http.routers.semaphore.middlewares=secure-headers@file"
+      - "traefik.http.services.semaphore.loadbalancer.server.port=3000"
+
+  semaphore-db:
+    image: postgres:17-alpine
+    container_name: semaphore-db
+    restart: unless-stopped
+    mem_limit: 1g
+    environment:
+      POSTGRES_DB: semaphore
+      POSTGRES_USER: semaphore
+      POSTGRES_PASSWORD: ${SEMAPHORE_DB_PASSWORD:?SEMAPHORE_DB_PASSWORD must be set}
+    volumes:
+      - semaphore-postgres:/var/lib/postgresql/data
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U semaphore -d semaphore"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  semaphore-postgres:
+    name: semaphore-postgres
 
 networks:
   mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
     external: true

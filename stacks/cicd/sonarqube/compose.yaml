@@ -1,8 +1,72 @@
-# sonarqube (정적분석/품질) — 스켈레톤 (TODO)
-# sonarqube + postgres 동거. 내장 ES 때문에 vm.max_map_count=262144 필요(부트스트랩 적용).
-# 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/sonarqube 하위 사용.
-services: {}
+# SonarQube Community Build + PostgreSQL
+# 관리자는 최초 admin/admin 로그인 대신 배포 후 ADMIN_PASSWORD로 즉시 변경한다.
+
+services:
+  sonarqube:
+    image: sonarqube:26.6.0.123539-community
+    container_name: sonarqube
+    restart: unless-stopped
+    mem_limit: 4g
+    depends_on:
+      sonarqube-db:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube-db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: ${SONAR_DB_PASSWORD:?SONAR_DB_PASSWORD must be set}
+      SONAR_AUTH_JWTBASE64HS256SECRET: ${SONAR_JWT_SECRET:?SONAR_JWT_SECRET must be set}
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-extensions:/opt/sonarqube/extensions
+      - sonarqube-logs:/opt/sonarqube/logs
+    networks:
+      - default
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/api/system/status | grep -q '\"status\":\"UP\"'"]
+      interval: 20s
+      timeout: 10s
+      retries: 30
+      start_period: 2m
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.sonarqube.rule=Host(`sonar.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.sonarqube.entrypoints=websecure"
+      - "traefik.http.routers.sonarqube.middlewares=secure-headers@file"
+      - "traefik.http.services.sonarqube.loadbalancer.server.port=9000"
+
+  sonarqube-db:
+    image: postgres:17-alpine
+    container_name: sonarqube-db
+    restart: unless-stopped
+    mem_limit: 1g
+    environment:
+      POSTGRES_DB: sonar
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: ${SONAR_DB_PASSWORD:?SONAR_DB_PASSWORD must be set}
+    volumes:
+      - sonarqube-postgres:/var/lib/postgresql/data
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sonar -d sonar"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  sonarqube-data:
+    name: sonarqube-data
+  sonarqube-extensions:
+    name: sonarqube-extensions
+  sonarqube-logs:
+    name: sonarqube-logs
+  sonarqube-postgres:
+    name: sonarqube-postgres
 
 networks:
   mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
     external: true

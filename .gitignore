@@ -6,9 +6,13 @@ secrets/*
 !secrets/.gitkeep
 
 # ── 런타임 상태 / 볼륨 ──────────────────────────
-**/data/
+# 실제 런타임 데이터만 제외하고 stacks/data 소스 트리는 추적한다.
+**/volumes/**/data/
 **/acme.json
 **/*.log
+stacks/cicd/harbor/harbor.yml
+stacks/cicd/harbor/docker-compose.yml
+stacks/cicd/harbor/common/
 
 # ── OS / 에디터 ─────────────────────────────────
 .DS_Store

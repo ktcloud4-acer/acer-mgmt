@@ -1,6 +1,6 @@
-# harbor (이미지 레지스트리 + 취약점 스캔/서명) — 스켈레톤 (TODO)
-# Harbor 는 멀티 컨테이너. 공식 오프라인 인스톨러의 harbor.yml 기반 구성 예정.
-# 영속 데이터는 ${DATA_ROOT:-/home/mgmt-data}/harbor 하위 사용.
+# Harbor는 공식 installer가 이 파일을 배포 호스트에서 생성한다.
+# 생성본은 비밀값을 포함하므로 저장소에는 harbor.yml.example,
+# compose.traefik.yaml 및 README.md만 공유한다.
 services: {}
 
 networks:

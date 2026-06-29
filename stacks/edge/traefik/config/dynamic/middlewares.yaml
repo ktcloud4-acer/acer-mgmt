@@ -12,4 +12,5 @@ http:
     # 내부 도구 보호용 기본 인증 (사용 시 .env/secrets 의 해시로 교체)
     basic-auth:
       basicAuth:
-        users: []   # 예: "admin:$apr1$..." (htpasswd)
+        users:
+          - "admin:$apr1$9k2at2og$Ch6IDREzEbaYgIsWhs2dK1"

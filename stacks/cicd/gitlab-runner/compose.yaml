@@ -1,7 +1,15 @@
-# gitlab-runner (CI/CD 실행기) — 스켈레톤 (TODO)
-# config/config.toml 에 러너 등록. 등록 토큰은 .env / secrets.
-services: {}
+# GitLab Runner — Docker executor
+# 최초 등록 결과는 ${DATA_ROOT}/gitlab-runner/config.toml 에 저장한다.
 
-networks:
-  mgmt-proxy:
-    external: true
+services:
+  gitlab-runner:
+    image: gitlab/gitlab-runner:v19.1.1
+    container_name: gitlab-runner
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/gitlab-runner:/etc/gitlab-runner:Z
+      - /var/run/docker.sock:/var/run/docker.sock
+    security_opt:
+      - no-new-privileges:true
