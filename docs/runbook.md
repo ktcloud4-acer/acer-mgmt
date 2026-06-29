@@ -22,6 +22,20 @@ sudo systemctl mask podman.socket
 ./scripts/bootstrap.sh
 ```
 
+## Docker 29.x 호환 (필수)
+
+Docker Engine 29.x 는 최소 API 버전을 1.40 으로 올렸는데, Traefik docker provider 는
+API 1.24 로 접속하며 `DOCKER_API_VERSION` 환경변수도 무시한다. 데몬이 구버전 API 를
+다시 허용하도록 drop-in 을 추가한다(없으면 Traefik 라우팅이 전혀 동작하지 않음):
+
+```bash
+sudo mkdir -p /etc/systemd/system/docker.service.d
+echo -e '[Service]\nEnvironment=DOCKER_MIN_API_VERSION=1.24' | \
+  sudo tee /etc/systemd/system/docker.service.d/min-api.conf
+sudo systemctl daemon-reload && sudo systemctl restart docker
+docker version --format 'Min: {{.Server.MinAPIVersion}}'   # → Min: 1.24 확인
+```
+
 ## 일상 운영
 
 ```bash

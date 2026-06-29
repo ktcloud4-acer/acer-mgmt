@@ -12,10 +12,11 @@ services:
       - --configFile=/etc/traefik/traefik.yaml
     ports:
       - "80:80"          # (선택) LAN/Tailscale 직접 접근용. 터널 경로는 호스트 포트 불필요.
+    # 주의: Docker Engine 29.x(min API 1.40)는 traefik docker provider(API 1.24)를 거부한다.
+    #       traefik 측 DOCKER_API_VERSION 은 무시되므로, 데몬측 DOCKER_MIN_API_VERSION=1.24
+    #       drop-in 으로 해결한다. → docs/runbook.md "Docker 29.x 호환" 참조.
     environment:
       - TZ=${TZ:-Asia/Seoul}
-      # Docker Engine 29.x(min API 1.40)에서 traefik docker client(기본 1.24) 거부 회피
-      - DOCKER_API_VERSION=1.44
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config/traefik.yaml:/etc/traefik/traefik.yaml:ro
