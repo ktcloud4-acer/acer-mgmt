@@ -25,4 +25,4 @@ else
   echo "  semanage 없음 → 'sudo dnf install -y policycoreutils-python-utils' 후 재실행 권장"
 fi
 
-echo "완료. 다음 단계:  make up s=edge/traefik"
+echo "완료. 다음 단계: 저장소 루트에서 make compose-up s=edge/traefik"

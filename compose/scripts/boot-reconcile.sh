@@ -9,7 +9,7 @@
 set -uo pipefail
 log(){ echo "[boot-reconcile] $*"; }
 
-# repo root 결정: 환경변수 > repo 내 실행(스크립트 상대) > 기본값.
+# compose root 결정: 환경변수 > repo 내 실행(스크립트 상대) > 기본값.
 # systemd 는 SELinux 때문에 /usr/local/sbin(bin_t)에 설치된 사본을 실행하므로
 # 스크립트 위치로 repo 를 추정할 수 없다 → ACER_MGMT_REPO 로 주입한다.
 if [[ -n "${ACER_MGMT_REPO:-}" ]]; then
@@ -17,7 +17,7 @@ if [[ -n "${ACER_MGMT_REPO:-}" ]]; then
 elif [[ -f "$(dirname "$0")/../Makefile" ]]; then
   REPO="$(cd "$(dirname "$0")/.." && pwd)"
 else
-  REPO="/home/user1/acer-mgmt"
+  REPO="/home/user1/acer-mgmt/compose"
 fi
 cd "${REPO}" || { log "FATAL: repo root 접근 불가: ${REPO}"; exit 1; }
 log "repo: ${REPO}"

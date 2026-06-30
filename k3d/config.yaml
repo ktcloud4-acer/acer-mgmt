@@ -1,0 +1,40 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: mgmt
+
+# Argo CD 전용 단일 노드 관리 클러스터.
+servers: 1
+agents: 0
+image: rancher/k3s:v1.35.6-k3s1
+network: mgmt-proxy
+
+# Kubernetes API는 mgmt 호스트 로컬에서만 접근한다.
+kubeAPI:
+  host: 127.0.0.1
+  hostIP: 127.0.0.1
+  hostPort: "6550"
+
+# k3d serverlb의 HTTP ingress를 로컬 점검용 8081에도 노출한다.
+# 정식 HTTPS 진입점은 기존 Docker Traefik(:443)이다.
+ports:
+  - port: 127.0.0.1:8081:80
+    nodeFilters:
+      - loadbalancer
+
+# k3s 상태와 local-path PVC를 호스트 데이터 루트에 영속화한다.
+volumes:
+  - volume: /home/mgmt-data/k3d/mgmt:/var/lib/rancher/k3s
+    nodeFilters:
+      - server:0
+
+options:
+  k3d:
+    wait: true
+    timeout: 180s
+    disableLoadbalancer: false
+    disableImageVolume: false
+    disableRollback: false
+  kubeconfig:
+    updateDefaultKubeconfig: false
+    switchCurrentContext: false

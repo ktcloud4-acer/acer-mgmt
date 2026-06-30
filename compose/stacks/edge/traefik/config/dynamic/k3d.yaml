@@ -1,0 +1,17 @@
+# k3d 내부 Ingress 연결. TLS는 이 Docker Traefik에서 종료한다.
+http:
+  routers:
+    k3d-argocd:
+      rule: "Host(`argocd.imcherry5778.xyz`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - secure-headers
+      service: k3d-ingress
+
+  services:
+    k3d-ingress:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://k3d-mgmt-serverlb:80"

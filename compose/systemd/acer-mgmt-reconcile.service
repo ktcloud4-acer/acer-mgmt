@@ -1,9 +1,9 @@
 # acer-mgmt — 부팅 후 멈춘 docker 스택 수렴 복구 (tailscale/harbor-log 기동 순서 경쟁 해소)
 #
 # 설치 (SELinux Enforcing: 실행 바이너리는 /usr/local/sbin 에 두어야 함):
-#   sudo install -m 0755 scripts/boot-reconcile.sh /usr/local/sbin/acer-mgmt-boot-reconcile
+#   sudo install -m 0755 compose/scripts/boot-reconcile.sh /usr/local/sbin/acer-mgmt-boot-reconcile
 #   sudo restorecon -v /usr/local/sbin/acer-mgmt-boot-reconcile
-#   sudo cp systemd/acer-mgmt-reconcile.service /etc/systemd/system/
+#   sudo cp compose/systemd/acer-mgmt-reconcile.service /etc/systemd/system/
 #   sudo systemctl daemon-reload
 #   sudo systemctl enable --now acer-mgmt-reconcile.service
 #
@@ -22,8 +22,8 @@ Type=oneshot
 RemainAfterExit=yes
 User=user1
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-Environment=ACER_MGMT_REPO=/home/user1/acer-mgmt
-WorkingDirectory=/home/user1/acer-mgmt
+Environment=ACER_MGMT_REPO=/home/user1/acer-mgmt/compose
+WorkingDirectory=/home/user1/acer-mgmt/compose
 ExecStart=/usr/local/sbin/acer-mgmt-boot-reconcile
 TimeoutStartSec=600
 

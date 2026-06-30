@@ -1,45 +1,62 @@
-# acer-mgmt — 서비스별 독립 compose 오케스트레이션
-# 사용:  make up s=cicd/gitlab   (s = stacks 하위 경로)
+# acer-mgmt — Docker Compose와 k3d 관리 진입점
 
-SHELL    := /bin/bash
-COMPOSE  := docker compose
-STACKS   := stacks
-PROXY_NET ?= mgmt-proxy
-ENV_FILE ?= .env
+SHELL := /bin/bash
 
-# s 인자를 받는 타깃들을 위한 헬퍼.
-# 루트 .env 가 있으면 모든 서비스에 공통 변수(BASE_DOMAIN 등)로 주입한다.
-STACK_ENV_FILE = $(STACKS)/$(s)/.env
-ACTIVE_ENV_FILE = $(if $(wildcard $(STACK_ENV_FILE)),$(STACK_ENV_FILE),$(ENV_FILE))
-ENVFLAG = $(if $(wildcard $(ACTIVE_ENV_FILE)),--env-file $(ACTIVE_ENV_FILE),)
-CF = $(COMPOSE) $(ENVFLAG) -f $(STACKS)/$(s)/compose.yaml
+.PHONY: help \
+	compose-up compose-down compose-restart compose-logs compose-ps compose-pull compose-config \
+	up down restart logs ps pull config net \
+	cluster-tools cluster-validate cluster-create cluster-start cluster-stop cluster-status \
+	argocd-bootstrap argocd-status argocd-smoke cluster-destroy
 
-.PHONY: help net up down restart logs ps pull config
+help: ## 전체 도움말
+	@echo "Docker Compose"
+	@echo "  make compose-up s=cicd/gitlab"
+	@echo "  make compose-down s=cicd/gitlab"
+	@echo "  make compose-logs s=edge/traefik"
+	@echo
+	@echo "k3d / Argo CD"
+	@echo "  make cluster-tools"
+	@echo "  make cluster-create"
+	@echo "  make argocd-bootstrap"
+	@echo "  make argocd-smoke"
+	@echo "  make cluster-status"
+	@echo
+	@echo "기존 호환 명령"
+	@echo "  make up|down|logs|ps s=<domain/service>"
 
-help: ## 이 도움말 출력
-	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
-	  awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-10s\033[0m %s\n",$$1,$$2}'
+compose-up compose-down compose-restart compose-logs compose-ps compose-pull compose-config:
+	$(MAKE) -C compose $(@:compose-%=%) s="$(s)"
 
-net: ## 공용 외부 네트워크(mgmt-proxy) 생성
-	@docker network inspect $(PROXY_NET) >/dev/null 2>&1 || docker network create $(PROXY_NET)
+# 기존 운영 명령을 깨지 않도록 Compose Makefile에 위임한다.
+up down restart logs ps pull config net:
+	$(MAKE) -C compose $@ s="$(s)"
 
-up: net ## 서비스 기동      (예: make up s=edge/traefik)
-	$(CF) up -d
+cluster-tools:
+	$(MAKE) -C k3d tools
 
-down: ## 서비스 중지        (예: make down s=edge/traefik)
-	$(CF) down
+cluster-validate:
+	$(MAKE) -C k3d validate
 
-restart: ## 서비스 재시작
-	$(CF) restart
+cluster-create:
+	$(MAKE) -C k3d create
 
-logs: ## 로그 follow
-	$(CF) logs -f --tail=200
+cluster-start:
+	$(MAKE) -C k3d start
 
-ps: ## 컨테이너 상태
-	$(CF) ps
+cluster-stop:
+	$(MAKE) -C k3d stop
 
-pull: ## 이미지 갱신
-	$(CF) pull
+cluster-status:
+	$(MAKE) -C k3d status
 
-config: ## compose 렌더 결과 확인(검증)
-	$(CF) config
+argocd-bootstrap:
+	$(MAKE) -C k3d bootstrap
+
+argocd-status:
+	$(MAKE) -C k3d argocd-status
+
+argocd-smoke:
+	$(MAKE) -C k3d smoke
+
+cluster-destroy:
+	$(MAKE) -C k3d destroy CONFIRM="$(CONFIRM)"

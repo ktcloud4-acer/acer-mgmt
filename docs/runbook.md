@@ -18,8 +18,8 @@ sudo usermod -aG docker "$USER"      # 재로그인 필요
 # 4) Podman 간섭 차단 (선택)
 sudo systemctl mask podman.socket
 
-# 5) 부트스트랩
-./scripts/bootstrap.sh
+# 5) Compose 부트스트랩
+./compose/scripts/bootstrap.sh
 ```
 
 ## Docker 29.x 호환 (필수)
@@ -39,11 +39,11 @@ docker version --format 'Min: {{.Server.MinAPIVersion}}'   # → Min: 1.24 확�
 ## 일상 운영
 
 ```bash
-make up   s=<도메인>/<서비스>     # 기동
-make down s=<도메인>/<서비스>     # 중지
-make logs s=<도메인>/<서비스>     # 로그
-make ps   s=<도메인>/<서비스>     # 상태
-make config s=<도메인>/<서비스>   # compose 검증
+make compose-up     s=<도메인>/<서비스>  # 기동
+make compose-down   s=<도메인>/<서비스>  # 중지
+make compose-logs   s=<도메인>/<서비스>  # 로그
+make compose-ps     s=<도메인>/<서비스>  # 상태
+make compose-config s=<도메인>/<서비스>  # Compose 검증
 ```
 
 ## 기동 순서 권장
@@ -58,3 +58,8 @@ make config s=<도메인>/<서비스>   # compose 검증
 - 영속 데이터: `restic` → `minio` 증분.
 - K8s 리소스/PV: Velero(K8s 측) → mgmt `minio` 버킷.
 - 상세 절차 TODO.
+
+## k3d / Argo CD
+
+중앙 Argo CD 관리 클러스터는 [`runbooks/k3d-argocd.md`](runbooks/k3d-argocd.md)를
+참조한다.

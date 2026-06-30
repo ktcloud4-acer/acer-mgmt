@@ -22,6 +22,10 @@
         description: Daily encrypted host-volume backup
 
 - CI/CD:
+    - Argo CD:
+        icon: argocd.png
+        href: https://argocd.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: GitOps delivery on the k3d mgmt cluster
     - GitLab:
         icon: gitlab.png
         href: https://gitlab.{{HOMEPAGE_VAR_BASE_DOMAIN}}

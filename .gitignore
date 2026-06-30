@@ -10,23 +10,23 @@ secrets/*
 **/volumes/**/data/
 **/acme.json
 **/*.log
-stacks/cicd/harbor/harbor.yml
-stacks/cicd/harbor/docker-compose.yml
-stacks/cicd/harbor/common/
+compose/stacks/cicd/harbor/harbor.yml
+compose/stacks/cicd/harbor/docker-compose.yml
+compose/stacks/cicd/harbor/common/
 # Harbor 오프라인 설치 프로그램 압축 해제 잔여물
-stacks/cicd/harbor/LICENSE
-stacks/cicd/harbor/install.sh
-stacks/cicd/harbor/prepare
+compose/stacks/cicd/harbor/LICENSE
+compose/stacks/cicd/harbor/install.sh
+compose/stacks/cicd/harbor/prepare
 
 # ── 백업 파일 ───────────────────────────────────
 *.old
 
 # ── Homepage 컨테이너 기동 시 자동 생성하는 기본 stub ─
-stacks/edge/homepage/config/custom.css
-stacks/edge/homepage/config/custom.js
-stacks/edge/homepage/config/docker.yaml
-stacks/edge/homepage/config/kubernetes.yaml
-stacks/edge/homepage/config/proxmox.yaml
+compose/stacks/edge/homepage/config/custom.css
+compose/stacks/edge/homepage/config/custom.js
+compose/stacks/edge/homepage/config/docker.yaml
+compose/stacks/edge/homepage/config/kubernetes.yaml
+compose/stacks/edge/homepage/config/proxmox.yaml
 
 # ── OS / 에디터 ─────────────────────────────────
 .DS_Store
