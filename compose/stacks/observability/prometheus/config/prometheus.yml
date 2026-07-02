@@ -12,3 +12,13 @@ scrape_configs:
     static_configs:
       - targets:
           - node-exporter:9100
+
+  - job_name: all-in-one-nodes
+    static_configs:
+      - targets:
+          - 'ggg-node-exporter.tailc0244b.ts.net:9100'
+          - 'khb-node-exporter.tailc0244b.ts.net:9100'
+          - 'ljw-node-exporter.tailc0244b.ts.net:9100'
+          - 'nmg-node-exporter.tailc0244b.ts.net:9100'
+          - 'oje-node-exporter.tailc0244b.ts.net:9100'
+
