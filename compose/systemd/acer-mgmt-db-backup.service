@@ -1,0 +1,8 @@
+[Unit]
+Description=Acer mgmt database and configuration backup
+Wants=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/user1/acer-mgmt/compose/scripts/mgmt-db-backup.sh
