@@ -21,6 +21,7 @@ services:
       - ./dashboards:/var/lib/grafana/dashboards:ro,Z
     networks:
       - mgmt-proxy
+      - elk_default
     healthcheck:
       test: ["CMD-SHELL", "wget --spider -q http://localhost:3000/api/health || exit 1"]
       interval: 15s
@@ -38,4 +39,7 @@ services:
 networks:
   mgmt-proxy:
     name: ${PROXY_NET:-mgmt-proxy}
+    external: true
+  elk_default:
+    name: elk_default
     external: true
