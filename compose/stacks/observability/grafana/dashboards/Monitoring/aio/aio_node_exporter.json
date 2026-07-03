@@ -15,6 +15,7 @@
       }
     ]
   },
+  "description": "AIO VM(172.16.8.10) 자체의 node-exporter 리소스를 선택한 팀 클러스터의 prometheus-agent 관측 경로로 조회합니다. 리소스 값은 같은 AIO VM을 나타내며, cluster 선택은 VM 분리가 아니라 scrape 경로 분리입니다.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -31,7 +32,7 @@
       },
       "id": 1,
       "panels": [],
-      "title": "AIO Host Snapshot",
+      "title": "Selected Cluster Scrape Path → AIO VM Resources",
       "type": "row"
     },
     {
@@ -44,7 +45,23 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [],
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "DOWN / NO DATA"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "UP"
+                }
+              },
+              "type": "value"
+            }
+          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -62,6 +79,7 @@
         },
         "overrides": []
       },
+      "description": "선택한 cluster의 prometheus-agent가 AIO node-exporter를 관측하는 경로 상태입니다. 0은 scrape 실패 또는 활성 시계열 부재를 뜻합니다.",
       "gridPos": {
         "x": 0,
         "y": 1,
@@ -93,14 +111,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "max(up{job=\"host-vm\",instance=\"172.16.8.10:9100\"})",
+          "expr": "max(up{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\"}) or vector(0)",
           "legendFormat": "",
           "range": false,
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Exporter Up",
+      "title": "[$cluster] Agent → AIO Scrape",
       "type": "stat"
     },
     {
@@ -108,6 +126,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
+      "description": "AIO VM 자체의 CPU 사용률입니다. 선택한 cluster의 scrape 시계열만 사용하며 CPU 코어들만 평균합니다.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -166,14 +185,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "100 - (avg(rate(node_cpu_seconds_total{job=\"host-vm\",instance=\"172.16.8.10:9100\",mode=\"idle\"}[5m])) * 100)",
+          "expr": "100 - (avg(rate(node_cpu_seconds_total{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\",mode=\"idle\"}[5m])) * 100)",
           "legendFormat": "",
           "range": false,
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "CPU Used",
+      "title": "AIO VM CPU Used",
       "type": "stat"
     },
     {
@@ -181,6 +200,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
+      "description": "AIO VM 자체의 메모리 사용률입니다. cluster는 VM 소유권이 아니라 이 값을 전달한 관측 경로를 뜻합니다.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -239,14 +259,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(1 - (avg(node_memory_MemAvailable_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\"}) / avg(node_memory_MemTotal_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\"}))) * 100",
+          "expr": "(1 - (node_memory_MemAvailable_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\"} / node_memory_MemTotal_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\"})) * 100",
           "legendFormat": "",
           "range": false,
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Memory Used",
+      "title": "AIO VM Memory Used",
       "type": "stat"
     },
     {
@@ -254,6 +274,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
+      "description": "AIO VM 자체의 루트 파일시스템 사용률입니다. 선택한 cluster의 scrape 시계열만 조회합니다.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -312,14 +333,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "100 * (1 - (avg(node_filesystem_avail_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"}) / avg(node_filesystem_size_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"})))",
+          "expr": "100 * (1 - (node_filesystem_avail_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"} / node_filesystem_size_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"}))",
           "legendFormat": "",
           "range": false,
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Root Disk Used",
+      "title": "AIO VM Root Disk Used",
       "type": "stat"
     },
     {
@@ -327,6 +348,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
+      "description": "AIO VM 부팅 이후 경과 시간입니다. 선택한 cluster의 관측 경로로 수집된 값입니다.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -377,14 +399,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "time() - avg(node_boot_time_seconds{job=\"host-vm\",instance=\"172.16.8.10:9100\"})",
+          "expr": "time() - node_boot_time_seconds{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\"}",
           "legendFormat": "",
           "range": false,
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Uptime",
+      "title": "AIO VM Uptime",
       "type": "stat"
     },
     {
@@ -397,7 +419,7 @@
       },
       "id": 7,
       "panels": [],
-      "title": "Host Resource Trend",
+      "title": "AIO VM Resource Trends via Selected Scrape Path",
       "type": "row"
     },
     {
@@ -484,7 +506,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "100 - (avg(rate(node_cpu_seconds_total{job=\"host-vm\",instance=\"172.16.8.10:9100\",mode=\"idle\"}[5m])) * 100)",
+          "expr": "100 - (avg(rate(node_cpu_seconds_total{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\",mode=\"idle\"}[5m])) * 100)",
           "legendFormat": "cpu",
           "range": true,
           "instant": false,
@@ -496,7 +518,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(1 - (avg(node_memory_MemAvailable_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\"}) / avg(node_memory_MemTotal_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\"}))) * 100",
+          "expr": "(1 - (node_memory_MemAvailable_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\"} / node_memory_MemTotal_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\"})) * 100",
           "legendFormat": "memory",
           "range": true,
           "instant": false,
@@ -508,14 +530,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "100 * (1 - (avg(node_filesystem_avail_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"}) / avg(node_filesystem_size_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"})))",
+          "expr": "100 * (1 - (node_filesystem_avail_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"} / node_filesystem_size_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"}))",
           "legendFormat": "root disk",
           "range": true,
           "instant": false,
           "refId": "C"
         }
       ],
-      "title": "CPU / Memory / Root Disk Used",
+      "title": "[$cluster] AIO CPU / Memory / Root Disk",
       "type": "timeseries"
     },
     {
@@ -602,7 +624,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avg(node_load1{job=\"host-vm\",instance=\"172.16.8.10:9100\"})",
+          "expr": "node_load1{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\"}",
           "legendFormat": "load1",
           "range": true,
           "instant": false,
@@ -614,7 +636,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avg(node_load5{job=\"host-vm\",instance=\"172.16.8.10:9100\"})",
+          "expr": "node_load5{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\"}",
           "legendFormat": "load5",
           "range": true,
           "instant": false,
@@ -626,14 +648,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avg(node_load15{job=\"host-vm\",instance=\"172.16.8.10:9100\"})",
+          "expr": "node_load15{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\"}",
           "legendFormat": "load15",
           "range": true,
           "instant": false,
           "refId": "C"
         }
       ],
-      "title": "Load Average",
+      "title": "[$cluster] AIO Load Average",
       "type": "timeseries"
     },
     {
@@ -646,7 +668,7 @@
       },
       "id": 10,
       "panels": [],
-      "title": "Disk And Network",
+      "title": "AIO VM Disk and Network via Selected Scrape Path",
       "type": "row"
     },
     {
@@ -709,14 +731,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "100 * (1 - avg by (mountpoint) (node_filesystem_avail_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"}) / avg by (mountpoint) (node_filesystem_size_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"}))",
+          "expr": "100 * (1 - max by (mountpoint) (node_filesystem_avail_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"}) / max by (mountpoint) (node_filesystem_size_bytes{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"}))",
           "legendFormat": "{{mountpoint}}",
           "range": false,
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Filesystem Used",
+      "title": "[$cluster] AIO Filesystem Used",
       "type": "bargauge"
     },
     {
@@ -803,7 +825,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(avg without(cluster,user) (rate(node_network_receive_bytes_total{job=\"host-vm\",instance=\"172.16.8.10:9100\",device!~\"lo|veth.*|docker.*|br-.*|cni.*|flannel.*|tailscale.*\"}[5m]))) * 8",
+          "expr": "sum(rate(node_network_receive_bytes_total{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\",device!~\"lo|veth.*|docker.*|br-.*|cni.*|flannel.*|tailscale.*\"}[5m])) * 8",
           "legendFormat": "rx",
           "range": true,
           "instant": false,
@@ -815,14 +837,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(avg without(cluster,user) (rate(node_network_transmit_bytes_total{job=\"host-vm\",instance=\"172.16.8.10:9100\",device!~\"lo|veth.*|docker.*|br-.*|cni.*|flannel.*|tailscale.*\"}[5m]))) * 8",
+          "expr": "sum(rate(node_network_transmit_bytes_total{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\",device!~\"lo|veth.*|docker.*|br-.*|cni.*|flannel.*|tailscale.*\"}[5m])) * 8",
           "legendFormat": "tx",
           "range": true,
           "instant": false,
           "refId": "B"
         }
       ],
-      "title": "Network Throughput",
+      "title": "[$cluster] AIO Network Throughput",
       "type": "timeseries"
     },
     {
@@ -835,7 +857,7 @@
       },
       "id": 13,
       "panels": [],
-      "title": "Exporter And Label Health",
+      "title": "Selected Observation Path and AIO VM Identity",
       "type": "row"
     },
     {
@@ -902,14 +924,15 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "up{job=\"host-vm\",instance=\"172.16.8.10:9100\"}",
+          "expr": "up{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\"}",
           "legendFormat": "{{cluster}}",
           "range": false,
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "AIO Exporter Copies In Prometheus",
+      "description": "선택한 prometheus-agent 관측 경로의 원본 up 시계열과 cluster/user 라벨을 보여줍니다.",
+      "title": "[$cluster] Raw AIO Scrape Series",
       "type": "table"
     },
     {
@@ -976,14 +999,15 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_uname_info{job=\"host-vm\",instance=\"172.16.8.10:9100\"}",
+          "expr": "node_uname_info{job=\"host-vm\",instance=\"172.16.8.10:9100\",cluster=\"$cluster\"}",
           "legendFormat": "{{nodename}}",
           "range": false,
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "AIO Kernel Info",
+      "description": "선택한 관측 경로가 보고한 AIO VM의 커널/노드 식별 정보입니다.",
+      "title": "[$cluster] AIO VM Identity",
       "type": "table"
     }
   ],
@@ -996,7 +1020,50 @@
     "acer"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "ggg",
+          "value": "ggg"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Scrape path (cluster agent)",
+        "multi": false,
+        "name": "cluster",
+        "options": [
+          {
+            "selected": true,
+            "text": "ggg",
+            "value": "ggg"
+          },
+          {
+            "selected": false,
+            "text": "khb",
+            "value": "khb"
+          },
+          {
+            "selected": false,
+            "text": "ljw",
+            "value": "ljw"
+          },
+          {
+            "selected": false,
+            "text": "nmg",
+            "value": "nmg"
+          },
+          {
+            "selected": false,
+            "text": "oje",
+            "value": "oje"
+          }
+        ],
+        "query": "ggg,khb,ljw,nmg,oje",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
   },
   "time": {
     "from": "now-6h",
@@ -1004,8 +1071,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "AIO Host Node Exporter",
+  "title": "AIO VM Resources via Cluster Scrape Path",
   "uid": "aio-host-node-exporter",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
