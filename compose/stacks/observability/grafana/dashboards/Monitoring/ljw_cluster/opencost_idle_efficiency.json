@@ -35,9 +35,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
             "axisPlacement": "auto",
-            "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
@@ -105,13 +103,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_total_hourly_cost{cluster=\"oje\", node=~\"$node\"}",
-          "legendFormat": "{{node}} total",
+          "expr": "sum by (node) ((container_cpu_allocation{cluster=\"ljw\",node=~\"$node\"} * on(cluster,node) group_left() node_cpu_hourly_cost{cluster=\"ljw\"}) + ((container_memory_allocation_bytes{cluster=\"ljw\",node=~\"$node\"} / 1024 / 1024 / 1024) * on(cluster,node) group_left() node_ram_hourly_cost{cluster=\"ljw\"}))",
+          "legendFormat": "{{node}} allocated",
           "range": true,
+          "instant": false,
           "refId": "A"
         }
       ],
-      "title": "Node Total Hourly Cost",
+      "title": "Allocated Hourly Cost By Node",
       "type": "timeseries"
     },
     {
@@ -131,6 +130,13 @@
             "axisPlacement": "auto",
             "drawStyle": "line",
             "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 5,
@@ -138,6 +144,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -188,24 +195,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_cpu_hourly_cost{cluster=\"oje\", node=~\"$node\"}",
-          "legendFormat": "{{node}} cpu",
+          "expr": "sum by (node) (node_total_hourly_cost{cluster=\"ljw\", node=~\"$node\"}) - sum by (node) ((container_cpu_allocation{cluster=\"ljw\",node=~\"$node\"} * on(cluster,node) group_left() node_cpu_hourly_cost{cluster=\"ljw\"}) + ((container_memory_allocation_bytes{cluster=\"ljw\",node=~\"$node\"} / 1024 / 1024 / 1024) * on(cluster,node) group_left() node_ram_hourly_cost{cluster=\"ljw\"}))",
+          "legendFormat": "{{node}} idle",
           "range": true,
+          "instant": false,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "node_ram_hourly_cost{cluster=\"oje\", node=~\"$node\"}",
-          "legendFormat": "{{node}} ram",
-          "range": true,
-          "refId": "B"
         }
       ],
-      "title": "Node CPU/RAM Hourly Cost",
+      "title": "Estimated Idle Hourly Cost By Node",
       "type": "timeseries"
     },
     {
@@ -225,6 +222,13 @@
             "axisPlacement": "auto",
             "drawStyle": "line",
             "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 5,
@@ -232,6 +236,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -250,7 +255,7 @@
               }
             ]
           },
-          "unit": "cores"
+          "unit": "percentunit"
         },
         "overrides": []
       },
@@ -282,13 +287,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (cluster, node) (container_cpu_allocation{cluster=\"oje\", node=~\"$node\"})",
-          "legendFormat": "{{node}}",
+          "expr": "(sum by (node) ((container_cpu_allocation{cluster=\"ljw\",node=~\"$node\"} * on(cluster,node) group_left() node_cpu_hourly_cost{cluster=\"ljw\"}) + ((container_memory_allocation_bytes{cluster=\"ljw\",node=~\"$node\"} / 1024 / 1024 / 1024) * on(cluster,node) group_left() node_ram_hourly_cost{cluster=\"ljw\"}))) / (sum by (node) (node_total_hourly_cost{cluster=\"ljw\", node=~\"$node\"}))",
+          "legendFormat": "{{node}} efficiency",
           "range": true,
+          "instant": false,
           "refId": "A"
         }
       ],
-      "title": "Allocated CPU By Node",
+      "title": "Cost Allocation Efficiency By Node",
       "type": "timeseries"
     },
     {
@@ -308,6 +314,13 @@
             "axisPlacement": "auto",
             "drawStyle": "line",
             "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 5,
@@ -315,6 +328,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -333,7 +347,7 @@
               }
             ]
           },
-          "unit": "bytes"
+          "unit": "currencyUSD"
         },
         "overrides": []
       },
@@ -365,96 +379,38 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (cluster, node) (container_memory_allocation_bytes{cluster=\"oje\", node=~\"$node\"})",
-          "legendFormat": "{{node}}",
+          "expr": "sum(sum by (node) (node_total_hourly_cost{cluster=\"ljw\", node=~\"$node\"}))",
+          "legendFormat": "total",
           "range": true,
+          "instant": false,
           "refId": "A"
-        }
-      ],
-      "title": "Allocated Memory By Node",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisPlacement": "auto",
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "currencyUSD"
         },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 24,
-        "x": 0,
-        "y": 16
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (cluster, node) (node_total_hourly_cost{cluster=\"oje\", node=~\"$node\"}) - (sum by (cluster, node) (container_cpu_allocation{cluster=\"oje\", node=~\"$node\"} * on(cluster, node) group_left() node_cpu_hourly_cost{cluster=\"oje\", node=~\"$node\"}) + sum by (cluster, node) ((container_memory_allocation_bytes{cluster=\"oje\", node=~\"$node\"} / 1024 / 1024 / 1024) * on(cluster, node) group_left() node_ram_hourly_cost{cluster=\"oje\", node=~\"$node\"}))",
-          "legendFormat": "{{node}} idle",
+          "expr": "sum(sum by (node) ((container_cpu_allocation{cluster=\"ljw\",node=~\"$node\"} * on(cluster,node) group_left() node_cpu_hourly_cost{cluster=\"ljw\"}) + ((container_memory_allocation_bytes{cluster=\"ljw\",node=~\"$node\"} / 1024 / 1024 / 1024) * on(cluster,node) group_left() node_ram_hourly_cost{cluster=\"ljw\"})))",
+          "legendFormat": "allocated",
           "range": true,
-          "refId": "A"
+          "instant": false,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(sum by (node) (node_total_hourly_cost{cluster=\"ljw\", node=~\"$node\"})) - sum(sum by (node) ((container_cpu_allocation{cluster=\"ljw\",node=~\"$node\"} * on(cluster,node) group_left() node_cpu_hourly_cost{cluster=\"ljw\"}) + ((container_memory_allocation_bytes{cluster=\"ljw\",node=~\"$node\"} / 1024 / 1024 / 1024) * on(cluster,node) group_left() node_ram_hourly_cost{cluster=\"ljw\"})))",
+          "legendFormat": "idle",
+          "range": true,
+          "instant": false,
+          "refId": "C"
         }
       ],
-      "title": "Estimated Idle Hourly Cost",
+      "title": "Cluster Cost Split",
       "type": "timeseries"
     }
   ],
@@ -462,13 +418,13 @@
   "schemaVersion": 41,
   "tags": [
     "opencost",
-    "kubernetes",
-    "acer",
-    "oje_cluster"
+    "idle-efficiency",
+    "ljw_cluster"
   ],
   "templating": {
     "list": [
       {
+        "allValue": ".*",
         "current": {
           "selected": true,
           "text": "All",
@@ -478,15 +434,14 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "allValue": ".*",
-        "definition": "label_values(node_total_hourly_cost{cluster=\"oje\"}, node)",
+        "definition": "label_values(node_total_hourly_cost{cluster=\"ljw\"}, node)",
         "includeAll": true,
         "label": "Node",
         "multi": true,
         "name": "node",
         "options": [],
         "query": {
-          "query": "label_values(node_total_hourly_cost{cluster=\"oje\"}, node)",
+          "query": "label_values(node_total_hourly_cost{cluster=\"ljw\"}, node)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -501,8 +456,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "oje OpenCost Node Costs",
-  "uid": "opencost-oje-node-costs",
+  "title": "ljw Idle Efficiency",
+  "uid": "opencost-ljw-idle-efficiency",
   "version": 1,
   "weekStart": ""
 }

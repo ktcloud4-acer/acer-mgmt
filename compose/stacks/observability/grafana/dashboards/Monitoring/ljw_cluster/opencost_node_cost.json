@@ -35,9 +35,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
             "axisPlacement": "auto",
-            "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
@@ -105,9 +103,10 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_total_hourly_cost{cluster=\"nmg\", node=~\"$node\"}",
+          "expr": "node_total_hourly_cost{cluster=\"ljw\", node=~\"$node\"}",
           "legendFormat": "{{node}} total",
           "range": true,
+          "instant": false,
           "refId": "A"
         }
       ],
@@ -131,6 +130,13 @@
             "axisPlacement": "auto",
             "drawStyle": "line",
             "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 5,
@@ -138,6 +144,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -188,9 +195,10 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_cpu_hourly_cost{cluster=\"nmg\", node=~\"$node\"}",
+          "expr": "node_cpu_hourly_cost{cluster=\"ljw\", node=~\"$node\"}",
           "legendFormat": "{{node}} cpu",
           "range": true,
+          "instant": false,
           "refId": "A"
         },
         {
@@ -199,9 +207,10 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_ram_hourly_cost{cluster=\"nmg\", node=~\"$node\"}",
+          "expr": "node_ram_hourly_cost{cluster=\"ljw\", node=~\"$node\"}",
           "legendFormat": "{{node}} ram",
           "range": true,
+          "instant": false,
           "refId": "B"
         }
       ],
@@ -225,6 +234,13 @@
             "axisPlacement": "auto",
             "drawStyle": "line",
             "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 5,
@@ -232,6 +248,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -282,9 +299,10 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (cluster, node) (container_cpu_allocation{cluster=\"nmg\", node=~\"$node\"})",
+          "expr": "sum by (node) (container_cpu_allocation{cluster=\"ljw\", node=~\"$node\"})",
           "legendFormat": "{{node}}",
           "range": true,
+          "instant": false,
           "refId": "A"
         }
       ],
@@ -308,6 +326,13 @@
             "axisPlacement": "auto",
             "drawStyle": "line",
             "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 5,
@@ -315,6 +340,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -365,96 +391,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (cluster, node) (container_memory_allocation_bytes{cluster=\"nmg\", node=~\"$node\"})",
+          "expr": "sum by (node) (container_memory_allocation_bytes{cluster=\"ljw\", node=~\"$node\"})",
           "legendFormat": "{{node}}",
           "range": true,
+          "instant": false,
           "refId": "A"
         }
       ],
       "title": "Allocated Memory By Node",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisPlacement": "auto",
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "currencyUSD"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 24,
-        "x": 0,
-        "y": 16
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (cluster, node) (node_total_hourly_cost{cluster=\"nmg\", node=~\"$node\"}) - (sum by (cluster, node) (container_cpu_allocation{cluster=\"nmg\", node=~\"$node\"} * on(cluster, node) group_left() node_cpu_hourly_cost{cluster=\"nmg\", node=~\"$node\"}) + sum by (cluster, node) ((container_memory_allocation_bytes{cluster=\"nmg\", node=~\"$node\"} / 1024 / 1024 / 1024) * on(cluster, node) group_left() node_ram_hourly_cost{cluster=\"nmg\", node=~\"$node\"}))",
-          "legendFormat": "{{node}} idle",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Estimated Idle Hourly Cost",
       "type": "timeseries"
     }
   ],
@@ -462,13 +406,13 @@
   "schemaVersion": 41,
   "tags": [
     "opencost",
-    "kubernetes",
-    "acer",
-    "nmg_cluster"
+    "node-cost",
+    "ljw_cluster"
   ],
   "templating": {
     "list": [
       {
+        "allValue": ".*",
         "current": {
           "selected": true,
           "text": "All",
@@ -478,15 +422,14 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "allValue": ".*",
-        "definition": "label_values(node_total_hourly_cost{cluster=\"nmg\"}, node)",
+        "definition": "label_values(node_total_hourly_cost{cluster=\"ljw\"}, node)",
         "includeAll": true,
         "label": "Node",
         "multi": true,
         "name": "node",
         "options": [],
         "query": {
-          "query": "label_values(node_total_hourly_cost{cluster=\"nmg\"}, node)",
+          "query": "label_values(node_total_hourly_cost{cluster=\"ljw\"}, node)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -501,8 +444,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "nmg OpenCost Node Costs",
-  "uid": "opencost-nmg-node-costs",
+  "title": "ljw Node Cost",
+  "uid": "opencost-ljw-node-cost",
   "version": 1,
   "weekStart": ""
 }
