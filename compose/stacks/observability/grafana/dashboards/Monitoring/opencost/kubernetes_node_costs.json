@@ -105,8 +105,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_total_hourly_cost{cluster=\"$cluster\", node=~\"$node\"}",
-          "legendFormat": "{{node}} total",
+          "expr": "node_total_hourly_cost{cluster=~\"$cluster\", node=~\"$node\"}",
+          "legendFormat": "{{cluster}}/{{node}} total",
           "range": true,
           "refId": "A"
         }
@@ -188,8 +188,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_cpu_hourly_cost{cluster=\"$cluster\", node=~\"$node\"}",
-          "legendFormat": "{{node}} cpu",
+          "expr": "node_cpu_hourly_cost{cluster=~\"$cluster\", node=~\"$node\"}",
+          "legendFormat": "{{cluster}}/{{node}} cpu",
           "range": true,
           "refId": "A"
         },
@@ -199,8 +199,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_ram_hourly_cost{cluster=\"$cluster\", node=~\"$node\"}",
-          "legendFormat": "{{node}} ram",
+          "expr": "node_ram_hourly_cost{cluster=~\"$cluster\", node=~\"$node\"}",
+          "legendFormat": "{{cluster}}/{{node}} ram",
           "range": true,
           "refId": "B"
         }
@@ -282,8 +282,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (node) (container_cpu_allocation{cluster=\"$cluster\", node=~\"$node\"})",
-          "legendFormat": "{{node}}",
+          "expr": "sum by (cluster, node) (container_cpu_allocation{cluster=~\"$cluster\", node=~\"$node\"})",
+          "legendFormat": "{{cluster}}/{{node}}",
           "range": true,
           "refId": "A"
         }
@@ -365,8 +365,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (node) (container_memory_allocation_bytes{cluster=\"$cluster\", node=~\"$node\"})",
-          "legendFormat": "{{node}}",
+          "expr": "sum by (cluster, node) (container_memory_allocation_bytes{cluster=~\"$cluster\", node=~\"$node\"})",
+          "legendFormat": "{{cluster}}/{{node}}",
           "range": true,
           "refId": "A"
         }
@@ -448,8 +448,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (node) (node_total_hourly_cost{cluster=\"$cluster\", node=~\"$node\"}) - (sum by (node) (container_cpu_allocation{cluster=\"$cluster\", node=~\"$node\"} * on(node) group_left() node_cpu_hourly_cost{cluster=\"$cluster\", node=~\"$node\"}) + sum by (node) ((container_memory_allocation_bytes{cluster=\"$cluster\", node=~\"$node\"} / 1024 / 1024 / 1024) * on(node) group_left() node_ram_hourly_cost{cluster=\"$cluster\", node=~\"$node\"}))",
-          "legendFormat": "{{node}} idle",
+          "expr": "sum by (cluster, node) (node_total_hourly_cost{cluster=~\"$cluster\", node=~\"$node\"}) - (sum by (cluster, node) (container_cpu_allocation{cluster=~\"$cluster\", node=~\"$node\"} * on(cluster, node) group_left() node_cpu_hourly_cost{cluster=~\"$cluster\", node=~\"$node\"}) + sum by (cluster, node) ((container_memory_allocation_bytes{cluster=~\"$cluster\", node=~\"$node\"} / 1024 / 1024 / 1024) * on(cluster, node) group_left() node_ram_hourly_cost{cluster=~\"$cluster\", node=~\"$node\"}))",
+          "legendFormat": "{{cluster}}/{{node}} idle",
           "range": true,
           "refId": "A"
         }
@@ -473,9 +473,11 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
+        "allValue": ".*",
         "definition": "label_values(node_total_hourly_cost, cluster)",
-        "includeAll": false,
+        "includeAll": true,
         "label": "Cluster",
+        "multi": true,
         "name": "cluster",
         "options": [],
         "query": {
@@ -492,14 +494,15 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(node_total_hourly_cost{cluster=\"$cluster\"}, node)",
+        "allValue": ".*",
+        "definition": "label_values(node_total_hourly_cost{cluster=~\"$cluster\"}, node)",
         "includeAll": true,
         "label": "Node",
         "multi": true,
         "name": "node",
         "options": [],
         "query": {
-          "query": "label_values(node_total_hourly_cost{cluster=\"$cluster\"}, node)",
+          "query": "label_values(node_total_hourly_cost{cluster=~\"$cluster\"}, node)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
