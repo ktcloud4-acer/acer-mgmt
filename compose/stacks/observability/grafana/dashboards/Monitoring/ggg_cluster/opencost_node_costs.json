@@ -105,8 +105,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_total_hourly_cost{cluster=~\"$cluster\", node=~\"$node\"}",
-          "legendFormat": "{{cluster}}/{{node}} total",
+          "expr": "node_total_hourly_cost{cluster=\"ggg\", node=~\"$node\"}",
+          "legendFormat": "{{node}} total",
           "range": true,
           "refId": "A"
         }
@@ -188,8 +188,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_cpu_hourly_cost{cluster=~\"$cluster\", node=~\"$node\"}",
-          "legendFormat": "{{cluster}}/{{node}} cpu",
+          "expr": "node_cpu_hourly_cost{cluster=\"ggg\", node=~\"$node\"}",
+          "legendFormat": "{{node}} cpu",
           "range": true,
           "refId": "A"
         },
@@ -199,8 +199,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_ram_hourly_cost{cluster=~\"$cluster\", node=~\"$node\"}",
-          "legendFormat": "{{cluster}}/{{node}} ram",
+          "expr": "node_ram_hourly_cost{cluster=\"ggg\", node=~\"$node\"}",
+          "legendFormat": "{{node}} ram",
           "range": true,
           "refId": "B"
         }
@@ -282,8 +282,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (cluster, node) (container_cpu_allocation{cluster=~\"$cluster\", node=~\"$node\"})",
-          "legendFormat": "{{cluster}}/{{node}}",
+          "expr": "sum by (cluster, node) (container_cpu_allocation{cluster=\"ggg\", node=~\"$node\"})",
+          "legendFormat": "{{node}}",
           "range": true,
           "refId": "A"
         }
@@ -365,8 +365,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (cluster, node) (container_memory_allocation_bytes{cluster=~\"$cluster\", node=~\"$node\"})",
-          "legendFormat": "{{cluster}}/{{node}}",
+          "expr": "sum by (cluster, node) (container_memory_allocation_bytes{cluster=\"ggg\", node=~\"$node\"})",
+          "legendFormat": "{{node}}",
           "range": true,
           "refId": "A"
         }
@@ -448,8 +448,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (cluster, node) (node_total_hourly_cost{cluster=~\"$cluster\", node=~\"$node\"}) - (sum by (cluster, node) (container_cpu_allocation{cluster=~\"$cluster\", node=~\"$node\"} * on(cluster, node) group_left() node_cpu_hourly_cost{cluster=~\"$cluster\", node=~\"$node\"}) + sum by (cluster, node) ((container_memory_allocation_bytes{cluster=~\"$cluster\", node=~\"$node\"} / 1024 / 1024 / 1024) * on(cluster, node) group_left() node_ram_hourly_cost{cluster=~\"$cluster\", node=~\"$node\"}))",
-          "legendFormat": "{{cluster}}/{{node}} idle",
+          "expr": "sum by (cluster, node) (node_total_hourly_cost{cluster=\"ggg\", node=~\"$node\"}) - (sum by (cluster, node) (container_cpu_allocation{cluster=\"ggg\", node=~\"$node\"} * on(cluster, node) group_left() node_cpu_hourly_cost{cluster=\"ggg\", node=~\"$node\"}) + sum by (cluster, node) ((container_memory_allocation_bytes{cluster=\"ggg\", node=~\"$node\"} / 1024 / 1024 / 1024) * on(cluster, node) group_left() node_ram_hourly_cost{cluster=\"ggg\", node=~\"$node\"}))",
+          "legendFormat": "{{node}} idle",
           "range": true,
           "refId": "A"
         }
@@ -463,46 +463,30 @@
   "tags": [
     "opencost",
     "kubernetes",
-    "acer"
+    "acer",
+    "ggg_cluster"
   ],
   "templating": {
     "list": [
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
         },
         "allValue": ".*",
-        "definition": "label_values(node_total_hourly_cost, cluster)",
-        "includeAll": true,
-        "label": "Cluster",
-        "multi": true,
-        "name": "cluster",
-        "options": [],
-        "query": {
-          "query": "label_values(node_total_hourly_cost, cluster)",
-          "refId": "PrometheusVariableQueryEditor-VariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "type": "query"
-      },
-      {
-        "current": {},
-        "datasource": {
-          "type": "prometheus",
-          "uid": "prometheus"
-        },
-        "allValue": ".*",
-        "definition": "label_values(node_total_hourly_cost{cluster=~\"$cluster\"}, node)",
+        "definition": "label_values(node_total_hourly_cost{cluster=\"ggg\"}, node)",
         "includeAll": true,
         "label": "Node",
         "multi": true,
         "name": "node",
         "options": [],
         "query": {
-          "query": "label_values(node_total_hourly_cost{cluster=~\"$cluster\"}, node)",
+          "query": "label_values(node_total_hourly_cost{cluster=\"ggg\"}, node)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -517,8 +501,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "OpenCost Kubernetes Node Costs",
-  "uid": "opencost-kubernetes-node-costs",
+  "title": "ggg OpenCost Node Costs",
+  "uid": "opencost-ggg-node-costs",
   "version": 1,
   "weekStart": ""
 }
