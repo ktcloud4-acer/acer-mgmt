@@ -47,8 +47,19 @@ docker run --rm --network "$MINIO_NETWORK" \
 
     mc mirror local/db-backup "aws/${AWS_S3_BUCKET}/db-backup"
     mc mirror local/etcd "aws/${AWS_S3_BUCKET}/etcd"
-    mc mirror local/restic "aws/${AWS_S3_BUCKET}/restic"
     mc mirror local/velero "aws/${AWS_S3_BUCKET}/velero"
+
+    restic_attempt=1
+    while [ "$restic_attempt" -le 3 ]; do
+      if mc mirror local/restic "aws/${AWS_S3_BUCKET}/restic"; then
+        exit 0
+      fi
+      echo "restic mirror attempt ${restic_attempt} failed; retrying" >&2
+      restic_attempt=$((restic_attempt + 1))
+      sleep 30
+    done
+    echo "restic mirror failed after 3 attempts" >&2
+    exit 1
   '
 
 echo "[$(date -Is)] AWS S3 offsite mirror completed"
