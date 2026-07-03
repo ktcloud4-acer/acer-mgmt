@@ -1,0 +1,20 @@
+{
+  "policy": {
+    "_meta": {
+      "managed_by": "acer-mgmt",
+      "description": "k8s/infra 클러스터 로그 보존정책: 생성 14일 후 인덱스 자동 삭제"
+    },
+    "phases": {
+      "hot": {
+        "min_age": "0ms",
+        "actions": {
+          "set_priority": { "priority": 100 }
+        }
+      },
+      "delete": {
+        "min_age": "14d",
+        "actions": { "delete": {} }
+      }
+    }
+  }
+}
