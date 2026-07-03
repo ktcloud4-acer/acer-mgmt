@@ -1,0 +1,2 @@
+*.sh text eol=lf
+compose/systemd/* text eol=lf
