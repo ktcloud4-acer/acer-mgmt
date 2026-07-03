@@ -7,5 +7,20 @@ resources:
   - https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.4/manifests/install.yaml
   - ingress.yaml
 
+configMapGenerator:
+  - name: argocd-notifications-cm
+    behavior: replace
+    files:
+      - context=notifications/context.yaml
+      - service.webhook.argocd_slack=notifications/service.webhook.argocd_slack.yaml
+      - template.app-failure=notifications/template.app-failure.yaml
+      - template.app-deployed=notifications/template.app-deployed.yaml
+      - trigger.on-failure=notifications/trigger.on-failure.yaml
+      - trigger.on-deployed=notifications/trigger.on-deployed.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
 patches:
   - path: server-insecure-patch.yaml
+  - path: cmd-params-cm-patch.yaml

@@ -1,0 +1,17 @@
+message: |
+  [ArgoCD] Deployed or recovered
+  App: {{.app.metadata.name}}
+  Project: {{.app.spec.project}}
+  Destination: {{.app.spec.destination.server}} / {{.app.spec.destination.namespace}}
+  Health: {{.app.status.health.status}}
+  Sync: {{.app.status.sync.status}}
+  Revision: {{.app.status.sync.revision}}
+  Repo: {{.app.spec.source.repoURL}}
+  Open: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}
+webhook:
+  argocd_slack:
+    method: POST
+    body: |
+      {
+        "text": "[ArgoCD] Deployed or recovered\nApp: {{.app.metadata.name}}\nProject: {{.app.spec.project}}\nDestination: {{.app.spec.destination.server}} / {{.app.spec.destination.namespace}}\nHealth: {{.app.status.health.status}}\nSync: {{.app.status.sync.status}}\nRevision: {{.app.status.sync.revision}}\nRepo: {{.app.spec.source.repoURL}}\nOpen: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}"
+      }

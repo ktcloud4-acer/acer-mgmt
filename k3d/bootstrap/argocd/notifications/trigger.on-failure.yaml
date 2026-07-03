@@ -1,0 +1,2 @@
+- when: app.status.health.status == 'Degraded' or app.status.sync.status == 'Unknown' or (app.status.operationState != nil and app.status.operationState.phase in ['Error', 'Failed'])
+  send: [app-failure]
