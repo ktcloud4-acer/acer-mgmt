@@ -31,7 +31,7 @@
       },
       "id": 1,
       "panels": [],
-      "title": "Overview",
+      "title": "Workload Snapshot",
       "type": "row"
     },
     {
@@ -52,6 +52,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.0001
+              },
+              {
+                "color": "red",
+                "value": 0.00025
               }
             ]
           },
@@ -97,7 +105,7 @@
           "refId": "A"
         }
       ],
-      "title": "Selected Pod Count",
+      "title": "Pod Count",
       "type": "stat"
     },
     {
@@ -118,6 +126,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.0001
+              },
+              {
+                "color": "red",
+                "value": 0.00025
               }
             ]
           },
@@ -184,6 +200,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.0001
+              },
+              {
+                "color": "red",
+                "value": 0.00025
               }
             ]
           },
@@ -250,6 +274,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.0001
+              },
+              {
+                "color": "red",
+                "value": 0.00025
               }
             ]
           },
@@ -308,7 +340,7 @@
       },
       "id": 6,
       "panels": [],
-      "title": "Workload Allocation",
+      "title": "Most Expensive Workloads",
       "type": "row"
     },
     {
@@ -316,7 +348,6 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -334,12 +365,25 @@
           },
           "unit": "currencyUSD"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "x": 0,
         "y": 6,
-        "w": 24,
+        "w": 12,
         "h": 9
       },
       "id": 7,
@@ -370,7 +414,7 @@
           "refId": "A"
         }
       ],
-      "title": "Top Pods By Estimated Hourly Cost",
+      "title": "Top Pods By Hourly Cost",
       "transformations": [
         {
           "id": "sortBy",
@@ -405,6 +449,106 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.0001
+              },
+              {
+                "color": "red",
+                "value": 0.00025
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 12,
+        "h": 9
+      },
+      "id": 8,
+      "options": {
+        "displayMode": "gradient",
+        "legend": {
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "13.0.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "topk(12, sum by (namespace,pod,node) ((container_cpu_allocation{cluster=\"oje\",namespace=~\"$namespace\",pod=~\"$pod\"} * on(cluster,node) group_left() node_cpu_hourly_cost{cluster=\"oje\"}) + ((container_memory_allocation_bytes{cluster=\"oje\",namespace=~\"$namespace\",pod=~\"$pod\"} / 1024 / 1024 / 1024) * on(cluster,node) group_left() node_ram_hourly_cost{cluster=\"oje\"})))",
+          "legendFormat": "{{namespace}}/{{pod}}",
+          "range": false,
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Top Pod Cost Now",
+      "type": "bargauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 24,
+        "h": 1
+      },
+      "id": 9,
+      "panels": [],
+      "title": "Resource Drivers",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.0001
+              },
+              {
+                "color": "red",
+                "value": 0.00025
               }
             ]
           },
@@ -414,11 +558,11 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 15,
+        "y": 16,
         "w": 12,
         "h": 8
       },
-      "id": 8,
+      "id": 10,
       "options": {
         "displayMode": "gradient",
         "legend": {
@@ -476,6 +620,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.0001
+              },
+              {
+                "color": "red",
+                "value": 0.00025
               }
             ]
           },
@@ -485,11 +637,11 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 15,
+        "y": 16,
         "w": 12,
         "h": 8
       },
-      "id": 9,
+      "id": 11,
       "options": {
         "displayMode": "gradient",
         "legend": {
@@ -555,10 +707,11 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
+            "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 12,
+            "fillOpacity": 14,
             "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
@@ -587,11 +740,11 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 23,
+        "y": 24,
         "w": 24,
         "h": 8
       },
-      "id": 10,
+      "id": 12,
       "options": {
         "legend": {
           "calcs": [
@@ -614,14 +767,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "topk(15, sum by (namespace,pod,node) ((container_cpu_allocation{cluster=\"oje\",namespace=~\"$namespace\",pod=~\"$pod\"} * on(cluster,node) group_left() node_cpu_hourly_cost{cluster=\"oje\"}) + ((container_memory_allocation_bytes{cluster=\"oje\",namespace=~\"$namespace\",pod=~\"$pod\"} / 1024 / 1024 / 1024) * on(cluster,node) group_left() node_ram_hourly_cost{cluster=\"oje\"})))",
+          "expr": "topk(12, sum by (namespace,pod,node) ((container_cpu_allocation{cluster=\"oje\",namespace=~\"$namespace\",pod=~\"$pod\"} * on(cluster,node) group_left() node_cpu_hourly_cost{cluster=\"oje\"}) + ((container_memory_allocation_bytes{cluster=\"oje\",namespace=~\"$namespace\",pod=~\"$pod\"} / 1024 / 1024 / 1024) * on(cluster,node) group_left() node_ram_hourly_cost{cluster=\"oje\"})))",
           "legendFormat": "{{namespace}}/{{pod}}",
           "range": true,
           "instant": false,
           "refId": "A"
         }
       ],
-      "title": "Pod Cost Over Time",
+      "title": "Top Pod Cost Trend",
       "type": "timeseries"
     }
   ],
@@ -694,6 +847,6 @@
   "timezone": "browser",
   "title": "oje Workload Pod Allocation",
   "uid": "opencost-oje-workload-allocation",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
