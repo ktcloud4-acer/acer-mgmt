@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Acer mgmt MinIO to AWS S3 offsite backup daily
+
+[Timer]
+OnCalendar=*-*-* 04:30:00
+Persistent=true
+Unit=minio-offsite-s3-backup.service
+
+[Install]
+WantedBy=timers.target

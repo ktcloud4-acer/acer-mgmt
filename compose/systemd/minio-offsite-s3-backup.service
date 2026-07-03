@@ -1,0 +1,8 @@
+[Unit]
+Description=Mirror Acer mgmt MinIO backup buckets to AWS S3
+Wants=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/user1/acer-mgmt/compose/scripts/minio-offsite-s3-backup.sh
