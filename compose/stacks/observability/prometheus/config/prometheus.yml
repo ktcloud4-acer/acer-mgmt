@@ -13,5 +13,10 @@ scrape_configs:
       - targets:
           - node-exporter:9100
 
+# Kubernetes cluster cost metrics are collected in each target cluster by the
+# monitoring/prometheus-agent Application and remote_written here. If direct
+# mgmt-side scraping is needed later, use opencost-api-proxy-scrape.example.yml
+# as the starting point after provisioning per-cluster bearer token files.
+
 
 
