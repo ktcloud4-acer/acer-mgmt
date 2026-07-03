@@ -24,3 +24,4 @@ generatorOptions:
 patches:
   - path: server-insecure-patch.yaml
   - path: cmd-params-cm-patch.yaml
+  - path: notifications-secret-delete-patch.yaml
