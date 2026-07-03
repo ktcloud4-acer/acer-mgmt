@@ -14,6 +14,8 @@ services:
       ES_JAVA_OPTS: -Xms2g -Xmx2g
     volumes:
       - ${DATA_ROOT:-/home/mgmt-data}/elk/elasticsearch:/usr/share/elasticsearch/data:Z
+    ports:
+      - "127.0.0.1:9200:9200"
     networks:
       - default
     healthcheck:
@@ -35,6 +37,8 @@ services:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
       SERVER_PUBLICBASEURL: https://kibana.${BASE_DOMAIN}
       TELEMETRY_ENABLED: "false"
+    ports:
+      - "127.0.0.1:5601:5601"
     networks:
       - default
       - mgmt-proxy
