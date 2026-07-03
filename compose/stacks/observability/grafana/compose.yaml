@@ -14,10 +14,12 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_PLUGINS_PREINSTALL_DISABLED: "true"
+      SLACK_WEBHOOK_INFRA: ${SLACK_WEBHOOK_INFRA:?SLACK_WEBHOOK_INFRA must be set}
     volumes:
       - ${DATA_ROOT:-/home/mgmt-data}/grafana:/var/lib/grafana:Z
       - ./provisioning/datasources/prometheus.yaml:/etc/grafana/provisioning/datasources/prometheus.yaml:ro,Z
       - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro,Z
+      - ./provisioning/alerting:/etc/grafana/provisioning/alerting:ro,Z
       - ./dashboards:/var/lib/grafana/dashboards:ro,Z
     networks:
       - mgmt-proxy
