@@ -30,7 +30,7 @@ require_container() {
   fi
 }
 
-stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+stamp="$(TZ=Asia/Seoul date +%Y%m%dT%H%M%SKST)"
 postgres_dir="${BACKUP_ROOT}/supabase/postgres/${stamp}"
 storage_dir="${BACKUP_ROOT}/supabase/storage/${stamp}"
 config_dir="${BACKUP_ROOT}/mgmt-config/${stamp}"
