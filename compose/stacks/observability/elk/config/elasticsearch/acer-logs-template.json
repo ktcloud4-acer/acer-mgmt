@@ -11,7 +11,8 @@
   "template": {
     "settings": {
       "number_of_replicas": 0,
-      "index.lifecycle.name": "logs-retention-14d"
+      "index.lifecycle.name": "logs-retention-14d",
+      "index.highlight.max_analyzed_offset": 20000000
     },
     "mappings": {
       "dynamic": true,

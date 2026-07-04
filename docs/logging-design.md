@@ -65,6 +65,33 @@ stream so prebuilt dashboards continue to work:
 filebeat-9.4.2
 ```
 
+## Retention and source rotation
+
+Elasticsearch retention:
+
+- Custom routed logs (`logs-system-*`, `logs-docker-*`, `logs-k3d-*`,
+  `logs-kubernetes-*`, `logs-openstack-*`, `logs-service-*`) use
+  `logs-retention-14d`.
+- The default `filebeat-9.4.2` data stream keeps the prebuilt Filebeat System
+  dashboard path and uses the `filebeat` ILM policy with 30 day rollover and
+  90 day delete.
+- Security, auth, or audit-only indices should use at least 90 day retention
+  if split out later.
+- Debug or trace-heavy indices should use 3 to 7 day retention if introduced.
+
+Source log rotation:
+
+- Docker hosts must set the `json-file` driver with `max-size=50m` and
+  `max-file=5` at the Docker daemon level.
+- Existing containers keep the log settings they were created with. Until they
+  are recreated, `acer-mgmt` also installs a `copytruncate` logrotate fallback
+  for `/var/lib/docker/containers/*/*-json.log`.
+- kubelet/container runtime logs must be capped with
+  `container-log-max-size=50Mi` and `container-log-max-files=5`.
+- Host logrotate/journald retention is only the local recovery buffer. Long
+  term retention belongs in Elasticsearch ILM or external snapshots, not on
+  node disks.
+
 ## Required common fields
 
 Every custom log event should carry these fields where applicable:
