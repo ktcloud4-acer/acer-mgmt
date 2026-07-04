@@ -1,0 +1,27 @@
+filebeat.modules:
+  - module: system
+    syslog:
+      enabled: true
+      var.paths: ["/var/log/messages"]
+    auth:
+      enabled: true
+      var.paths: ["/var/log/secure"]
+
+processors:
+  - add_fields:
+      target: labels
+      fields:
+        team: mgmt
+        platform: mgmt
+        node_role: mgmt
+        log_type: system
+        log_track: local
+
+setup.kibana:
+  host: "http://127.0.0.1:5601"
+
+setup.dashboards.enabled: true
+setup.dashboards.modules: ["system"]
+
+output.elasticsearch:
+  hosts: ["http://127.0.0.1:9200"]

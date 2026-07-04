@@ -1,0 +1,55 @@
+{
+  "index_patterns": [
+    "logs-system-*",
+    "logs-docker-*",
+    "logs-k3d-*",
+    "logs-kubernetes-*",
+    "logs-openstack-*",
+    "logs-service-*"
+  ],
+  "priority": 250,
+  "template": {
+    "settings": {
+      "number_of_replicas": 0,
+      "index.lifecycle.name": "logs-retention-14d"
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "labels": {
+          "properties": {
+            "team": {
+              "type": "keyword"
+            },
+            "user": {
+              "type": "keyword"
+            },
+            "platform": {
+              "type": "keyword"
+            },
+            "node_role": {
+              "type": "keyword"
+            },
+            "log_type": {
+              "type": "keyword"
+            }
+          }
+        },
+        "log": {
+          "properties": {
+            "level": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
+    }
+  },
+  "_meta": {
+    "managed_by": "acer-mgmt",
+    "description": "Custom logs routed by Logstash. Kibana Spaces use these fields for dashboard grouping, not security isolation."
+  }
+}

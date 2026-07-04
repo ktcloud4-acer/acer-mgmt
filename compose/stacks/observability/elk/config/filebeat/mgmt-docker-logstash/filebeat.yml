@@ -1,0 +1,22 @@
+filebeat.inputs:
+  - type: filestream
+    id: mgmt-docker-containers
+    paths:
+      - "/var/lib/docker/containers/*/*-json.log"
+    parsers:
+      - container: ~
+    fields_under_root: true
+    fields:
+      user: mgmt
+      log_type: docker
+      labels:
+        team: mgmt
+        platform: mgmt
+        node_role: mgmt
+        log_type: docker
+        log_track: docker
+    processors:
+      - add_docker_metadata: ~
+
+output.logstash:
+  hosts: ["100.117.59.96:5044"]
