@@ -1,16 +1,12 @@
 {
   "index_patterns": [
-    "logs-docker-*",
-    "logs-k3d-*",
-    "logs-kubernetes-*",
-    "logs-openstack-*",
-    "logs-service-*"
+    "logs-system-*"
   ],
-  "priority": 250,
+  "priority": 260,
   "template": {
     "settings": {
       "number_of_replicas": 0,
-      "index.lifecycle.name": "logs-retention-14d",
+      "index.lifecycle.name": "logs-retention-90d",
       "index.highlight.max_analyzed_offset": 20000000
     },
     "mappings": {
@@ -50,6 +46,6 @@
   },
   "_meta": {
     "managed_by": "acer-mgmt",
-    "description": "Custom logs routed by Logstash. Kibana Spaces use these fields for dashboard grouping, not security isolation."
+    "description": "System/auth logs routed by Logstash. Kept longer because auth and security-relevant events can land in these indices."
   }
 }

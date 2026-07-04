@@ -69,9 +69,10 @@ filebeat-9.4.2
 
 Elasticsearch retention:
 
-- Custom routed logs (`logs-system-*`, `logs-docker-*`, `logs-k3d-*`,
-  `logs-kubernetes-*`, `logs-openstack-*`, `logs-service-*`) use
-  `logs-retention-14d`.
+- General routed logs (`logs-docker-*`, `logs-k3d-*`, `logs-kubernetes-*`,
+  `logs-openstack-*`, `logs-service-*`) use `logs-retention-14d`.
+- System logs (`logs-system-*`) use `logs-retention-90d` because auth and
+  security-relevant events can land in the same system stream.
 - The default `filebeat-9.4.2` data stream keeps the prebuilt Filebeat System
   dashboard path and uses the `filebeat` ILM policy with 30 day rollover and
   90 day delete.
