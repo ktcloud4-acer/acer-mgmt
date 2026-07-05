@@ -13,12 +13,13 @@ services:
     volumes:
       - ./config/vault.hcl:/vault/config/vault.hcl:ro,Z
       - ${DATA_ROOT:-/home/mgmt-data}/vault:/vault/data:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-audit:/vault/audit:Z
     networks:
       - mgmt-proxy
     healthcheck:
       test:
         - CMD-SHELL
-        - vault status >/dev/null 2>&1; code=$$?; test $$code -eq 0 -o $$code -eq 2
+        - vault status >/dev/null 2>&1
       interval: 10s
       timeout: 5s
       retries: 12
