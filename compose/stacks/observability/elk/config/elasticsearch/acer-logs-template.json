@@ -35,6 +35,22 @@
             },
             "log_type": {
               "type": "keyword"
+            },
+            "log_track": {
+              "type": "keyword"
+            },
+            "harbor_component": {
+              "type": "keyword"
+            }
+          }
+        },
+        "app": {
+          "type": "flattened"
+        },
+        "container": {
+          "properties": {
+            "labels": {
+              "type": "flattened"
             }
           }
         },
