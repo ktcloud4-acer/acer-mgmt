@@ -28,6 +28,7 @@ services:
       - ${DATA_ROOT:-/home/mgmt-data}/kafka:/var/lib/kafka/data:Z
     networks:
       - default
+      - mgmt-data
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:19092 --list >/dev/null"]
       interval: 20s
@@ -67,4 +68,7 @@ services:
 networks:
   mgmt-proxy:
     name: ${PROXY_NET:-mgmt-proxy}
+    external: true
+  mgmt-data:
+    name: ${KAFKA_NET:-mgmt-data}
     external: true

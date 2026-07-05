@@ -5,6 +5,7 @@ SHELL    := /bin/bash
 COMPOSE  := docker compose
 STACKS   := stacks
 PROXY_NET ?= mgmt-proxy
+KAFKA_NET ?= mgmt-data
 ENV_FILE ?= ../.env
 
 # s 인자를 받는 타깃들을 위한 헬퍼.
@@ -20,8 +21,9 @@ help: ## 이 도움말 출력
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
 	  awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-10s\033[0m %s\n",$$1,$$2}'
 
-net: ## 공용 외부 네트워크(mgmt-proxy) 생성
+net: ## 공용 외부 네트워크(mgmt-proxy, mgmt-data) 생성
 	@docker network inspect $(PROXY_NET) >/dev/null 2>&1 || docker network create $(PROXY_NET)
+	@docker network inspect $(KAFKA_NET) >/dev/null 2>&1 || docker network create $(KAFKA_NET)
 
 up: net ## 서비스 기동      (예: make up s=edge/traefik)
 	$(CF) up -d

@@ -1,0 +1,6 @@
+api.http.host: "0.0.0.0"
+xpack.monitoring.enabled: false
+
+dead_letter_queue.enable: true
+dead_letter_queue.max_bytes: 512mb
+dead_letter_queue.retain.age: 7d

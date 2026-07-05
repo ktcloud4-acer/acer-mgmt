@@ -1,4 +1,4 @@
-# Elasticsearch + Logstash + Kibana 단일 노드
+# Elasticsearch + Logstash + Kafka buffer + Kibana 단일 노드
 # Kibana는 Traefik HTTPS, 수집 포트는 Tailscale 주소에만 노출한다.
 
 services:
@@ -61,19 +61,56 @@ services:
     container_name: logstash
     restart: unless-stopped
     mem_limit: 2g
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
     environment:
       LS_JAVA_OPTS: -Xms1g -Xmx1g
-      XPACK_MONITORING_ENABLED: "false"
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:19092}
+      LOGS_KAFKA_TOPIC: ${LOGS_KAFKA_TOPIC:-logs.buffered}
     volumes:
       - ./config/pipeline:/usr/share/logstash/pipeline:ro,Z
+      - ./config/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/elk/logstash:/usr/share/logstash/data:Z
     ports:
       - "${TAILSCALE_IP:?TAILSCALE_IP must be set}:5044:5044"
       - "${TAILSCALE_IP:?TAILSCALE_IP must be set}:5000:5000"
     networks:
       - default
+      - mgmt-data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9600/_node/pipelines >/dev/null"]
+      interval: 20s
+      timeout: 10s
+      retries: 30
+      start_period: 1m
+
+  logstash-consumer:
+    image: docker.elastic.co/logstash/logstash:9.4.2
+    container_name: logstash-consumer
+    restart: unless-stopped
+    mem_limit: 2g
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      LS_JAVA_OPTS: -Xms1g -Xmx1g
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:19092}
+      LOGS_KAFKA_TOPIC: ${LOGS_KAFKA_TOPIC:-logs.buffered}
+    volumes:
+      - ./config/pipeline-consumer:/usr/share/logstash/pipeline:ro,Z
+      - ./config/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/elk/logstash-consumer:/usr/share/logstash/data:Z
+    networks:
+      - default
+      - mgmt-data
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:9600/_node/pipelines >/dev/null"]
       interval: 20s
@@ -84,4 +121,7 @@ services:
 networks:
   mgmt-proxy:
     name: ${PROXY_NET:-mgmt-proxy}
+    external: true
+  mgmt-data:
+    name: ${KAFKA_NET:-mgmt-data}
     external: true
