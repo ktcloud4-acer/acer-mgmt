@@ -1,0 +1,64 @@
+# Optional direct scrape pattern for OpenCost through the existing Kubernetes
+# API endpoints such as khb-operator.tailc0244b.ts.net.
+#
+# This file is intentionally not included from prometheus.yml because each job
+# needs a real per-cluster bearer token file on the mgmt host. Without that
+# token, the Kubernetes API proxy will reject the scrape.
+#
+# Example target URL:
+#   https://khb-operator.tailc0244b.ts.net/api/v1/namespaces/opencost/services/http:opencost:9003/proxy/metrics
+
+- job_name: opencost-khb
+  scheme: https
+  metrics_path: /api/v1/namespaces/opencost/services/http:opencost:9003/proxy/metrics
+  bearer_token_file: /etc/prometheus/cluster-tokens/khb.token
+  static_configs:
+    - targets:
+        - khb-operator.tailc0244b.ts.net
+      labels:
+        cluster: khb
+        source: opencost
+
+- job_name: opencost-oje
+  scheme: https
+  metrics_path: /api/v1/namespaces/opencost/services/http:opencost:9003/proxy/metrics
+  bearer_token_file: /etc/prometheus/cluster-tokens/oje.token
+  static_configs:
+    - targets:
+        - oje-operator.tailc0244b.ts.net
+      labels:
+        cluster: oje
+        source: opencost
+
+- job_name: opencost-nmg
+  scheme: https
+  metrics_path: /api/v1/namespaces/opencost/services/http:opencost:9003/proxy/metrics
+  bearer_token_file: /etc/prometheus/cluster-tokens/nmg.token
+  static_configs:
+    - targets:
+        - nmg-operator.tailc0244b.ts.net
+      labels:
+        cluster: nmg
+        source: opencost
+
+- job_name: opencost-ljw
+  scheme: https
+  metrics_path: /api/v1/namespaces/opencost/services/http:opencost:9003/proxy/metrics
+  bearer_token_file: /etc/prometheus/cluster-tokens/ljw.token
+  static_configs:
+    - targets:
+        - ljw-operator.tailc0244b.ts.net
+      labels:
+        cluster: ljw
+        source: opencost
+
+- job_name: opencost-ggg
+  scheme: https
+  metrics_path: /api/v1/namespaces/opencost/services/http:opencost:9003/proxy/metrics
+  bearer_token_file: /etc/prometheus/cluster-tokens/ggg.token
+  static_configs:
+    - targets:
+        - ggg-operator.tailc0244b.ts.net
+      labels:
+        cluster: ggg
+        source: opencost

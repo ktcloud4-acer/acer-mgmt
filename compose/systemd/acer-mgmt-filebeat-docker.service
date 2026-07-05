@@ -1,0 +1,16 @@
+[Unit]
+Description=acer-mgmt Filebeat sidecar for Docker logs via Logstash
+Documentation=https://www.elastic.co/beats/filebeat
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/share/filebeat/bin/filebeat --environment systemd -c /etc/filebeat-docker/filebeat.yml --path.home /usr/share/filebeat --path.config /etc/filebeat-docker --path.data /var/lib/filebeat-docker --path.logs /var/log/filebeat-docker
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

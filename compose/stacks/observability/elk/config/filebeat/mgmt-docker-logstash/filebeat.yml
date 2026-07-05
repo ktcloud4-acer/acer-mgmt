@@ -1,0 +1,74 @@
+filebeat.inputs:
+  - type: filestream
+    id: mgmt-docker-containers
+    paths:
+      - "/var/lib/docker/containers/*/*-json.log"
+    parsers:
+      - container: ~
+    fields_under_root: true
+    fields:
+      user: mgmt
+      log_type: docker
+      labels:
+        team: mgmt
+        platform: mgmt
+        node_role: mgmt
+        log_type: docker
+        log_track: docker
+    processors:
+      - add_docker_metadata: ~
+
+  - type: filestream
+    id: mgmt-harbor-files
+    paths:
+      - "/home/mgmt-data/harbor/log/*.log"
+    prospector.scanner.fingerprint:
+      length: 64
+    file_identity.fingerprint: ~
+    fields_under_root: true
+    fields:
+      user: mgmt
+      log_type: docker
+      labels:
+        team: mgmt
+        platform: mgmt
+        node_role: mgmt
+        log_type: docker
+        log_track: harbor
+
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      host: unix:///var/run/docker.sock
+      templates:
+        - condition:
+            or:
+              - equals:
+                  docker.container.name: pg-tailnet-proxy
+              - equals:
+                  docker.container.name: sonarqube
+          config:
+            - type: filestream
+              id: "mgmt-small-${data.docker.container.id}"
+              paths:
+                - "/var/lib/docker/containers/${data.docker.container.id}/*-json.log"
+              prospector.scanner.fingerprint:
+                length: 64
+              file_identity.fingerprint: ~
+              parsers:
+                - container: ~
+              fields_under_root: true
+              fields:
+                user: mgmt
+                log_type: docker
+                labels:
+                  team: mgmt
+                  platform: mgmt
+                  node_role: mgmt
+                  log_type: docker
+                  log_track: docker-small
+              processors:
+                - add_docker_metadata: ~
+
+output.logstash:
+  hosts: ["100.117.59.96:5044"]

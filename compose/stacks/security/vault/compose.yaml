@@ -2,6 +2,23 @@
 # 초기화 결과는 git 제외된 secrets/vault-init.json 에 저장한다.
 
 services:
+  vault-audit-socket:
+    image: alpine/socat:latest
+    container_name: vault-audit-socket
+    restart: unless-stopped
+    command:
+      - UNIX-LISTEN:/vault/audit-socket/vault.sock,fork,mode=0660
+      - OPEN:/vault/audit-secondary/vault-audit-socket.log,creat,append,mode=0600
+    user: "100:1000"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-audit-socket:/vault/audit-socket:z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-audit-secondary:/vault/audit-secondary:Z
+
   vault:
     image: hashicorp/vault:2.0.3
     container_name: vault
@@ -9,16 +26,34 @@ services:
     command: server
     environment:
       TZ: ${TZ:-Asia/Seoul}
-      VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_ADDR: https://127.0.0.1:8200
+      VAULT_CACERT: /vault/tls/ca.crt
+    depends_on:
+      - vault-audit-socket
+    read_only: true
+    cap_drop:
+      - ALL
+    cap_add:
+      - IPC_LOCK
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      core: 0
+      memlock: -1
+    tmpfs:
+      - /tmp:size=16m,mode=1777
     volumes:
       - ./config/vault.hcl:/vault/config/vault.hcl:ro,Z
       - ${DATA_ROOT:-/home/mgmt-data}/vault:/vault/data:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-audit:/vault/audit:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-audit-socket:/vault/audit-socket:z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-tls:/vault/tls:ro,z
     networks:
       - mgmt-proxy
     healthcheck:
       test:
         - CMD-SHELL
-        - vault status >/dev/null 2>&1; code=$$?; test $$code -eq 0 -o $$code -eq 2
+        - vault status >/dev/null 2>&1
       interval: 10s
       timeout: 5s
       retries: 12
@@ -30,6 +65,8 @@ services:
       - "traefik.http.routers.vault.entrypoints=websecure"
       - "traefik.http.routers.vault.middlewares=secure-headers@file"
       - "traefik.http.services.vault.loadbalancer.server.port=8200"
+      - "traefik.http.services.vault.loadbalancer.server.scheme=https"
+      - "traefik.http.services.vault.loadbalancer.serversTransport=vault-tls@file"
 
 networks:
   mgmt-proxy:

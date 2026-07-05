@@ -1,0 +1,36 @@
+name: acer-aio
+
+filebeat.modules:
+  - module: system
+    syslog:
+      enabled: true
+      var.paths: ["/var/log/syslog"]
+    auth:
+      enabled: true
+      var.paths: ["/var/log/auth.log"]
+
+filebeat.inputs:
+  - type: filestream
+    id: aio-openstack-kolla
+    paths:
+      - "/var/log/kolla/*/*.log"
+    fields_under_root: true
+    fields:
+      user: aio
+      log_type: openstack
+      labels:
+        team: aio
+        platform: aio
+        node_role: openstack-aio
+        log_type: openstack
+
+processors:
+  - add_fields:
+      target: labels
+      fields:
+        team: aio
+        platform: aio
+        node_role: openstack-aio
+
+output.logstash:
+  hosts: ["100.117.59.96:5044"]

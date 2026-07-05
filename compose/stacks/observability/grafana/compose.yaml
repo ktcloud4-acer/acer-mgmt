@@ -17,6 +17,7 @@ services:
     volumes:
       - ${DATA_ROOT:-/home/mgmt-data}/grafana:/var/lib/grafana:Z
       - ./provisioning/datasources/prometheus.yaml:/etc/grafana/provisioning/datasources/prometheus.yaml:ro,Z
+      - ./provisioning/datasources/tempo.yaml:/etc/grafana/provisioning/datasources/tempo.yaml:ro,Z
       - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro,Z
       - ./dashboards:/var/lib/grafana/dashboards:ro,Z
     networks:
