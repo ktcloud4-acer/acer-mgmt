@@ -24,6 +24,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config/traefik.yaml:/etc/traefik/traefik.yaml:ro
       - ./config/dynamic:/etc/traefik/dynamic:ro
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-tls/ca.crt:/etc/traefik/vault-ca/ca.crt:ro,z
       - ${DATA_ROOT:-/home/mgmt-data}/traefik:/acme        # acme.json 영속
     networks:
       - mgmt-proxy
