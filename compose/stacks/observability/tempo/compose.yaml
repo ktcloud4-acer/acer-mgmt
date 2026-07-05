@@ -1,0 +1,37 @@
+# Grafana Tempo — 트레이스 저장/조회 백엔드.
+#   - OTLP 수신(4317 gRPC / 4318 HTTP)은 host 포트로 publish 하여
+#     팀 클러스터의 OTel Collector 가 mgmt tailnet IP(100.117.59.96:4317)로 직접 export.
+#     (prometheus 가 9090 을 publish 해 remote_write 를 받는 것과 동일한 패턴)
+#   - 조회 API(3200)는 host 로 노출하지 않고 mgmt-proxy 네트워크 안에서 Grafana 만 접근.
+#   - Grafana datasource 는 provisioning/datasources/tempo.yaml 로 자동 등록.
+
+services:
+  tempo:
+    image: grafana/tempo:2.7.1   # TODO: 배포 전 현재 stable 태그 확인 후 고정
+    container_name: tempo
+    restart: unless-stopped
+    command: [ "-config.file=/etc/tempo/tempo.yaml" ]
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+    user: "10001:10001"          # grafana/tempo 기본 실행 UID. host 데이터 디렉터리 소유권도 이 값에 맞출 것.
+    ports:
+      # 팀 클러스터 OTel Collector → mgmt tailnet IP 로 직접 도달하는 OTLP 수신 포트만 publish.
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    volumes:
+      - ./config/tempo.yaml:/etc/tempo/tempo.yaml:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/tempo:/var/tempo:Z
+    networks:
+      - default
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3200/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true

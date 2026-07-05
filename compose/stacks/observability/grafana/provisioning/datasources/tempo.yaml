@@ -1,0 +1,25 @@
+apiVersion: 1
+
+datasources:
+  - name: Tempo
+    uid: tempo
+    type: tempo
+    access: proxy
+    # tempo 컨테이너는 mgmt-proxy 네트워크를 Grafana 와 공유하므로 컨테이너명으로 접근.
+    url: http://tempo:3200
+    isDefault: false
+    editable: false
+    jsonData:
+      # 메트릭(exemplar/service graph)과 트레이스 상호 연결.
+      tracesToMetrics:
+        datasourceUid: prometheus
+      serviceMap:
+        datasourceUid: prometheus
+      # 트레이스 → 로그 연결. 로그 저장소가 ELK 라서 1급 연동은 아님:
+      # Grafana 에 Elasticsearch datasource 를 추가한 뒤 그 uid 를 아래에 넣고
+      # tags 에 trace_id 매핑을 걸어야 원클릭 이동이 동작한다. (미설정 시 Kibana 수동 검색)
+      # tracesToLogsV2:
+      #   datasourceUid: elasticsearch
+      #   tags: [{ key: 'trace_id', value: 'trace.id' }]
+      nodeGraph:
+        enabled: true
