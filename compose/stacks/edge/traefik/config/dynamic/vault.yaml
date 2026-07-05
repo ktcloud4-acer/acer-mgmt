@@ -1,0 +1,6 @@
+http:
+  serversTransports:
+    vault-tls:
+      serverName: vault
+      rootCAs:
+        - /etc/traefik/vault-ca/ca.crt
