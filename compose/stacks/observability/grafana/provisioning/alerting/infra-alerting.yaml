@@ -60,7 +60,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 10m
         annotations:
           summary: "mgmt 서버의 노드 상태 메트릭이 10분 이상 끊겼습니다."
@@ -111,7 +111,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 10m
         annotations:
           summary: "AIO VM의 노드 상태 메트릭이 10분 이상 끊겼습니다."
@@ -162,7 +162,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 30m
         annotations:
           summary: "AIO OpenCost 비용 메트릭 수집이 30분 이상 중단되었습니다."
@@ -214,7 +214,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 30m
         annotations:
           summary: "{{ $labels.cluster }} 클러스터의 OpenCost 수집이 30분 이상 중단되었습니다."
@@ -265,7 +265,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 30m
         annotations:
           summary: "{{ $labels.cluster }} 클러스터의 kube-state-metrics 수집이 30분 이상 중단되었습니다."
@@ -316,7 +316,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 15m
         annotations:
           summary: "{{ $labels.cluster }} / {{ $labels.node }} kubelet 메트릭 수집이 15분 이상 중단되었습니다."
@@ -367,7 +367,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 15m
         annotations:
           summary: "{{ $labels.cluster }} / {{ $labels.node }} cAdvisor 메트릭 수집이 15분 이상 중단되었습니다."
@@ -423,7 +423,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 10m
         annotations:
           summary: "{{ $labels.cluster }} / {{ $labels.node }} 노드가 Ready 상태가 아닙니다."
@@ -473,7 +473,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 20m
         annotations:
           summary: "mgmt 서버 루트 디스크 사용률이 95%를 20분 이상 넘었습니다."
@@ -524,7 +524,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 20m
         annotations:
           summary: "AIO VM 루트 디스크 사용률이 95%를 20분 이상 넘었습니다."
@@ -575,7 +575,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 30m
         annotations:
           summary: "mgmt 서버 메모리 사용률이 95%를 30분 이상 넘었습니다."
@@ -626,7 +626,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 30m
         annotations:
           summary: "AIO VM 메모리 사용률이 95%를 30분 이상 넘었습니다."
@@ -683,7 +683,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 20m
         annotations:
           summary: "{{ $labels.cluster }} / {{ $labels.namespace }} 네임스페이스에 Pending Pod가 3개 이상 지속되고 있습니다."
@@ -734,7 +734,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 15m
         annotations:
           summary: "{{ $labels.cluster }} / {{ $labels.namespace }}/{{ $labels.pod }} Pod가 반복 재시작 중입니다."
@@ -785,7 +785,7 @@ groups:
               refId: C
               type: threshold
         noDataState: OK
-        executionErrorState: Error
+        execErrState: OK
         for: 60m
         annotations:
           summary: "{{ $labels.cluster }} 클러스터의 OpenCost 노드 비용 메트릭 수가 부족합니다."
