@@ -4,7 +4,7 @@
         href: https://grafana.{{HOMEPAGE_VAR_BASE_DOMAIN}}
         description: Metrics dashboards
     - Tempo:
-        icon: grafana-tempo.png
+        icon: tempo.png
         href: 'https://grafana.{{HOMEPAGE_VAR_BASE_DOMAIN}}/explore?schemaVersion=1&orgId=1&panes=%7B%22tempo%22%3A%7B%22datasource%22%3A%22tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22tempo%22%7D%2C%22queryType%22%3A%22traceqlSearch%22%2C%22limit%22%3A20%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-1h%22%2C%22to%22%3A%22now%22%7D%7D%7D'
         description: Distributed traces (Grafana Explore)
     - Prometheus:
@@ -27,7 +27,7 @@
 
 - CI/CD:
     - Argo CD:
-        icon: argocd.png
+        icon: argo-cd.png
         href: https://argocd.{{HOMEPAGE_VAR_BASE_DOMAIN}}
         description: GitOps delivery on the k3d mgmt cluster
     - GitLab:
@@ -60,7 +60,7 @@
 
 - Data:
     - Kafka:
-        icon: apache-kafka.png
+        icon: kafka.png
         href: https://kafka.{{HOMEPAGE_VAR_BASE_DOMAIN}}
         description: Event streaming and broker UI
     - Supabase:
