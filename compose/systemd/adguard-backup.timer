@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Acer mgmt AdGuard Home backup daily
+
+[Timer]
+OnCalendar=*-*-* 03:20:00
+Persistent=true
+Unit=adguard-backup.service
+
+[Install]
+WantedBy=timers.target

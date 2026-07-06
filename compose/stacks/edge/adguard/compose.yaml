@@ -6,7 +6,7 @@
 
 services:
   adguard:
-    image: adguard/adguardhome:latest   # TODO: 기동 후 실제 버전으로 핀 고정
+    image: adguard/adguardhome:v0.107.77
     container_name: adguard
     restart: unless-stopped
     environment:
@@ -27,6 +27,19 @@ services:
       - "traefik.http.routers.adguard.entrypoints=websecure"
       - "traefik.http.routers.adguard.middlewares=secure-headers@file"
       - "traefik.http.services.adguard.loadbalancer.server.port=3000"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          /opt/adguardhome/AdGuardHome --check-config
+          -c /opt/adguardhome/conf/AdGuardHome.yaml
+          -w /opt/adguardhome/work >/dev/null
+          && wget -q --spider http://127.0.0.1:3000/
+          && nslookup grafana.${BASE_DOMAIN} 127.0.0.1 >/dev/null
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
 networks:
   mgmt-proxy:

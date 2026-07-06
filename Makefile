@@ -6,7 +6,7 @@ SHELL := /bin/bash
 	compose-up compose-down compose-restart compose-logs compose-ps compose-pull compose-config \
 	up down restart logs ps pull config net \
 	cluster-tools cluster-validate cluster-create cluster-start cluster-stop cluster-status \
-	argocd-bootstrap argocd-status argocd-smoke cluster-destroy
+	cluster-dns argocd-bootstrap argocd-status argocd-smoke cluster-destroy
 
 help: ## 전체 도움말
 	@echo "Docker Compose"
@@ -20,6 +20,7 @@ help: ## 전체 도움말
 	@echo "  make argocd-bootstrap"
 	@echo "  make argocd-smoke"
 	@echo "  make cluster-status"
+	@echo "  make cluster-dns"
 	@echo
 	@echo "기존 호환 명령"
 	@echo "  make up|down|logs|ps s=<domain/service>"
@@ -48,6 +49,9 @@ cluster-stop:
 
 cluster-status:
 	$(MAKE) -C k3d status
+
+cluster-dns:
+	$(MAKE) -C k3d dns
 
 argocd-bootstrap:
 	$(MAKE) -C k3d bootstrap
