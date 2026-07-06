@@ -1,0 +1,37 @@
+# Playwright e2e 리포트 호스트 — nginx 정적 서빙 + WebDAV PUT.
+#   CI(web-service e2e)가 자체완결형 HTML 리포트를 PUT /e2e-report.html 로 업로드.
+#   조회: playwright.${BASE_DOMAIN} (traefik + 와일드카드 cert) 또는 tailnet IP:8099.
+#   업로드용 포트(8099)는 tailnet IP 에만 바인딩(외부 미노출).
+
+services:
+  playwright-report:
+    image: nginx:1.27-alpine
+    container_name: playwright-report
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+    ports:
+      - "100.117.59.96:8099:80"   # CI 업로드/직결(tailnet 전용)
+    volumes:
+      - ./config/default.conf:/etc/nginx/conf.d/default.conf:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/playwright-report:/srv/report:Z
+    networks:
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:80/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.playwright.rule=Host(`playwright.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.playwright.entrypoints=websecure"
+      - "traefik.http.routers.playwright.middlewares=secure-headers@file"
+      - "traefik.http.services.playwright.loadbalancer.server.port=80"
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true
