@@ -14,6 +14,8 @@ services:
       CHECK_RESULTS_EVERY_SECONDS: 3
       KEEP_HISTORY: 1
       KEEP_HISTORY_LATEST: 25
+    ports:
+      - "5050:5050"   # tailnet 직결(100.117.59.96:5050) — DNS/cert 불필요
     volumes:
       - ${DATA_ROOT:-/home/mgmt-data}/allure/projects:/app/projects:Z
     networks:

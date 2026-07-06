@@ -43,7 +43,7 @@
         description: Static analysis and quality
     - Allure:
         icon: mdi-test-tube
-        href: https://allure.{{HOMEPAGE_VAR_BASE_DOMAIN}}/allure-docker-service/projects/web-service/reports/latest/index.html
+        href: http://100.117.59.96:5050/allure-docker-service/projects/web-service/reports/latest/index.html
         description: Test reports (unit/integration/e2e)
     - Semaphore:
         icon: semaphore.png
