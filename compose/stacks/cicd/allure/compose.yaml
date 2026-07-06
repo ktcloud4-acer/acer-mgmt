@@ -1,0 +1,38 @@
+# Allure Report 서버 — CI(web-service 등)가 테스트 결과를 API 로 업로드하면
+# 리포트를 생성/보관(히스토리·트렌드)하고 웹으로 서빙한다.
+#   업로드:  POST https://allure.${BASE_DOMAIN}/allure-docker-service/send-results?project_id=<proj>
+#   리포트:  https://allure.${BASE_DOMAIN}/allure-docker-service/projects/<proj>/reports/latest/index.html
+# tailnet 내부 전용(traefik). 필요 시 SECURITY_* 로 인증 추가.
+
+services:
+  allure:
+    image: frankescobar/allure-docker-service:2.27.0
+    container_name: allure
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      CHECK_RESULTS_EVERY_SECONDS: 3
+      KEEP_HISTORY: 1
+      KEEP_HISTORY_LATEST: 25
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/allure/projects:/app/projects:Z
+    networks:
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5050/allure-docker-service/version || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.allure.rule=Host(`allure.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.allure.entrypoints=websecure"
+      - "traefik.http.routers.allure.middlewares=secure-headers@file"
+      - "traefik.http.services.allure.loadbalancer.server.port=5050"
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true

@@ -41,6 +41,10 @@
         icon: sonarqube.png
         href: https://sonar.{{HOMEPAGE_VAR_BASE_DOMAIN}}
         description: Static analysis and quality
+    - Allure:
+        icon: mdi-test-tube
+        href: https://allure.{{HOMEPAGE_VAR_BASE_DOMAIN}}/allure-docker-service/projects/web-service/reports/latest/index.html
+        description: Test reports (unit/integration/e2e)
     - Semaphore:
         icon: semaphore.png
         href: https://semaphore.{{HOMEPAGE_VAR_BASE_DOMAIN}}
