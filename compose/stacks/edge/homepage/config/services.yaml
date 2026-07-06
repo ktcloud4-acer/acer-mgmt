@@ -75,3 +75,7 @@
         icon: traefik-proxy.png
         href: https://traefik.{{HOMEPAGE_VAR_BASE_DOMAIN}}
         description: Internal ingress dashboard
+    - AdGuard Home:
+        icon: adguard-home.png
+        href: http://100.117.59.96:3000
+        description: Internal DNS (*.imcherry5778.xyz wildcard)
