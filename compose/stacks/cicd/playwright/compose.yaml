@@ -18,7 +18,7 @@ services:
     networks:
       - mgmt-proxy
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://localhost:80/healthz || exit 1"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:80/healthz || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
