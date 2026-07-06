@@ -43,8 +43,12 @@
         description: Static analysis and quality
     - Allure:
         icon: mdi-test-tube
-        href: http://100.117.59.96:5050/allure-docker-service/projects/web-service/reports/latest/index.html
+        href: https://allure.{{HOMEPAGE_VAR_BASE_DOMAIN}}/allure-docker-service/projects/web-service/reports/latest/index.html
         description: Test reports (unit/integration/e2e)
+    - Playwright:
+        icon: mdi-drama-masks
+        href: https://playwright.{{HOMEPAGE_VAR_BASE_DOMAIN}}/
+        description: e2e (Playwright) HTML report
     - Semaphore:
         icon: semaphore.png
         href: https://semaphore.{{HOMEPAGE_VAR_BASE_DOMAIN}}
@@ -77,5 +81,5 @@
         description: Internal ingress dashboard
     - AdGuard Home:
         icon: adguard-home.png
-        href: http://100.117.59.96:3000
+        href: https://adguard.{{HOMEPAGE_VAR_BASE_DOMAIN}}
         description: Internal DNS (*.imcherry5778.xyz wildcard)
