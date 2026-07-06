@@ -6,7 +6,7 @@ KUBECONFIG_FILE := $(abspath $(CURDIR)/../secrets/k3d/mgmt.kubeconfig)
 
 export KUBECONFIG := $(KUBECONFIG_FILE)
 
-.PHONY: help tools validate data network create start stop status bootstrap argocd-status smoke destroy
+.PHONY: help tools validate data network create start stop status dns bootstrap argocd-status smoke destroy
 
 help:
 	@echo "  make tools       k3d/kubectl/argocd CLI 설치"
@@ -15,6 +15,7 @@ help:
 	@echo "  make bootstrap   Argo CD 설치"
 	@echo "  make smoke       Argo CD 실제 동기화 테스트"
 	@echo "  make status      클러스터와 Argo CD 상태"
+	@echo "  make dns         k3d CoreDNS split DNS와 노드 resolver 보정"
 	@echo "  make stop|start  클러스터 중지/시작"
 
 tools:
@@ -63,6 +64,10 @@ status: tools
 		kubectl get nodes -o wide; \
 		kubectl get applications.argoproj.io -n argocd 2>/dev/null || true; \
 	fi
+
+dns: tools
+	./scripts/apply-dns.sh
+	./scripts/patch-node-dns.sh
 
 smoke: bootstrap
 	./scripts/smoke-test.sh
