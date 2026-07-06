@@ -1,6 +1,5 @@
 {
   "index_patterns": [
-    "logs-system-*",
     "logs-docker-*",
     "logs-k3d-*",
     "logs-kubernetes-*",
@@ -11,13 +10,26 @@
   "template": {
     "settings": {
       "number_of_replicas": 0,
-      "index.lifecycle.name": "logs-retention-14d"
+      "index.lifecycle.name": "logs-retention-14d",
+      "index.highlight.max_analyzed_offset": 20000000
     },
     "mappings": {
       "dynamic": true,
       "properties": {
         "@timestamp": {
           "type": "date"
+        },
+        "app": {
+          "type": "flattened"
+        },
+        "message": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 8191
+            }
+          }
         },
         "labels": {
           "properties": {
@@ -35,22 +47,6 @@
             },
             "log_type": {
               "type": "keyword"
-            },
-            "log_track": {
-              "type": "keyword"
-            },
-            "harbor_component": {
-              "type": "keyword"
-            }
-          }
-        },
-        "app": {
-          "type": "flattened"
-        },
-        "container": {
-          "properties": {
-            "labels": {
-              "type": "flattened"
             }
           }
         },
