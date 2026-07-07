@@ -15,6 +15,7 @@ services:
     volumes:
       - ./config/default.conf:/etc/nginx/conf.d/default.conf:ro,Z
       - ${DATA_ROOT:-/home/mgmt-data}/playwright-report:/srv/report:Z
+      - ./dashboard/index.html:/srv/report/index.html:ro,Z
     networks:
       - mgmt-proxy
     healthcheck:
