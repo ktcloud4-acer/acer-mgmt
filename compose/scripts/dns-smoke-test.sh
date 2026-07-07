@@ -37,6 +37,7 @@ assert_adguard_answer "$BASE_DOMAIN"
 assert_adguard_answer "grafana.${BASE_DOMAIN}"
 assert_adguard_answer "harbor.${BASE_DOMAIN}"
 assert_adguard_answer "argocd.${BASE_DOMAIN}"
+assert_adguard_answer "keycloak.${BASE_DOMAIN}"
 
 echo "[2/4] AdGuard upstream recursion"
 external_answer="$(query_short registry-1.docker.io | awk 'NF { print; exit }')"

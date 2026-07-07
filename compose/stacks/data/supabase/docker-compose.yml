@@ -120,6 +120,8 @@ services:
     container_name: supabase-auth
     image: supabase/gotrue:v2.189.0
     restart: unless-stopped
+    extra_hosts:
+      - "keycloak.${BASE_DOMAIN}:${TAILSCALE_IP:-100.117.59.96}"
     healthcheck:
       test:
         [
