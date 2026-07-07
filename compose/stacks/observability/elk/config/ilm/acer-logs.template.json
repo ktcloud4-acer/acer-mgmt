@@ -1,0 +1,14 @@
+{
+  "index_patterns": ["k8s-logs-*", "infra-logs-*"],
+  "priority": 200,
+  "_meta": {
+    "managed_by": "acer-mgmt",
+    "description": "팀 클러스터 로그 인덱스 기본 설정: 단일노드 replica0 + 14일 보존 ILM"
+  },
+  "template": {
+    "settings": {
+      "number_of_replicas": 0,
+      "index.lifecycle.name": "logs-retention-14d"
+    }
+  }
+}
