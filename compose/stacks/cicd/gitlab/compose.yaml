@@ -8,7 +8,7 @@ services:
     hostname: gitlab.${BASE_DOMAIN}
     restart: unless-stopped
     shm_size: 256m
-    mem_limit: 8g
+    mem_limit: 16g
     environment:
       TZ: ${TZ:-Asia/Seoul}
       GITLAB_ROOT_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD must be set}
@@ -26,6 +26,10 @@ services:
         letsencrypt['enable'] = false
         gitlab_rails['gitlab_shell_ssh_port'] = 2222
         gitlab_rails['time_zone'] = 'Asia/Seoul'
+        puma['worker_processes'] = 4
+        puma['min_threads'] = 4
+        puma['max_threads'] = 4
+        sidekiq['concurrency'] = 10
         prometheus_monitoring['enable'] = false
         alertmanager['enable'] = false
     ports:
