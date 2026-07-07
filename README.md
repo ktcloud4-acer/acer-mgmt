@@ -10,7 +10,6 @@ Argo CD용 k3d 클러스터는 실행 방식과 수명주기가 다르므로 최
 acer-mgmt/
 ├── compose/     GitLab, Harbor, Traefik, 관측·데이터·백업 서비스
 ├── k3d/         중앙 Argo CD를 실행하는 단일 노드 관리 클러스터
-├── docs/        아키텍처와 운영 런북
 ├── secrets/     kubeconfig와 런타임 인증정보(커밋 금지)
 └── Makefile     두 런타임의 공통 진입점
 ```
@@ -50,8 +49,20 @@ make argocd-smoke
 make cluster-status
 ```
 
-상세 운영 절차는 [`docs/runbooks/k3d-argocd.md`](docs/runbooks/k3d-argocd.md)를
+상세 운영 절차는 [acer-docs의 k3d-argocd-2026-06-30.md](https://gitlab.imcherry5778.xyz/acer-group/acer-docs/-/blob/main/acer-mgmt/docs/runbooks/k3d-argocd-2026-06-30.md)를
 참조한다.
+
+## 상세 문서
+
+긴 아키텍처 문서, 운영 런북, 관측 설계 문서는 `acer-docs`에서 관리한다.
+
+| 문서 | 내용 |
+|---|---|
+| [architecture-2026-06-29.md](https://gitlab.imcherry5778.xyz/acer-group/acer-docs/-/blob/main/acer-mgmt/docs/architecture-2026-06-29.md) | 중앙 운영 서버 아키텍처 |
+| [services-2026-06-29.md](https://gitlab.imcherry5778.xyz/acer-group/acer-docs/-/blob/main/acer-mgmt/docs/services-2026-06-29.md) | 서비스 목록과 포트 |
+| [runbook-2026-06-29.md](https://gitlab.imcherry5778.xyz/acer-group/acer-docs/-/blob/main/acer-mgmt/docs/runbook-2026-06-29.md) | 운영 런북 |
+| [logging-design-2026-07-04.md](https://gitlab.imcherry5778.xyz/acer-group/acer-docs/-/blob/main/acer-mgmt/docs/logging-design-2026-07-04.md) | 로깅 설계 |
+| [otel-tempo-tracing-setup-2026-07-05.md](https://gitlab.imcherry5778.xyz/acer-group/acer-docs/-/blob/main/acer-mgmt/docs/otel-tempo-tracing-setup-2026-07-05.md) | OTEL/Tempo 추적 설정 |
 
 ## 재부팅 복구
 
