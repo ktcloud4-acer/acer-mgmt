@@ -1,0 +1,95 @@
+# Keycloak - central IAM/SSO provider.
+# Grafana is the first pilot client. TLS terminates at Traefik; Keycloak listens
+# on plain HTTP inside the Docker network.
+
+services:
+  keycloak-data-init:
+    image: alpine:3.22
+    container_name: keycloak-data-init
+    restart: "no"
+    user: "0:0"
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        mkdir -p /opt/keycloak/data/tmp
+        chown -R 1000:0 /opt/keycloak/data
+        chmod -R g+rwX /opt/keycloak/data
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/keycloak:/opt/keycloak/data:Z
+
+  keycloak-db:
+    image: postgres:17-alpine
+    container_name: keycloak-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD must be set}
+      TZ: ${TZ:-Asia/Seoul}
+    volumes:
+      - keycloak-postgres:/var/lib/postgresql/data
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5.2
+    container_name: keycloak
+    restart: unless-stopped
+    depends_on:
+      keycloak-data-init:
+        condition: service_completed_successfully
+      keycloak-db:
+        condition: service_healthy
+    command:
+      - start
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD must be set}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD must be set}
+      KC_HOSTNAME: keycloak.${BASE_DOMAIN}
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/keycloak:/opt/keycloak/data:Z
+    networks:
+      - default
+      - mgmt-proxy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9000;
+          printf "GET /health/ready HTTP/1.0\r\n\r\n" >&3;
+          grep -q "\"status\"[[:space:]]*:[[:space:]]*\"UP\"" <&3'
+      interval: 15s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.keycloak.rule=Host(`keycloak.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.keycloak.entrypoints=websecure"
+      - "traefik.http.routers.keycloak.middlewares=keycloak-headers@file"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+
+volumes:
+  keycloak-postgres:
+    name: keycloak-postgres
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true
