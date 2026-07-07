@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Playwright Test Results Dashboard</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #111318;
+        --panel: #1b2029;
+        --panel-strong: #232a34;
+        --text: #eef2f6;
+        --muted: #9ba7b4;
+        --line: #343c49;
+        --green: #35c27a;
+        --amber: #e1ad3d;
+        --red: #e36666;
+        --cyan: #4fb8cc;
+        --button: #2d6cdf;
+        --button-hover: #3b7cf0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.45;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .shell {
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 0 auto 18px;
+        max-width: 1180px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .mark {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border-radius: 8px;
+        background: #14352a;
+        color: #8af0b5;
+        font-weight: 800;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(20px, 3vw, 30px);
+        font-weight: 750;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        margin: 2px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      button,
+      .button {
+        display: inline-flex;
+        min-height: 36px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        padding: 8px 12px;
+        background: var(--button);
+        color: white;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      button:hover,
+      .button:hover {
+        background: var(--button-hover);
+      }
+
+      .button.secondary {
+        border-color: var(--line);
+        background: var(--panel-strong);
+      }
+
+      .button.secondary:hover {
+        background: #303846;
+      }
+
+      main {
+        display: grid;
+        max-width: 1180px;
+        margin: 0 auto;
+        gap: 16px;
+      }
+
+      .filters,
+      .notice,
+      .table-wrap {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .filters {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        padding: 14px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      select {
+        width: 100%;
+        min-height: 36px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #11161d;
+        color: var(--text);
+        padding: 7px 10px;
+        font: inherit;
+      }
+
+      .notice {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        color: var(--muted);
+      }
+
+      .notice strong {
+        color: var(--text);
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #151a22;
+        color: var(--text);
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 750;
+        white-space: nowrap;
+      }
+
+      .status-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--amber);
+      }
+
+      .status-pill.ok .status-dot {
+        background: var(--green);
+      }
+
+      .status-pill.fail .status-dot {
+        background: var(--red);
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .card {
+        min-height: 118px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 14px;
+      }
+
+      .card-title {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+        text-transform: uppercase;
+      }
+
+      .card-value {
+        margin-top: 12px;
+        overflow-wrap: anywhere;
+        font-size: 24px;
+        font-weight: 800;
+      }
+
+      .card-detail {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .card.status .card-value {
+        color: var(--amber);
+      }
+
+      .card.status.ok .card-value {
+        color: var(--green);
+      }
+
+      .card.status.fail .card-value {
+        color: var(--red);
+      }
+
+      .table-wrap {
+        overflow: hidden;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--line);
+        padding: 14px;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 16px;
+        letter-spacing: 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 13px 14px;
+        text-align: left;
+        vertical-align: middle;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      td {
+        color: var(--text);
+        font-size: 14px;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .kind {
+        color: var(--cyan);
+        font-weight: 800;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .right {
+        text-align: right;
+      }
+
+      @media (max-width: 820px) {
+        .shell {
+          padding: 14px;
+        }
+
+        .topbar,
+        .notice,
+        .section-head {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .actions {
+          justify-content: stretch;
+        }
+
+        button,
+        .button {
+          flex: 1;
+        }
+
+        .filters,
+        .metrics {
+          grid-template-columns: 1fr;
+        }
+
+        table,
+        thead,
+        tbody,
+        th,
+        td,
+        tr {
+          display: block;
+        }
+
+        thead {
+          display: none;
+        }
+
+        tr {
+          border-bottom: 1px solid var(--line);
+          padding: 10px 0;
+        }
+
+        tr:last-child {
+          border-bottom: 0;
+        }
+
+        td {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          border-bottom: 0;
+          padding: 6px 14px;
+          text-align: right;
+        }
+
+        td::before {
+          content: attr(data-label);
+          color: var(--muted);
+          font-size: 12px;
+          font-weight: 800;
+          text-align: left;
+          text-transform: uppercase;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark" aria-hidden="true">PW</div>
+          <div>
+            <h1>Playwright Test Results Dashboard</h1>
+            <p class="subtitle">Central view for the hosted e2e report.</p>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="refresh" type="button">Refresh</button>
+          <a class="button" href="/e2e-report.html">Open Latest Report</a>
+        </div>
+      </header>
+
+      <main>
+        <section class="filters" aria-label="Report filters">
+          <label>
+            Project
+            <select aria-label="Project">
+              <option>web-service</option>
+            </select>
+          </label>
+          <label>
+            Test Suite
+            <select aria-label="Test Suite">
+              <option>e2e</option>
+            </select>
+          </label>
+          <label>
+            Report
+            <select aria-label="Report">
+              <option>Latest HTML report</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="notice" aria-live="polite">
+          <div>
+            <strong id="summary-title">Checking latest report</strong>
+            <span id="summary-text">Waiting for the report host response.</span>
+          </div>
+          <span id="status-pill" class="status-pill">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span id="status-label">Checking</span>
+          </span>
+        </section>
+
+        <section class="metrics" aria-label="Key metrics overview">
+          <article id="status-card" class="card status">
+            <div class="card-title">Report Status</div>
+            <div id="report-status" class="card-value">Checking</div>
+            <div class="card-detail">/e2e-report.html</div>
+          </article>
+          <article class="card">
+            <div class="card-title">Last Updated</div>
+            <div id="last-updated" class="card-value">-</div>
+            <div id="last-updated-detail" class="card-detail">No timestamp yet</div>
+          </article>
+          <article class="card">
+            <div class="card-title">Report Size</div>
+            <div id="report-size" class="card-value">-</div>
+            <div class="card-detail">Self-contained HTML</div>
+          </article>
+          <article class="card">
+            <div class="card-title">Hosted Path</div>
+            <div class="card-value">Latest</div>
+            <div class="card-detail">Root dashboard restored</div>
+          </article>
+        </section>
+
+        <section class="table-wrap" aria-label="Report library">
+          <div class="section-head">
+            <h2>Report Library</h2>
+            <a class="button secondary" href="/healthz">Health Check</a>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Updated</th>
+                <th class="right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Name">Latest e2e report</td>
+                <td data-label="Type" class="kind">HTML</td>
+                <td id="table-updated" data-label="Updated" class="muted">Checking</td>
+                <td data-label="Action" class="right">
+                  <a class="button secondary" href="/e2e-report.html">Open</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const reportUrl = "/e2e-report.html";
+      const refreshButton = document.querySelector("#refresh");
+      const statusPill = document.querySelector("#status-pill");
+      const statusLabel = document.querySelector("#status-label");
+      const statusCard = document.querySelector("#status-card");
+      const reportStatus = document.querySelector("#report-status");
+      const summaryTitle = document.querySelector("#summary-title");
+      const summaryText = document.querySelector("#summary-text");
+      const lastUpdated = document.querySelector("#last-updated");
+      const lastUpdatedDetail = document.querySelector("#last-updated-detail");
+      const reportSize = document.querySelector("#report-size");
+      const tableUpdated = document.querySelector("#table-updated");
+
+      function formatBytes(value) {
+        if (!value) return "-";
+        const bytes = Number(value);
+        if (!Number.isFinite(bytes)) return "-";
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+      }
+
+      function formatDate(value) {
+        if (!value) return { short: "-", full: "No timestamp returned" };
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return { short: "-", full: value };
+        }
+        return {
+          short: date.toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          full: date.toLocaleString(),
+        };
+      }
+
+      function setState(kind, label) {
+        statusPill.className = `status-pill ${kind}`;
+        statusCard.className = `card status ${kind}`;
+        statusLabel.textContent = label;
+        reportStatus.textContent = label;
+      }
+
+      async function refreshReportStatus() {
+        setState("", "Checking");
+        summaryTitle.textContent = "Checking latest report";
+        summaryText.textContent = "Waiting for the report host response.";
+        refreshButton.disabled = true;
+
+        try {
+          const response = await fetch(reportUrl, {
+            method: "HEAD",
+            cache: "no-store",
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const updated = formatDate(response.headers.get("last-modified"));
+          const size = formatBytes(response.headers.get("content-length"));
+
+          setState("ok", "Available");
+          summaryTitle.textContent = "Latest report is available";
+          summaryText.textContent = "Open the hosted HTML report from the dashboard.";
+          lastUpdated.textContent = updated.short;
+          lastUpdatedDetail.textContent = updated.full;
+          tableUpdated.textContent = updated.full;
+          reportSize.textContent = size;
+        } catch (error) {
+          setState("fail", "Missing");
+          summaryTitle.textContent = "Latest report is not reachable";
+          summaryText.textContent = error.message;
+          lastUpdated.textContent = "-";
+          lastUpdatedDetail.textContent = "No timestamp returned";
+          tableUpdated.textContent = "Not reachable";
+          reportSize.textContent = "-";
+        } finally {
+          refreshButton.disabled = false;
+        }
+      }
+
+      refreshButton.addEventListener("click", refreshReportStatus);
+      refreshReportStatus();
+    </script>
+  </body>
+</html>
