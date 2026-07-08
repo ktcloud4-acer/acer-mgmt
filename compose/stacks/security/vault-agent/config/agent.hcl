@@ -52,6 +52,13 @@ template {
   perms       = "0640"
 }
 
+# Alertmanager Argo CD Slack 웹훅 (#argocd-알림).
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/alertmanager\" }}{{ .Data.data.slack_webhook_argocd }}{{ end }}"
+  destination = "/vault/secrets/alertmanager/slack_webhook_argocd"
+  perms       = "0640"
+}
+
 # --- sonarqube (env_file, 컨테이너 변수명으로 렌더) ---
 template {
   contents    = "{{ with secret \"kv/data/mgmt/sonarqube\" }}SONAR_JDBC_PASSWORD={{ .Data.data.db_password }}\nSONAR_AUTH_JWTBASE64HS256SECRET={{ .Data.data.jwt_secret }}\nPOSTGRES_PASSWORD={{ .Data.data.db_password }}\n{{ end }}"

@@ -23,6 +23,7 @@ services:
       - mgmt-proxy
     depends_on:
       - node-exporter
+      - blackbox-exporter
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
       interval: 15s
@@ -46,13 +47,29 @@ services:
       - --path.sysfs=/host/sys
       - --path.rootfs=/rootfs
       - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+      - --collector.textfile.directory=/textfile
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /:/rootfs:ro,rslave
       - /run/udev/data:/run/udev/data:ro
+      - ${DATA_ROOT:-/home/mgmt-data}/node-exporter-textfile:/textfile:ro,Z
     networks:
       - default
+    security_opt:
+      - no-new-privileges:true
+
+  blackbox-exporter:
+    image: quay.io/prometheus/blackbox-exporter:v0.28.0
+    container_name: blackbox-exporter
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/blackbox_exporter/config.yml
+    volumes:
+      - ./config/blackbox.yml:/etc/blackbox_exporter/config.yml:ro,Z
+    networks:
+      - default
+      - mgmt-proxy
     security_opt:
       - no-new-privileges:true
 
