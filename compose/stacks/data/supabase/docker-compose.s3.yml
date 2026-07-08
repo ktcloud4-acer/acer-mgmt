@@ -1,7 +1,7 @@
 services:
 
   minio:
-    image: cgr.dev/chainguard/minio
+    image: cgr.dev/chainguard/minio:latest@sha256:a07e6db32569e988b3b4739d89cbe78f135bd8cc58a782fc892b55b41980ce45
     #ports:
     #  - '9000:9000'
     #  - '9001:9001'
@@ -18,7 +18,7 @@ services:
       - minio-data:/data
 
   minio-createbucket:
-    image: cgr.dev/chainguard/minio-client:latest-dev
+    image: cgr.dev/chainguard/minio-client:latest-dev@sha256:0962b2cc274f97ab50db6d697de29ac6834c175d6cdb31a1cd2a50007333f063
     depends_on:
       minio:
         condition: service_healthy

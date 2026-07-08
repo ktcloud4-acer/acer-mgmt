@@ -3,7 +3,7 @@
 
 services:
   vault-audit-socket:
-    image: alpine/socat:latest
+    image: alpine/socat:1.8.1.3
     container_name: vault-audit-socket
     restart: unless-stopped
     command:
