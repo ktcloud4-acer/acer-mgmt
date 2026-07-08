@@ -14,13 +14,38 @@ log(){ echo "[boot-reconcile] $*"; }
 # 스크립트 위치로 repo 를 추정할 수 없다 → ACER_MGMT_REPO 로 주입한다.
 if [[ -n "${ACER_MGMT_REPO:-}" ]]; then
   REPO="${ACER_MGMT_REPO}"
-elif [[ -f "$(dirname "$0")/../Makefile" ]]; then
+elif [[ -d "$(dirname "$0")/../stacks" ]]; then
   REPO="$(cd "$(dirname "$0")/.." && pwd)"
 else
   REPO="/home/user1/acer-mgmt/compose"
 fi
 cd "${REPO}" || { log "FATAL: repo root 접근 불가: ${REPO}"; exit 1; }
 log "repo: ${REPO}"
+
+PROXY_NET="${PROXY_NET:-mgmt-proxy}"
+KAFKA_NET="${KAFKA_NET:-mgmt-data}"
+CONFIG_ENV_FILE="${CONFIG_ENV_FILE:-../.env}"
+VAULT_ENV_ROOT="${VAULT_ENV_ROOT:-/run/acer-mgmt/secrets}"
+
+ensure_network() {
+  local network="$1"
+  docker network inspect "$network" >/dev/null 2>&1 || docker network create "$network" >/dev/null
+}
+
+compose_up() {
+  local s="$1"
+  local env_file
+  local env_args=()
+
+  for env_file in \
+    "$CONFIG_ENV_FILE" \
+    "stacks/${s}/.env" \
+    "${VAULT_ENV_ROOT}/${s}.env"; do
+    [[ -f "$env_file" ]] && env_args+=(--env-file "$env_file")
+  done
+
+  docker compose "${env_args[@]}" -f "stacks/${s}/compose.yaml" up -d
+}
 
 # 1) tailscale0 에 IPv4 가 실제로 붙을 때까지 대기 (서비스 active != IP 할당 완료)
 TS_IP=""
@@ -34,11 +59,13 @@ done
 [[ -z "${TS_IP}" ]] && log "WARN: tailscale IP 미할당(타임아웃) — tailnet bind 스택이 실패할 수 있음"
 
 # 2) TAILSCALE_IP 에 바인딩하는 repo 스택만 자동 탐지해 멱등 기동 (현재: elk, gitlab)
+ensure_network "$PROXY_NET"
+ensure_network "$KAFKA_NET"
 mapfile -t TS_STACKS < <(grep -rlE '\$\{?TAILSCALE_IP' stacks/*/*/compose.yaml 2>/dev/null \
                           | sed -E 's#^stacks/##; s#/compose.yaml$##')
 for s in "${TS_STACKS[@]}"; do
   log "compose up: ${s}"
-  make up s="${s}" || log "WARN: up ${s} 실패"
+  compose_up "${s}" || log "WARN: up ${s} 실패"
 done
 
 # 3) harbor: 설치 생성본이 스텁(services:{})으로 대체돼 있어 'compose up' 으로는 복구 불가.

@@ -2,7 +2,7 @@
 # *.imcherry5778.xyz → Cloudflare DNS A → Tailscale IP(100.117.59.96) → 이 호스트 → Traefik.
 # Traefik 이 Cloudflare DNS-01 으로 받은 실제 와일드카드 인증서로 HTTPS 종단.
 # 다른 서비스는 아래 라벨 패턴 복사(entrypoints=websecure 면 자동 HTTPS).
-# 기동:  make up s=edge/traefik
+# 기동: docker compose --env-file ../.env -f stacks/edge/traefik/compose.yaml up -d
 #
 # 주의: Docker Engine 29.x(min API 1.40)는 traefik docker provider(API 1.24)를 거부.
 #       데몬측 DOCKER_MIN_API_VERSION=1.24 drop-in 필요 → docs/runbook.md 참조.
