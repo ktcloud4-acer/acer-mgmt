@@ -1,35 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-MGMT_ENV=${MGMT_ENV:-/home/user1/acer-mgmt/.env}
-AWS_ENV=${AWS_ENV:-/etc/acer-backup/aws-s3.env}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/backup-env.sh"
+
+VAULT_SECRETS_ROOT=${VAULT_SECRETS_ROOT:-/home/mgmt-data/vault-agent/secrets}
+MINIO_ENV=${MINIO_ENV:-${VAULT_SECRETS_ROOT}/backup-minio.env}
+AWS_ENV=${AWS_ENV:-${VAULT_SECRETS_ROOT}/offsite-s3.env}
 MINIO_MC_IMAGE=${MINIO_MC_IMAGE:-quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z}
 MINIO_NETWORK=${MINIO_NETWORK:-minio_default}
 MINIO_ALIAS_URL=${MINIO_ALIAS_URL:-http://minio:9000}
-
-get_env_value() {
-  local file="$1"
-  local key="$2"
-  local value
-  value="$(grep -m1 "^${key}=" "$file" | cut -d= -f2- || true)"
-  if [[ -z "$value" ]]; then
-    echo "Missing ${key} in ${file}" >&2
-    exit 1
-  fi
-  printf '%s' "$value"
-}
-
-if [[ ! -f "$AWS_ENV" ]]; then
-  echo "Missing AWS credential file: ${AWS_ENV}" >&2
-  exit 1
-fi
 
 AWS_ACCESS_KEY_ID="$(get_env_value "$AWS_ENV" AWS_ACCESS_KEY_ID)"
 AWS_SECRET_ACCESS_KEY="$(get_env_value "$AWS_ENV" AWS_SECRET_ACCESS_KEY)"
 AWS_REGION="$(get_env_value "$AWS_ENV" AWS_REGION)"
 AWS_S3_BUCKET="$(get_env_value "$AWS_ENV" AWS_S3_BUCKET)"
-MINIO_ROOT_USER="$(get_env_value "$MGMT_ENV" MINIO_ROOT_USER)"
-ADMIN_PASSWORD="$(get_env_value "$MGMT_ENV" ADMIN_PASSWORD)"
+MINIO_ROOT_USER="$(get_env_value "$MINIO_ENV" MINIO_ROOT_USER)"
+ADMIN_PASSWORD="$(get_env_value "$MINIO_ENV" ADMIN_PASSWORD)"
 
 echo "[$(date -Is)] mirroring MinIO backup buckets to AWS S3 bucket ${AWS_S3_BUCKET}"
 

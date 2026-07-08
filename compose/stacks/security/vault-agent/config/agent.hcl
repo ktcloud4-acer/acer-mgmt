@@ -68,8 +68,22 @@ template {
 
 # --- restic ---
 template {
-  contents    = "{{ with secret \"kv/data/mgmt/restic\" }}RESTIC_PASSWORD={{ .Data.data.password }}\nAWS_ACCESS_KEY_ID={{ .Data.data.access_key }}\nAWS_SECRET_ACCESS_KEY={{ .Data.data.secret_key }}\n{{ end }}"
+  contents    = "{{ with secret \"kv/data/mgmt/restic\" }}RESTIC_PASSWORD={{ .Data.data.password }}\nRESTIC_ACCESS_KEY={{ .Data.data.access_key }}\nRESTIC_SECRET_KEY={{ .Data.data.secret_key }}\n{{ end }}"
   destination = "/vault/secrets/restic.env"
+  perms       = "0640"
+}
+
+# --- backup jobs: MinIO upload credentials ---
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/minio\" }}MINIO_ROOT_USER={{ .Data.data.root_user }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}"
+  destination = "/vault/secrets/backup-minio.env"
+  perms       = "0640"
+}
+
+# --- backup jobs: offsite AWS S3 mirror credentials ---
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/offsite-s3\" }}AWS_ACCESS_KEY_ID={{ .Data.data.access_key_id }}\nAWS_SECRET_ACCESS_KEY={{ .Data.data.secret_access_key }}\nAWS_REGION={{ .Data.data.region }}\nAWS_S3_BUCKET={{ .Data.data.bucket }}\n{{ end }}"
+  destination = "/vault/secrets/offsite-s3.env"
   perms       = "0640"
 }
 

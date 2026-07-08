@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/backup-env.sh"
+
 ENV_FILE=${ENV_FILE:-/home/user1/acer-mgmt/.env}
+VAULT_SECRETS_ROOT=${VAULT_SECRETS_ROOT:-/home/mgmt-data/vault-agent/secrets}
+MINIO_ENV=${MINIO_ENV:-${VAULT_SECRETS_ROOT}/backup-minio.env}
 DATA_ROOT=${DATA_ROOT:-/home/mgmt-data}
 BACKUP_ROOT=${BACKUP_ROOT:-${DATA_ROOT}/backups}
 ADGUARD_DATA_DIR=${ADGUARD_DATA_DIR:-${DATA_ROOT}/adguard}
@@ -11,17 +16,6 @@ MINIO_ALIAS_URL=${MINIO_ALIAS_URL:-http://minio:9000}
 MINIO_BUCKET=${MINIO_BUCKET:-db-backup}
 
 umask 077
-
-get_env_value() {
-  local key="$1"
-  local value
-  value="$(grep -m1 "^${key}=" "$ENV_FILE" | cut -d= -f2- || true)"
-  if [[ -z "$value" ]]; then
-    echo "Missing ${key} in ${ENV_FILE}" >&2
-    exit 1
-  fi
-  printf '%s' "$value"
-}
 
 require_container() {
   local name="$1"
@@ -55,8 +49,8 @@ sha256sum "${backup_dir}/adguard-home.tar.gz" > "${backup_dir}/SHA256SUMS"
 find "$backup_dir" -type f -exec chmod 600 {} +
 
 echo "[$(date -Is)] uploading AdGuard backup to MinIO ${MINIO_BUCKET}"
-MINIO_ROOT_USER="$(get_env_value MINIO_ROOT_USER)"
-ADMIN_PASSWORD="$(get_env_value ADMIN_PASSWORD)"
+MINIO_ROOT_USER="$(get_env_value "$MINIO_ENV" MINIO_ROOT_USER)"
+ADMIN_PASSWORD="$(get_env_value "$MINIO_ENV" ADMIN_PASSWORD)"
 
 docker run --rm --network "$MINIO_NETWORK" \
   -e MINIO_ROOT_USER="$MINIO_ROOT_USER" \
