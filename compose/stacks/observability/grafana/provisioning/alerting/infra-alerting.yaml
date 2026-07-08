@@ -29,6 +29,7 @@ groups:
     rules:
       - uid: infra_mgmt_node_down
         title: "[mgmt] node-exporter 수집 중단"
+        isPaused: true
         condition: C
         data:
           - refId: A
@@ -80,6 +81,7 @@ groups:
 
       - uid: infra_aio_node_down
         title: "[aio] node-exporter 수집 중단"
+        isPaused: true
         condition: C
         data:
           - refId: A
@@ -131,6 +133,7 @@ groups:
 
       - uid: infra_aio_opencost_down
         title: "[aio] OpenCost 수집 중단"
+        isPaused: true
         condition: C
         data:
           - refId: A
@@ -442,6 +445,7 @@ groups:
 
       - uid: infra_mgmt_disk_high
         title: "[mgmt] 루트 디스크 사용률 높음"
+        isPaused: true
         condition: C
         data:
           - refId: A
@@ -493,6 +497,7 @@ groups:
 
       - uid: infra_aio_disk_high
         title: "[aio] 루트 디스크 사용률 높음"
+        isPaused: true
         condition: C
         data:
           - refId: A
@@ -544,6 +549,7 @@ groups:
 
       - uid: infra_mgmt_mem_high
         title: "[mgmt] 메모리 사용률 높음"
+        isPaused: true
         condition: C
         data:
           - refId: A
@@ -595,6 +601,7 @@ groups:
 
       - uid: infra_aio_mem_high
         title: "[aio] 메모리 사용률 높음"
+        isPaused: true
         condition: C
         data:
           - refId: A
