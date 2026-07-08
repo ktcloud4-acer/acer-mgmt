@@ -1,0 +1,18 @@
+groups:
+  - name: infra-backup
+    interval: 5m
+    rules:
+      - alert: ResticBackupStale
+        expr: absent(restic_last_success_timestamp_seconds{job="mgmt-node"}) or (time() - restic_last_success_timestamp_seconds{job="mgmt-node"} > 93600)
+        for: 30m
+        labels:
+          severity: critical
+          team: monitoring
+          channel: infra
+          service: restic
+          scope: backup
+          cluster: mgmt
+        annotations:
+          title: "[backup] restic 백업 성공 기록 없음"
+          summary: "restic 백업 성공 metric이 없거나 마지막 성공 이후 26시간을 넘었습니다."
+          description: "매일 백업 기준의 보수적 freshness 알림입니다. restic 컨테이너 상태, MinIO restic 버킷, Vault에서 렌더된 restic 시크릿, /home/mgmt-data/node-exporter-textfile/restic.prom 파일을 확인하세요."

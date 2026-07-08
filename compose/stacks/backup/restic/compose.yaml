@@ -21,6 +21,16 @@ services:
             --tag daily
           restic forget --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune
         }
+        write_success_metric() {
+          mkdir -p /metrics
+          success_at="$$(date +%s)"
+          {
+            echo "# HELP restic_last_success_timestamp_seconds Last successful restic backup Unix timestamp."
+            echo "# TYPE restic_last_success_timestamp_seconds gauge"
+            echo "restic_last_success_timestamp_seconds{scope=\"backup\",cluster=\"mgmt\",service=\"restic\"} $${success_at}"
+          } > /metrics/restic.prom.tmp
+          mv /metrics/restic.prom.tmp /metrics/restic.prom
+        }
 
         while true; do
           now="$$(date +%s)"
@@ -34,6 +44,7 @@ services:
           echo "next restic backup at $$(date -d "@$${target}" -Is); sleeping $${sleep_seconds}s"
           sleep "$$sleep_seconds"
           run_backup
+          write_success_metric
         done
     environment:
       TZ: ${TZ:-Asia/Seoul}
@@ -46,6 +57,7 @@ services:
     volumes:
       - ${DATA_ROOT:-/home/mgmt-data}:/source:ro,z
       - ${DATA_ROOT:-/home/mgmt-data}/restic-cache:/cache:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/node-exporter-textfile:/metrics:Z
     networks:
       - mgmt-proxy
     healthcheck:

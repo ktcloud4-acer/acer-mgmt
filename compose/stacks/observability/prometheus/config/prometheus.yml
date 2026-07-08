@@ -22,9 +22,54 @@ scrape_configs:
       - targets:
           - node-exporter:9100
 
+  - job_name: blackbox-http
+    metrics_path: /probe
+    params:
+      module:
+        - http_2xx
+    static_configs:
+      - targets:
+          - https://grafana.imcherry5778.xyz/api/health
+        labels:
+          team: monitoring
+          channel: infra
+          service: grafana
+          scope: infra
+          cluster: mgmt
+      - targets:
+          - https://prometheus.imcherry5778.xyz/-/healthy
+        labels:
+          team: monitoring
+          channel: infra
+          service: prometheus
+          scope: infra
+          cluster: mgmt
+      - targets:
+          - https://alertmanager.imcherry5778.xyz/
+        labels:
+          team: monitoring
+          channel: infra
+          service: alertmanager
+          scope: infra
+          cluster: mgmt
+      - targets:
+          - https://argocd.imcherry5778.xyz/
+        labels:
+          team: platform
+          channel: argocd
+          service: argocd
+          scope: argocd
+          cluster: mgmt
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: target
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
 # Kubernetes cluster cost metrics are collected in each target cluster by the
 # monitoring/prometheus-agent Application and remote_written here. If direct
 # mgmt-side scraping is needed later, use opencost-api-proxy-scrape.example.yml
 # as the starting point after provisioning per-cluster bearer token files.
-
 
