@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acer 프로젝트 백업 이해 가이드</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --paper: #ffffff;
+      --ink: #172033;
+      --muted: #647083;
+      --line: #d9dee7;
+      --accent: #2563eb;
+      --accent-soft: #eaf1ff;
+      --good: #0f8a5f;
+      --good-soft: #e9f8f2;
+      --warn: #b7791f;
+      --warn-soft: #fff7e6;
+      --bad: #b42318;
+      --bad-soft: #fff1f0;
+      --code-bg: #111827;
+      --code-fg: #e5e7eb;
+      --shadow: 0 10px 32px rgba(23, 32, 51, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", Arial, sans-serif;
+      line-height: 1.68;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    header,
+    section,
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    header {
+      padding: 30px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 24px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 10px;
+      font-size: 18px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fbfcfe;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      padding: 18px;
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .card .value {
+      font-size: 21px;
+      font-weight: 800;
+    }
+
+    section {
+      margin-top: 18px;
+      padding: 24px;
+    }
+
+    .callout {
+      margin: 16px 0;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fbfcfe;
+    }
+
+    .callout.good {
+      border-color: #b7e3d1;
+      background: var(--good-soft);
+    }
+
+    .callout.warn {
+      border-color: #f1d08a;
+      background: var(--warn-soft);
+    }
+
+    .callout.bad {
+      border-color: #fac5bf;
+      background: var(--bad-soft);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 6px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #f0f4fa;
+      color: #2f3b52;
+      font-weight: 800;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: #eef2f7;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      margin: 14px 0;
+      padding: 16px;
+      overflow-x: auto;
+      border-radius: 8px;
+      background: var(--code-bg);
+      color: var(--code-fg);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    pre code {
+      padding: 0;
+      background: transparent;
+      color: inherit;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 0 20px;
+      padding: 0;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0 4px;
+    }
+
+    .flow .step {
+      min-height: 118px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    .flow .step b {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .tag {
+      display: inline-block;
+      margin: 0 4px 4px 0;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #174ea6;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toc {
+      columns: 2;
+      column-gap: 28px;
+    }
+
+    .toc a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      text-decoration: underline;
+    }
+
+    .diagram {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .box {
+      min-height: 92px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    .box b {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    @media (max-width: 860px) {
+      .grid,
+      .grid.two,
+      .flow,
+      .diagram {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        columns: 1;
+      }
+
+      header,
+      section {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Acer 프로젝트 백업 이해 가이드</h1>
+      <p class="subtitle">처음 백업을 접하는 팀원도 현재 구조를 빠르게 이해할 수 있도록 정리한 설명 자료</p>
+      <div class="meta">
+        <span class="pill">작성일: 2026-07-02</span>
+        <span class="pill">대상: mgmt, AIO clusters, web-service</span>
+        <span class="pill">저장소: MinIO buckets</span>
+        <span class="pill">핵심 도구: Velero, pg_dump, tar, restic, etcd snapshot</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <strong>핵심 메시지 1</strong>
+        <div class="value">web-service는 namespace 백업</div>
+        <p class="small">GitOps 리소스 중심이라 Velero namespace 백업이 현재 범위에 맞다.</p>
+      </div>
+      <div class="card">
+        <strong>핵심 메시지 2</strong>
+        <div class="value">DB와 파일은 별도 백업</div>
+        <p class="small">DB는 pg_dump, Storage 파일은 tar로 백업한다.</p>
+      </div>
+      <div class="card">
+        <strong>핵심 메시지 3</strong>
+        <div class="value">클러스터 상태는 etcd snapshot</div>
+        <p class="small">AIO kubeadm 클러스터의 control-plane 상태는 etcd snapshot으로 보호한다.</p>
+      </div>
+    </div>
+
+    <section id="toc">
+      <h2>목차</h2>
+      <ol class="toc">
+        <li><a href="#why">백업을 왜 해야 하나</a></li>
+        <li><a href="#one-line">현재 구조 한 줄 요약</a></li>
+        <li><a href="#gitops">왜 web-service는 namespace 백업인가</a></li>
+        <li><a href="#tools">백업 도구별 역할</a></li>
+        <li><a href="#buckets">MinIO bucket별 의미</a></li>
+        <li><a href="#schedule">백업 스케줄</a></li>
+        <li><a href="#restore">복구 테스트 방법</a></li>
+        <li><a href="#important">팀원이 꼭 기억할 것</a></li>
+      </ol>
+    </section>
+
+    <section id="why">
+      <h2>1. 백업을 왜 해야 하나</h2>
+      <p>백업은 장애가 생겼을 때 이전 상태로 돌아가기 위한 안전장치다. 운영에서는 실수 삭제, 잘못된 배포, DB 손상, 서버 장애, 클러스터 장애가 언제든 발생할 수 있다.</p>
+      <div class="callout good">
+        <strong>좋은 백업의 기준</strong>
+        <p>파일이 저장되어 있는 것만으로는 부족하다. 실제로 복구할 수 있어야 좋은 백업이다. 그래서 백업 생성과 복구 테스트는 항상 같이 봐야 한다.</p>
+      </div>
+      <p>우리 프로젝트는 데이터 종류가 하나가 아니다. Kubernetes 리소스, PostgreSQL DB, 업로드 파일, mgmt 서버 볼륨, 클러스터 control-plane 상태가 서로 다르다. 그래서 한 도구로 전부 백업하지 않고, 데이터 성격에 맞는 도구를 나눠서 사용한다.</p>
+    </section>
+
+    <section id="one-line">
+      <h2>2. 현재 구조 한 줄 요약</h2>
+      <div class="callout good">
+        <strong>가장 중요한 문장</strong>
+        <p>현재 <code>web-service</code>는 GitOps 리소스 중심이라 namespace 백업이 맞고, DB/파일/클러스터 상태는 각각 <code>pg_dump</code>, <code>tar</code>, <code>restic</code>, <code>etcd snapshot</code>으로 따로 백업하고 있다.</p>
+      </div>
+
+      <div class="diagram">
+        <div class="box">
+          <b>web-service</b>
+          <span class="tag">Velero</span>
+          <span class="tag">namespace</span>
+          <p>Deployment, Service, ConfigMap, Secret 같은 Kubernetes 리소스 백업</p>
+        </div>
+        <div class="box">
+          <b>mgmt 데이터</b>
+          <span class="tag">pg_dump</span>
+          <span class="tag">tar</span>
+          <span class="tag">restic</span>
+          <p>Supabase DB, Storage 파일, mgmt 설정, host volume 백업</p>
+        </div>
+        <div class="box">
+          <b>AIO 클러스터 상태</b>
+          <span class="tag">etcdctl</span>
+          <span class="tag">snapshot</span>
+          <p>Kubernetes control-plane 전체 상태를 etcd snapshot으로 백업</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="gitops">
+      <h2>3. 왜 web-service는 namespace 백업인가</h2>
+      <p><code>web-service</code>에는 manifest 파일이 많다. 예를 들면 다음과 같다.</p>
+      <pre><code>fastapi-deployment.yaml
+fastapi-service.yaml
+nginx-configmap.yaml
+nginx-deployment.yaml
+nginx-service.yaml
+namespace.yaml
+secret.example.yaml
+servicemonitor.example.yaml</code></pre>
+      <p>이 파일들은 대부분 Kubernetes 리소스 정의다. 즉 "사용자 데이터 파일"이라기보다 "클러스터에 어떤 앱을 어떻게 띄울지"를 설명하는 설정이다.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>리소스</th>
+            <th>의미</th>
+            <th>Velero namespace 백업 대상인가</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Deployment</td>
+            <td>Pod를 몇 개 띄울지, 어떤 이미지로 실행할지 정의</td>
+            <td>예</td>
+          </tr>
+          <tr>
+            <td>Service</td>
+            <td>Pod로 트래픽을 보내는 내부 네트워크 엔드포인트</td>
+            <td>예</td>
+          </tr>
+          <tr>
+            <td>ConfigMap</td>
+            <td>Nginx 설정 같은 일반 설정값</td>
+            <td>예</td>
+          </tr>
+          <tr>
+            <td>Secret</td>
+            <td>민감 설정값. 실제 클러스터에 생성된 Secret 기준</td>
+            <td>예</td>
+          </tr>
+          <tr>
+            <td>PV/PVC 데이터</td>
+            <td>디스크에 저장되는 실제 파일 데이터</td>
+            <td>현재 설정에서는 아니오</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <strong>중요한 구분</strong>
+        <p>Git에 YAML 파일이 많다는 것과, 앱이 직접 저장하는 데이터가 많다는 것은 다르다. 현재 <code>web-service</code>는 GitOps로 다시 배포 가능한 Kubernetes 리소스 중심이다.</p>
+      </div>
+
+      <p>그래서 현재 Velero는 <code>web-service</code> namespace 안의 리소스를 백업한다. 반면 DB나 업로드 파일처럼 실제 상태 데이터는 mgmt 쪽에서 별도 백업한다.</p>
+    </section>
+
+    <section id="tools">
+      <h2>4. 백업 도구별 역할</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>도구</th>
+            <th>쉽게 말하면</th>
+            <th>우리 프로젝트에서 백업하는 것</th>
+            <th>저장 위치</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Velero</td>
+            <td>Kubernetes 리소스 백업 도구</td>
+            <td>각 팀 AIO의 <code>web-service</code> namespace</td>
+            <td>MinIO <code>velero</code> bucket</td>
+          </tr>
+          <tr>
+            <td>etcdctl snapshot</td>
+            <td>Kubernetes control-plane 상태 저장소 백업</td>
+            <td>ggg, khb, ljw, nmg, oje AIO의 etcd snapshot</td>
+            <td>MinIO <code>etcd</code> bucket</td>
+          </tr>
+          <tr>
+            <td>pg_dump</td>
+            <td>PostgreSQL DB를 복구 가능한 파일로 추출</td>
+            <td>Supabase PostgreSQL 데이터</td>
+            <td>MinIO <code>db-backup</code> bucket</td>
+          </tr>
+          <tr>
+            <td>tar</td>
+            <td>디렉터리를 압축 파일로 묶음</td>
+            <td>Supabase Storage 파일, mgmt 설정</td>
+            <td>MinIO <code>db-backup</code> bucket</td>
+          </tr>
+          <tr>
+            <td>restic</td>
+            <td>서버 디렉터리 스냅샷 백업</td>
+            <td><code>/home/mgmt-data</code> 주요 볼륨</td>
+            <td>MinIO <code>restic</code> bucket</td>
+          </tr>
+          <tr>
+            <td>MinIO</td>
+            <td>S3 호환 백업 저장소</td>
+            <td>위 백업 파일들이 모이는 저장소</td>
+            <td>mgmt 서버</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="buckets">
+      <h2>5. MinIO bucket별 의미</h2>
+
+      <h3>db-backup</h3>
+      <p>mgmt 서버에서 직접 만든 백업 산출물이 들어간다. DB, 파일, 설정처럼 사람이 보고 이해하기 쉬운 백업 파일이 저장된다.</p>
+      <pre><code>db-backup/
+  supabase-postgres/daily/&lt;timestamp&gt;/
+    postgres.dump
+    globals.sql
+    SHA256SUMS
+
+  supabase-storage/daily/&lt;timestamp&gt;/
+    supabase-storage.tar.gz
+    SHA256SUMS
+
+  mgmt-config/daily/&lt;timestamp&gt;/
+    mgmt-config.tar.gz
+    SHA256SUMS
+
+  k3d-mgmt-datastore/daily/&lt;timestamp&gt;/
+    k3s-sqlite-datastore.tar.gz
+    SHA256SUMS</code></pre>
+
+      <table>
+        <thead>
+          <tr>
+            <th>항목</th>
+            <th>무엇을 백업하나</th>
+            <th>복구할 때 쓰는 방법</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>supabase-postgres</td>
+            <td>사용자 테이블, 인증 데이터, schema, function 등 PostgreSQL 데이터</td>
+            <td><code>pg_restore</code>, <code>psql</code></td>
+          </tr>
+          <tr>
+            <td>supabase-storage</td>
+            <td>사용자가 업로드한 이미지, 첨부파일, 문서 파일</td>
+            <td><code>tar -xzf</code>로 Storage 디렉터리에 복원</td>
+          </tr>
+          <tr>
+            <td>mgmt-config</td>
+            <td><code>.env</code>, compose, secrets, k3d 설정, Argo CD repo</td>
+            <td>새 mgmt 서버 bootstrap 시 압축 해제</td>
+          </tr>
+          <tr>
+            <td>k3d-mgmt-datastore</td>
+            <td>mgmt k3d/K3s SQLite datastore</td>
+            <td>k3d/K3s 중지 후 datastore 복원</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>etcd</h3>
+      <p>AIO 클러스터의 etcd snapshot이 팀별 prefix로 저장된다.</p>
+      <pre><code>etcd/
+  ggg/daily/&lt;timestamp&gt;/snapshot.db
+  khb/daily/&lt;timestamp&gt;/snapshot.db
+  ljw/daily/&lt;timestamp&gt;/snapshot.db
+  nmg/daily/&lt;timestamp&gt;/snapshot.db
+  oje/daily/&lt;timestamp&gt;/snapshot.db</code></pre>
+      <p>etcd snapshot은 namespace 하나를 복구하는 용도가 아니라, control-plane 장애 시 클러스터 상태를 되살리기 위한 백업이다.</p>
+
+      <h3>velero</h3>
+      <p>Velero가 만든 Kubernetes 백업 metadata가 들어간다. 팀별 prefix로 분리되어 있다.</p>
+      <pre><code>velero/
+  ggg/backups/
+  khb/backups/
+  ljw/backups/
+  nmg/backups/
+  oje/backups/</code></pre>
+
+      <h3>restic</h3>
+      <p>restic repository다. 사람이 직접 파일을 열어보는 구조가 아니라 restic CLI로 조회하고 복구한다.</p>
+      <pre><code>restic/
+  config
+  data/
+  index/
+  keys/
+  snapshots/</code></pre>
+      <div class="callout warn">
+        <strong>주의</strong>
+        <p>restic은 <code>/home/mgmt-data</code>를 백업하지만 <code>/home/mgmt-data/minio</code>는 제외한다. 따라서 MinIO 자체가 날아가는 상황까지 대비하려면 MinIO bucket을 AWS S3 같은 외부 저장소에 추가 복제해야 한다.</p>
+      </div>
+    </section>
+
+    <section id="schedule">
+      <h2>6. 백업 스케줄</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>백업</th>
+            <th>시간</th>
+            <th>왜 이 시간인가</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>mgmt DB/Storage/Config/k3d</td>
+            <td>매일 15:30 KST</td>
+            <td>오후 백업 흐름의 시작점으로 DB dump와 파일 백업을 먼저 생성</td>
+          </tr>
+          <tr>
+            <td>AIO etcd snapshot</td>
+            <td>매일 15:40 KST</td>
+            <td>mgmt 백업과 겹치지 않도록 10분 뒤에 클러스터 상태 snapshot 생성</td>
+          </tr>
+          <tr>
+            <td>Velero web-service namespace</td>
+            <td>매일 16:00 KST</td>
+            <td>namespace 리소스 백업. etcd snapshot 이후 실행</td>
+          </tr>
+          <tr>
+            <td>restic host volume</td>
+            <td>매일 16:20 KST</td>
+            <td>컨테이너 내부에서 다음 16:20 KST까지 대기 후 실행</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <strong>restic 시간 주의</strong>
+        <p>restic은 매일 16:20 KST에 맞춰 실행되도록 컨테이너 내부 대기 로직을 사용한다. 컨테이너 재시작 후에도 다음 16:20 KST 실행 시각을 다시 계산한다.</p>
+      </div>
+    </section>
+
+    <section id="restore">
+      <h2>7. bucket별 복구 테스트 방법</h2>
+
+      <div class="flow">
+        <div class="step">
+          <b>1. 백업 선택</b>
+          <p>MinIO에서 timestamp를 보고 복구할 백업 시점을 정한다.</p>
+        </div>
+        <div class="step">
+          <b>2. 임시 위치 복구</b>
+          <p>운영 위치가 아니라 테스트 디렉터리나 테스트 DB에 먼저 복구한다.</p>
+        </div>
+        <div class="step">
+          <b>3. 무결성 확인</b>
+          <p><code>SHA256SUMS</code>, DB 접속, 파일 목록 등을 확인한다.</p>
+        </div>
+        <div class="step">
+          <b>4. 운영 복구</b>
+          <p>절차가 검증된 뒤 운영 복구를 진행한다.</p>
+        </div>
+      </div>
+
+      <h3>db-backup: Supabase PostgreSQL</h3>
+      <pre><code>mc cp --recursive local/db-backup/supabase-postgres/daily/&lt;timestamp&gt;/ ./restore-postgres/
+
+# 테스트 PostgreSQL에 복구
+psql -U postgres -f restore-postgres/globals.sql
+pg_restore -U postgres -d postgres --clean --if-exists restore-postgres/postgres.dump</code></pre>
+
+      <h3>db-backup: Supabase Storage</h3>
+      <pre><code>mc cp local/db-backup/supabase-storage/daily/&lt;timestamp&gt;/supabase-storage.tar.gz .
+mkdir -p /tmp/storage-restore-test
+tar -xzf supabase-storage.tar.gz -C /tmp/storage-restore-test
+find /tmp/storage-restore-test -type f | head</code></pre>
+
+      <h3>db-backup: mgmt-config</h3>
+      <pre><code>mc cp local/db-backup/mgmt-config/daily/&lt;timestamp&gt;/mgmt-config.tar.gz .
+mkdir -p /tmp/mgmt-config-test
+tar -xzf mgmt-config.tar.gz -C /tmp/mgmt-config-test
+find /tmp/mgmt-config-test -maxdepth 3 -type f | sort</code></pre>
+
+      <h3>etcd</h3>
+      <pre><code>mc cp --recursive local/etcd/ljw/daily/&lt;timestamp&gt;/ ./restore-etcd/
+cd ./restore-etcd
+sha256sum -c SHA256SUMS
+etcdctl snapshot status snapshot.db --write-out=table</code></pre>
+      <div class="callout bad">
+        <strong>주의</strong>
+        <p>etcd restore는 운영 클러스터에 가볍게 실행하는 테스트가 아니다. control-plane 복구 절차이므로 격리된 테스트 환경에서 검증해야 한다.</p>
+      </div>
+
+      <h3>velero</h3>
+      <pre><code>velero backup get
+velero backup describe &lt;backup-name&gt; --details
+
+# 합의된 테스트 환경에서만 namespace 삭제 복구 테스트
+kubectl delete ns web-service
+velero restore create web-service-restore-test --from-backup &lt;backup-name&gt;
+velero restore describe web-service-restore-test --details
+kubectl get all -n web-service</code></pre>
+
+      <h3>restic</h3>
+      <pre><code>docker exec restic restic snapshots
+docker exec restic restic ls latest /source
+
+# 운영 위치가 아니라 임시 위치에 먼저 복구
+docker run --rm --network mgmt-proxy \
+  -e RESTIC_REPOSITORY=s3:http://minio:9000/restic \
+  -e RESTIC_PASSWORD="$RESTIC_PASSWORD" \
+  -e AWS_ACCESS_KEY_ID="$RESTIC_ACCESS_KEY" \
+  -e AWS_SECRET_ACCESS_KEY="$RESTIC_SECRET_KEY" \
+  -v /home/mgmt-data-restore-test:/restore \
+  restic/restic:0.19.0 \
+  restore latest --target /restore --include /source/grafana</code></pre>
+    </section>
+
+    <section id="important">
+      <h2>8. 팀원이 꼭 기억할 것</h2>
+      <ol>
+        <li><code>web-service</code>는 GitOps 리소스 중심이라 현재는 Velero namespace 백업이 맞다.</li>
+        <li>DB는 Velero가 아니라 <code>pg_dump</code>로 백업하고 복구한다.</li>
+        <li>업로드 파일은 Supabase Storage tar 백업으로 복구한다.</li>
+        <li>클러스터 전체 control-plane 상태는 etcd snapshot으로 보호한다.</li>
+        <li>mgmt 서버 볼륨은 restic이 백업하지만 MinIO 자체는 제외된다.</li>
+        <li>MinIO가 날아가는 상황까지 대비하려면 AWS S3 같은 외부 저장소 복제가 필요하다.</li>
+        <li>백업은 만든 것으로 끝이 아니라, 복구 테스트까지 해야 의미가 있다.</li>
+      </ol>
+
+      <div class="callout good">
+        <strong>최종 정리</strong>
+        <p>우리 백업 구조는 하나의 도구로 모든 것을 해결하는 방식이 아니다. Kubernetes 리소스는 Velero, DB는 pg_dump, 파일은 tar, 서버 볼륨은 restic, 클러스터 상태는 etcd snapshot으로 나눠서 백업한다. 그래서 데이터 성격별로 더 안전하고 복구하기 쉬운 구조다.</p>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

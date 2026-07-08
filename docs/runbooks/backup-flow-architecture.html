@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acer Backup Flow Architecture</title>
+  <style>
+    :root {
+      --bg: #f2f6fb;
+      --ink: #172033;
+      --muted: #5c687a;
+      --line: #d7e1ec;
+      --panel: #ffffff;
+      --blue: #2f6fed;
+      --green: #1f9d72;
+      --orange: #c77419;
+      --cyan: #0f89a7;
+      --red: #c74e43;
+      --navy: #17324d;
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+
+    main {
+      width: min(1240px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 30px 0 50px;
+    }
+
+    header {
+      background: var(--navy);
+      color: #fff;
+      border-radius: 18px;
+      padding: 30px 34px;
+      margin-bottom: 22px;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      font-size: 42px;
+      line-height: 1.1;
+      margin-bottom: 10px;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      color: #dce8f6;
+      font-size: 17px;
+      max-width: 900px;
+      margin-bottom: 0;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0 0;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      padding: 7px 11px;
+      color: #edf5ff;
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      background: var(--blue);
+    }
+
+    .dot.green { background: var(--green); }
+    .dot.orange { background: var(--orange); }
+    .dot.cyan { background: var(--cyan); }
+    .dot.red { background: var(--red); }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 26px;
+      margin-top: 22px;
+      box-shadow: 0 10px 28px rgba(23, 50, 77, 0.07);
+    }
+
+    h2 {
+      font-size: 25px;
+      margin-bottom: 8px;
+    }
+
+    .section-intro {
+      color: var(--muted);
+      margin-bottom: 22px;
+    }
+
+    .architecture {
+      display: grid;
+      grid-template-columns: 1.15fr 90px 1fr 90px 0.9fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .column {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .column-title {
+      font-weight: 900;
+      color: var(--navy);
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfdff;
+      overflow: hidden;
+    }
+
+    .box-head {
+      padding: 12px 14px;
+      font-weight: 900;
+      color: #fff;
+      background: var(--blue);
+    }
+
+    .box.green .box-head { background: var(--green); }
+    .box.orange .box-head { background: var(--orange); }
+    .box.cyan .box-head { background: var(--cyan); }
+    .box.red .box-head { background: var(--red); }
+    .box.navy .box-head { background: var(--navy); }
+
+    .box-body {
+      padding: 14px;
+      color: #344055;
+      font-size: 14px;
+    }
+
+    .box-body p { margin-bottom: 9px; }
+    .box-body p:last-child { margin-bottom: 0; }
+
+    code {
+      font-family: "Cascadia Code", Consolas, monospace;
+      background: #edf2f7;
+      border: 1px solid #dce5ef;
+      border-radius: 6px;
+      padding: 2px 5px;
+      color: #243044;
+      font-size: 0.92em;
+    }
+
+    .arrow-col {
+      display: grid;
+      align-items: center;
+      justify-items: center;
+      color: var(--blue);
+      font-size: 38px;
+      font-weight: 900;
+      min-height: 100%;
+    }
+
+    .arrow-label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      margin-top: 8px;
+      line-height: 1.3;
+    }
+
+    .flow-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .flow-item {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfdff;
+    }
+
+    .num {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: #fff;
+      font-weight: 900;
+    }
+
+    .flow-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .flow-item span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .bucket-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .bucket {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfdff;
+    }
+
+    .bucket h3 {
+      margin-bottom: 8px;
+      font-size: 17px;
+    }
+
+    .bucket p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .callout {
+      margin-top: 18px;
+      border-left: 6px solid var(--green);
+      background: #edf9f4;
+      color: #244b3d;
+      padding: 15px 17px;
+      border-radius: 12px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 1080px) {
+      .architecture,
+      .bucket-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .arrow-col {
+        min-height: 48px;
+        transform: rotate(90deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>전체 백업 Flow Architecture</h1>
+      <p class="subtitle">
+        Acer 프로젝트는 백업 대상을 Kubernetes 리소스, 클러스터 제어면, DB 데이터, 파일 볼륨으로 나누고
+        각 도구가 만든 결과물을 mgmt MinIO에 모은 뒤 AWS S3로 외부 복제합니다.
+      </p>
+      <div class="legend">
+        <span><i class="dot"></i>Kubernetes 리소스</span>
+        <span><i class="dot cyan"></i>etcd 제어면 상태</span>
+        <span><i class="dot green"></i>DB/설정 백업</span>
+        <span><i class="dot orange"></i>파일 볼륨 snapshot</span>
+        <span><i class="dot red"></i>외부 저장소</span>
+      </div>
+    </header>
+
+    <section>
+      <h2>1. 한눈에 보는 백업 흐름</h2>
+      <p class="section-intro">
+        각 AIO 클러스터는 자기 클러스터의 Kubernetes 백업을 직접 수행합니다.
+        mgmt 서버는 자체 DB/파일 백업을 수행하고, 모든 백업 결과를 MinIO bucket에 중앙 보관합니다.
+      </p>
+
+      <div class="architecture">
+        <div class="column">
+          <div class="column-title">백업 실행 위치</div>
+
+          <div class="box">
+            <div class="box-head">각 AIO 클러스터</div>
+            <div class="box-body">
+              <p><strong>대상:</strong> ljw, ggg, khb, nmg, oje</p>
+              <p><code>Velero Schedule</code>이 namespace를 백업합니다.</p>
+              <p><code>etcd CronJob</code>이 control-plane snapshot을 생성합니다.</p>
+            </div>
+          </div>
+
+          <div class="box green">
+            <div class="box-head">mgmt 서버</div>
+            <div class="box-body">
+              <p><code>systemd timer</code>가 PostgreSQL dump, Storage, 설정 백업을 실행합니다.</p>
+              <p><code>restic</code>이 Harbor/GitLab 등 파일 볼륨을 snapshot으로 백업합니다.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow-col">
+          →
+          <span class="arrow-label">업로드<br>저장</span>
+        </div>
+
+        <div class="column">
+          <div class="column-title">중앙 백업 저장소</div>
+
+          <div class="box navy">
+            <div class="box-head">mgmt MinIO</div>
+            <div class="box-body">
+              <p><strong>Endpoint:</strong> <code>https://s3.imcherry5778.xyz</code></p>
+              <p>각 백업은 목적별 bucket과 팀별 prefix로 분리됩니다.</p>
+              <p><code>velero</code>, <code>etcd</code>, <code>db-backup</code>, <code>restic</code></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow-col">
+          →
+          <span class="arrow-label">Offsite<br>복제</span>
+        </div>
+
+        <div class="column">
+          <div class="column-title">외부 백업 저장소</div>
+
+          <div class="box red">
+            <div class="box-head">AWS S3</div>
+            <div class="box-body">
+              <p>mgmt MinIO 자체 장애를 대비해 주요 bucket을 외부 S3로 복제합니다.</p>
+              <p><code>db-backup</code>, <code>etcd</code>, <code>velero</code>, <code>restic</code></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. 백업 종류별 상세 Flow</h2>
+      <p class="section-intro">
+        발표에서는 아래 4개 흐름만 잡으면 전체 백업 구조를 설명할 수 있습니다.
+      </p>
+
+      <div class="flow-list">
+        <div class="flow-item">
+          <div class="num">1</div>
+          <div>
+            <strong>Kubernetes namespace 백업</strong>
+            <span>
+              각 클러스터의 Velero가 매일 16:00 KST에 <code>web-service</code>, <code>tailscale</code> namespace를 백업하고
+              MinIO <code>velero/&lt;team&gt;</code> prefix에 저장합니다.
+            </span>
+          </div>
+        </div>
+
+        <div class="flow-item">
+          <div class="num">2</div>
+          <div>
+            <strong>etcd snapshot 백업</strong>
+            <span>
+              각 클러스터의 CronJob이 매일 15:40 KST에 control-plane 노드에서 <code>snapshot.db</code>를 만들고
+              MinIO <code>etcd/&lt;team&gt;/daily/&lt;timestamp&gt;</code>에 업로드합니다.
+            </span>
+          </div>
+        </div>
+
+        <div class="flow-item">
+          <div class="num">3</div>
+          <div>
+            <strong>mgmt DB / 설정 백업</strong>
+            <span>
+              mgmt systemd timer가 매일 15:30 KST에 PostgreSQL dump, Supabase Storage, mgmt 설정, k3d datastore를 만들고
+              MinIO <code>db-backup</code> bucket에 저장합니다.
+            </span>
+          </div>
+        </div>
+
+        <div class="flow-item">
+          <div class="num">4</div>
+          <div>
+            <strong>mgmt 파일 볼륨 백업</strong>
+            <span>
+              restic 컨테이너가 <code>/home/mgmt-data</code>를 주기적으로 snapshot으로 백업합니다.
+              Harbor, GitLab, Grafana 같은 파일 기반 서비스 데이터가 여기에 포함됩니다.
+            </span>
+          </div>
+        </div>
+
+        <div class="flow-item">
+          <div class="num">5</div>
+          <div>
+            <strong>AWS S3 외부 복제</strong>
+            <span>
+              매일 16:30 KST에 MinIO bucket을 AWS S3로 mirror하여 mgmt 서버 또는 MinIO 장애까지 대비합니다.
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>3. MinIO bucket 구조</h2>
+      <p class="section-intro">
+        백업 결과는 하나의 bucket에 섞어두지 않고 목적별 bucket으로 나눴습니다.
+      </p>
+
+      <div class="bucket-grid">
+        <div class="bucket">
+          <h3>velero</h3>
+          <p>Kubernetes namespace 백업. <code>velero/ljw</code>, <code>velero/ggg</code>처럼 팀별 prefix를 사용합니다.</p>
+        </div>
+        <div class="bucket">
+          <h3>etcd</h3>
+          <p>각 클러스터 control-plane snapshot. <code>etcd/ljw/daily/&lt;timestamp&gt;</code> 형태입니다.</p>
+        </div>
+        <div class="bucket">
+          <h3>db-backup</h3>
+          <p>PostgreSQL dump, Supabase Storage, mgmt 설정, k3d datastore 백업을 저장합니다.</p>
+        </div>
+        <div class="bucket">
+          <h3>restic</h3>
+          <p>restic repository입니다. mgmt 파일 볼륨 snapshot이 암호화되어 저장됩니다.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        핵심 요약: 각 클러스터는 자기 백업을 직접 만들고, mgmt MinIO는 백업 결과를 모으는 중앙 저장소 역할을 합니다.
+      </div>
+    </section>
+  </main>
+</body>
+</html>
