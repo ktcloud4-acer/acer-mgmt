@@ -11,6 +11,10 @@
         icon: prometheus.png
         href: https://prometheus.{{HOMEPAGE_VAR_BASE_DOMAIN}}
         description: Metrics collection and queries
+    - Alertmanager:
+        icon: alertmanager.png
+        href: https://alertmanager.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: Alert routing, grouping, and silences
     - Kibana:
         icon: kibana.png
         href: https://kibana.{{HOMEPAGE_VAR_BASE_DOMAIN}}

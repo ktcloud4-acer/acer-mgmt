@@ -1,0 +1,14 @@
+groups:
+  - name: alertmanager-smoke
+    rules:
+      - alert: AlertmanagerSmokeTest
+        expr: vector(0) == 1
+        for: 1m
+        labels:
+          severity: test
+          team: monitoring
+          service: alertmanager
+          cluster: mgmt
+        annotations:
+          summary: "Alertmanager smoke rule is loaded but intentionally inactive."
+          description: "This rule exists to verify Prometheus rule loading without sending Slack notifications."

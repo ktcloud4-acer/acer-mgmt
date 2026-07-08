@@ -1,0 +1,38 @@
+global:
+  resolve_timeout: 5m
+  slack_api_url_file: /etc/alertmanager/secrets/slack_webhook_infra
+
+route:
+  receiver: slack-infra-alerts
+  group_by:
+    - alertname
+    - severity
+    - team
+    - service
+    - cluster
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - receiver: "null"
+      matchers:
+        - severity="test"
+
+receivers:
+  - name: "null"
+
+  - name: slack-infra-alerts
+    slack_configs:
+      - send_resolved: true
+        title: '{{ if eq .Status "firing" }}[긴급]{{ else }}[복구]{{ end }} {{ .CommonLabels.alertname }}'
+        text: |-
+          {{ range .Alerts }}
+          상태: {{ .Status }}
+          심각도: {{ .Labels.severity }}
+          팀: {{ if .Labels.team }}{{ .Labels.team }}{{ else }}-{{ end }}
+          서비스: {{ if .Labels.service }}{{ .Labels.service }}{{ else }}-{{ end }}
+          클러스터: {{ if .Labels.cluster }}{{ .Labels.cluster }}{{ else }}-{{ end }}
+          대상: {{ if .Labels.instance }}{{ .Labels.instance }}{{ else if .Labels.node }}{{ .Labels.node }}{{ else if .Labels.pod }}{{ .Labels.namespace }}/{{ .Labels.pod }}{{ else }}-{{ end }}
+          요약: {{ .Annotations.summary }}
+          설명: {{ .Annotations.description }}
+          {{ end }}
