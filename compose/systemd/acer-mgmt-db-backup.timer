@@ -2,7 +2,7 @@
 Description=Run Acer mgmt database and configuration backup daily
 
 [Timer]
-OnCalendar=*-*-* 03:30:00
+OnCalendar=*-*-* 15:30:00
 Persistent=true
 Unit=acer-mgmt-db-backup.service
 

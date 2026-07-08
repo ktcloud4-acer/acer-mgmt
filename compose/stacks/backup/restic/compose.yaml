@@ -13,18 +13,32 @@ services:
         if ! restic snapshots >/dev/null 2>&1; then
           restic init
         fi
-        while true; do
+        run_backup() {
           restic backup /source \
             --exclude=/source/minio \
             --exclude=/source/restic-cache \
             --exclude-caches \
             --tag daily
           restic forget --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune
-          sleep 86400
+        }
+
+        while true; do
+          now="$$(date +%s)"
+          today="$$(date +%F)"
+          target="$$(date -d "$${today} $${RESTIC_BACKUP_TIME}" +%s)"
+          if [ "$$now" -ge "$$target" ]; then
+            tomorrow="$$(date -d tomorrow +%F)"
+            target="$$(date -d "$${tomorrow} $${RESTIC_BACKUP_TIME}" +%s)"
+          fi
+          sleep_seconds="$$((target - now))"
+          echo "next restic backup at $$(date -d "@$${target}" -Is); sleeping $${sleep_seconds}s"
+          sleep "$$sleep_seconds"
+          run_backup
         done
     environment:
       TZ: ${TZ:-Asia/Seoul}
       RESTIC_REPOSITORY: s3:http://minio:9000/restic
+      RESTIC_BACKUP_TIME: ${RESTIC_BACKUP_TIME:-16:20:00}
       RESTIC_PASSWORD: ${RESTIC_PASSWORD:?RESTIC_PASSWORD must be set}
       RESTIC_CACHE_DIR: /cache
       AWS_ACCESS_KEY_ID: ${RESTIC_ACCESS_KEY:?RESTIC_ACCESS_KEY must be set}
