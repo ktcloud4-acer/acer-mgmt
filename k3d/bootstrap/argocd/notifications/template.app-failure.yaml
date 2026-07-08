@@ -7,10 +7,11 @@ message: |
   리비전: {{.app.status.sync.revision}}
   저장소: {{.app.spec.source.repoURL}}
   바로가기: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}
+  런북: {{.context.runbookUrl}}
 webhook:
   argocd_slack:
     method: POST
     body: |
       {
-        "text": "[ArgoCD 알림] 배포 실패 또는 장애 감지\n앱: {{.app.metadata.name}}\n프로젝트: {{.app.spec.project}}\n대상: {{.app.spec.destination.server}} / {{.app.spec.destination.namespace}}\n상태: Health={{.app.status.health.status}}, Sync={{.app.status.sync.status}}\n리비전: {{.app.status.sync.revision}}\n저장소: {{.app.spec.source.repoURL}}\n바로가기: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}"
+        "text": "[ArgoCD 알림] 배포 실패 또는 장애 감지\n앱: {{.app.metadata.name}}\n프로젝트: {{.app.spec.project}}\n대상: {{.app.spec.destination.server}} / {{.app.spec.destination.namespace}}\n상태: Health={{.app.status.health.status}}, Sync={{.app.status.sync.status}}\n리비전: {{.app.status.sync.revision}}\n저장소: {{.app.spec.source.repoURL}}\n바로가기: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}\n런북: {{.context.runbookUrl}}"
       }
