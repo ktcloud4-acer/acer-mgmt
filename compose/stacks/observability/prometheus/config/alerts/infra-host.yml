@@ -1,0 +1,96 @@
+groups:
+  - name: infra-host
+    interval: 1m
+    rules:
+      - alert: MgmtNodeExporterDown
+        expr: up{job="mgmt-node",instance="node-exporter:9100"} == 0
+        for: 10m
+        labels:
+          severity: critical
+          team: monitoring
+          channel: infra
+          service: node-exporter
+          scope: mgmt
+          cluster: mgmt
+        annotations:
+          title: "[mgmt] node-exporter 수집 중단"
+          summary: "mgmt 서버의 노드 상태 메트릭이 10분 이상 끊겼습니다."
+          description: "일시적인 scrape 누락은 알림하지 않습니다. 10분 이상 mgmt node-exporter가 보이지 않으면 Prometheus/Grafana/GitLab 등 중앙 운영면 장애 가능성이 있으니 node-exporter, Docker, 호스트 네트워크를 확인하세요."
+
+      - alert: AioNodeExporterDown
+        expr: up{job="host-vm",instance="172.16.8.10:9100",cluster=~"ggg|khb|ljw|nmg|oje"} == 0
+        for: 10m
+        labels:
+          severity: critical
+          team: monitoring
+          channel: infra
+          service: node-exporter
+          scope: aio
+          cluster: "{{ $labels.cluster }}"
+          target: 172.16.8.10:9100
+        annotations:
+          title: "[aio] node-exporter 수집 중단"
+          summary: "{{ $labels.cluster }} 관측 경로에서 AIO host-vm node-exporter 수집이 10분 이상 끊겼습니다."
+          description: "해당 팀 클러스터의 prometheus-agent가 172.16.8.10:9100 host-vm 메트릭을 수집하지 못하고 있습니다. 팀 클러스터의 prometheus-agent, 네트워크, node-exporter 상태를 확인하세요."
+
+      - alert: MgmtRootDiskHigh
+        expr: 100 * (1 - (node_filesystem_avail_bytes{job="mgmt-node",instance="node-exporter:9100",mountpoint="/",fstype!~"tmpfs|overlay|squashfs|ramfs|rootfs"} / node_filesystem_size_bytes{job="mgmt-node",instance="node-exporter:9100",mountpoint="/",fstype!~"tmpfs|overlay|squashfs|ramfs|rootfs"})) > 95
+        for: 20m
+        labels:
+          severity: critical
+          team: monitoring
+          channel: infra
+          service: host
+          scope: mgmt
+          cluster: mgmt
+        annotations:
+          title: "[mgmt] 루트 디스크 사용률 높음"
+          summary: "mgmt 서버 루트 디스크 사용률이 95%를 20분 이상 넘었습니다."
+          description: "실제 장애 위험 기준입니다. Docker 볼륨, 로그, 백업 데이터 사용량을 확인하세요. 디스크가 가득 차면 Grafana/Prometheus/GitLab 등 mgmt 서비스에 영향이 생길 수 있습니다."
+
+      - alert: AioRootDiskHigh
+        expr: 100 * (1 - (node_filesystem_avail_bytes{job="host-vm",instance="172.16.8.10:9100",cluster=~"ggg|khb|ljw|nmg|oje",mountpoint="/",fstype!~"tmpfs|overlay|squashfs|ramfs|rootfs"} / node_filesystem_size_bytes{job="host-vm",instance="172.16.8.10:9100",cluster=~"ggg|khb|ljw|nmg|oje",mountpoint="/",fstype!~"tmpfs|overlay|squashfs|ramfs|rootfs"})) > 95
+        for: 20m
+        labels:
+          severity: critical
+          team: monitoring
+          channel: infra
+          service: host
+          scope: aio
+          cluster: "{{ $labels.cluster }}"
+          target: 172.16.8.10:9100
+        annotations:
+          title: "[aio] 루트 디스크 사용률 높음"
+          summary: "{{ $labels.cluster }} 관측 경로에서 AIO host-vm 루트 디스크 사용률이 95%를 20분 이상 넘었습니다."
+          description: "172.16.8.10:9100 host-vm 루트 디스크 사용률 알림입니다. 해당 팀 클러스터의 관측 경로와 host-vm의 Docker/Kubernetes 데이터, 이미지, 로그 사용량을 확인하세요."
+
+      - alert: MgmtMemoryHigh
+        expr: (1 - (node_memory_MemAvailable_bytes{job="mgmt-node",instance="node-exporter:9100"} / node_memory_MemTotal_bytes{job="mgmt-node",instance="node-exporter:9100"})) * 100 > 95
+        for: 30m
+        labels:
+          severity: critical
+          team: monitoring
+          channel: infra
+          service: host
+          scope: mgmt
+          cluster: mgmt
+        annotations:
+          title: "[mgmt] 메모리 사용률 높음"
+          summary: "mgmt 서버 메모리 사용률이 95%를 30분 이상 넘었습니다."
+          description: "짧은 캐시/배치 스파이크는 알림하지 않습니다. 30분 이상 메모리 여유가 부족하면 Prometheus, Grafana, GitLab, Harbor 등 주요 컨테이너의 메모리 사용량을 확인하세요."
+
+      - alert: AioMemoryHigh
+        expr: (1 - (node_memory_MemAvailable_bytes{job="host-vm",instance="172.16.8.10:9100",cluster=~"ggg|khb|ljw|nmg|oje"} / node_memory_MemTotal_bytes{job="host-vm",instance="172.16.8.10:9100",cluster=~"ggg|khb|ljw|nmg|oje"})) * 100 > 95
+        for: 30m
+        labels:
+          severity: critical
+          team: monitoring
+          channel: infra
+          service: host
+          scope: aio
+          cluster: "{{ $labels.cluster }}"
+          target: 172.16.8.10:9100
+        annotations:
+          title: "[aio] 메모리 사용률 높음"
+          summary: "{{ $labels.cluster }} 관측 경로에서 AIO host-vm 메모리 사용률이 95%를 30분 이상 넘었습니다."
+          description: "짧은 캐시/배치 스파이크는 알림하지 않습니다. 30분 이상 메모리 여유가 부족하면 해당 팀 클러스터의 관측 경로와 172.16.8.10 host-vm 워크로드를 확인하세요."
