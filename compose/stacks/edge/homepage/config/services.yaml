@@ -68,6 +68,12 @@
         href: https://supabase.{{HOMEPAGE_VAR_BASE_DOMAIN}}
         description: Self-hosted backend platform
 
+- Infra:
+    - NetBox:
+        icon: netbox.png
+        href: https://netbox.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: IPAM / CMDB — 인프라 source of truth
+
 - Security:
     - Vault:
         icon: vault.png
