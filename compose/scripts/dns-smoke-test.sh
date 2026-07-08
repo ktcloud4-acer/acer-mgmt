@@ -52,6 +52,7 @@ assert_adguard_answer() {
 echo "[1/4] AdGuard service rewrites"
 if has_direct_dns_tool; then
   assert_adguard_answer "grafana.${BASE_DOMAIN}"
+  assert_adguard_answer "alertmanager.${BASE_DOMAIN}"
   assert_adguard_answer "harbor.${BASE_DOMAIN}"
   assert_adguard_answer "argocd.${BASE_DOMAIN}"
 elif is_truthy "$DNS_SMOKE_REQUIRE_DIRECT"; then

@@ -2,6 +2,15 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+rule_files:
+  - /etc/prometheus/alerts/*.yml
+
 scrape_configs:
   - job_name: prometheus
     static_configs:
@@ -17,6 +26,5 @@ scrape_configs:
 # monitoring/prometheus-agent Application and remote_written here. If direct
 # mgmt-side scraping is needed later, use opencost-api-proxy-scrape.example.yml
 # as the starting point after provisioning per-cluster bearer token files.
-
 
 
