@@ -45,10 +45,31 @@ template {
   perms       = "0640"
 }
 
+# grafana compose env 파일. 루트 .env 에는 공개 설정만 남기고 시크릿은 여기서 주입한다.
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/common\" }}ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/grafana\" }}GRAFANA_OAUTH_CLIENT_SECRET={{ .Data.data.oauth_client_secret }}\nSLACK_WEBHOOK_INFRA={{ .Data.data.slack_webhook_infra }}\n{{ end }}"
+  destination = "/vault/secrets/observability/grafana.env"
+  perms       = "0640"
+}
+
 # Alertmanager Slack 웹훅 (Alertmanager slack_api_url_file 로 직접 소비).
 template {
   contents    = "{{ with secret \"kv/data/mgmt/alertmanager\" }}{{ .Data.data.slack_webhook_infra }}{{ end }}"
   destination = "/vault/secrets/alertmanager/slack_webhook_infra"
+  perms       = "0640"
+}
+
+# --- traefik (Cloudflare DNS-01 token) ---
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/traefik\" }}CF_DNS_API_TOKEN={{ .Data.data.cf_dns_api_token }}\n{{ end }}"
+  destination = "/vault/secrets/edge/traefik.env"
+  perms       = "0640"
+}
+
+# --- keycloak ---
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/keycloak\" }}KEYCLOAK_ADMIN_PASSWORD={{ .Data.data.admin_password }}\nKEYCLOAK_DB_PASSWORD={{ .Data.data.db_password }}\n{{ end }}"
+  destination = "/vault/secrets/security/keycloak.env"
   perms       = "0640"
 }
 
@@ -66,6 +87,20 @@ template {
   perms       = "0640"
 }
 
+# semaphore compose env 파일. compose.yaml 이 기대하는 변수명으로 렌더한다.
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/semaphore\" }}SEMAPHORE_DB_PASSWORD={{ .Data.data.db_password }}\nSEMAPHORE_ACCESS_KEY_ENCRYPTION={{ .Data.data.access_key_encryption }}\nSEMAPHORE_COOKIE_HASH={{ .Data.data.cookie_hash }}\nSEMAPHORE_COOKIE_ENCRYPTION={{ .Data.data.cookie_encryption }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}"
+  destination = "/vault/secrets/cicd/semaphore.env"
+  perms       = "0640"
+}
+
+# gitlab compose env 파일.
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/common\" }}ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}"
+  destination = "/vault/secrets/cicd/gitlab.env"
+  perms       = "0640"
+}
+
 # --- restic ---
 template {
   contents    = "{{ with secret \"kv/data/mgmt/restic\" }}RESTIC_PASSWORD={{ .Data.data.password }}\nRESTIC_ACCESS_KEY={{ .Data.data.access_key }}\nRESTIC_SECRET_KEY={{ .Data.data.secret_key }}\n{{ end }}"
@@ -77,6 +112,12 @@ template {
 template {
   contents    = "{{ with secret \"kv/data/mgmt/minio\" }}MINIO_ROOT_USER={{ .Data.data.root_user }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}"
   destination = "/vault/secrets/backup-minio.env"
+  perms       = "0640"
+}
+
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/minio\" }}MINIO_ROOT_USER={{ .Data.data.root_user }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}"
+  destination = "/vault/secrets/backup/minio.env"
   perms       = "0640"
 }
 
