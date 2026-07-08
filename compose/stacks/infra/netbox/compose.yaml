@@ -87,16 +87,10 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "ps -aux | grep -v grep | grep -q rqworker || exit 1"]
 
-  netbox-housekeeping:
-    <<: *netbox
-    container_name: netbox-housekeeping
-    depends_on:
-      netbox:
-        condition: service_healthy
-    command:
-      - /opt/netbox/housekeeping.sh
-    healthcheck:
-      test: ["CMD-SHELL", "ps -aux | grep -v grep | grep -q housekeeping || exit 1"]
+  # netbox-docker 3.4.0+ (여기 4.0.2)는 별도 housekeeping 컨테이너가 없다.
+  # housekeeping 은 worker/스케줄러가 처리하며, 필요 시 호스트 cron 으로
+  #   docker exec netbox /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py housekeeping
+  # 을 일 1회 실행한다.
 
   netbox-db:
     image: docker.io/postgres:18-alpine
@@ -108,7 +102,9 @@ services:
       POSTGRES_PASSWORD: ${NETBOX_DB_PASSWORD:?NETBOX_DB_PASSWORD must be set}
       TZ: ${TZ:-Asia/Seoul}
     volumes:
-      - netbox-postgres:/var/lib/postgresql/data
+      # postgres 18+ 는 PGDATA=/var/lib/postgresql/<major>/docker 이므로
+      # 볼륨은 반드시 /var/lib/postgresql 에 마운트한다(/data 아님).
+      - netbox-postgres:/var/lib/postgresql
     networks:
       - default
     healthcheck:
