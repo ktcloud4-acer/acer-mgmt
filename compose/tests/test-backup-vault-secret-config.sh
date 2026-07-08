@@ -47,5 +47,7 @@ assert_contains "$agent" 'RESTIC_SECRET_KEY='
 
 assert_contains "$restic_compose" 'RESTIC_ACCESS_KEY: ${RESTIC_ACCESS_KEY:?RESTIC_ACCESS_KEY must be set}'
 assert_contains "$restic_compose" 'RESTIC_SECRET_KEY: ${RESTIC_SECRET_KEY:?RESTIC_SECRET_KEY must be set}'
+assert_contains "$restic_compose" 'target="$$((target + 86400))"'
+assert_not_contains "$restic_compose" 'date -d tomorrow'
 
 echo "backup vault secret config tests passed"

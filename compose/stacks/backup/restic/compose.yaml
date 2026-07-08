@@ -27,8 +27,7 @@ services:
           today="$$(date +%F)"
           target="$$(date -d "$${today} $${RESTIC_BACKUP_TIME}" +%s)"
           if [ "$$now" -ge "$$target" ]; then
-            tomorrow="$$(date -d tomorrow +%F)"
-            target="$$(date -d "$${tomorrow} $${RESTIC_BACKUP_TIME}" +%s)"
+            target="$$((target + 86400))"
           fi
           sleep_seconds="$$((target - now))"
           echo "next restic backup at $$(date -d "@$${target}" -Is); sleeping $${sleep_seconds}s"
