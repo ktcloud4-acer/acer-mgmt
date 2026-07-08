@@ -9,6 +9,32 @@ http:
         stsSeconds: 31536000
         stsIncludeSubdomains: true
 
+    sso-auth:
+      chain:
+        middlewares:
+          - oauth2-signin
+          - oauth2-auth
+
+    oauth2-auth:
+      forwardAuth:
+        address: http://oauth2-proxy:4180/oauth2/auth
+        trustForwardHeader: true
+        authResponseHeaders:
+          - X-Auth-Request-User
+          - X-Auth-Request-Email
+          - X-Auth-Request-Groups
+          - X-Forwarded-User
+
+    oauth2-signin:
+      errors:
+        status:
+          - "401-403"
+        service: oauth2-proxy@docker
+        query: /oauth2/sign_in?rd={url}
+        statusRewrites:
+          "401": 302
+          "403": 302
+
     keycloak-headers:
       headers:
         contentTypeNosniff: true
