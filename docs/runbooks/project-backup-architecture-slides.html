@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acer Project Architecture Slides</title>
+  <style>
+    :root {
+      --bg: #eef2f7;
+      --slide: #ffffff;
+      --ink: #111827;
+      --muted: #5b6677;
+      --blue: #5b68e8;
+      --navy: #15345a;
+      --line: #244b86;
+      --soft-line: #cbd6e5;
+      --green: #24a06f;
+      --orange: #e18a24;
+      --red: #d85149;
+      --cyan: #168da3;
+      --purple: #7c5bd6;
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    main {
+      width: 1280px;
+      max-width: calc(100vw - 32px);
+      margin: 0 auto;
+      padding: 24px 0 48px;
+      display: grid;
+      gap: 28px;
+    }
+
+    .slide {
+      width: 1280px;
+      height: 720px;
+      background: var(--slide);
+      border: 1px solid #d8e0eb;
+      box-shadow: 0 16px 40px rgba(20, 36, 64, 0.14);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tag {
+      position: absolute;
+      left: 70px;
+      top: 60px;
+      width: 246px;
+      height: 42px;
+      border-radius: 24px;
+      background: var(--blue);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      font-weight: 500;
+    }
+
+    .title {
+      position: absolute;
+      left: 72px;
+      top: 132px;
+      font-size: 38px;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    .note {
+      position: absolute;
+      left: 72px;
+      right: 72px;
+      bottom: 44px;
+      min-height: 46px;
+      padding: 12px 18px;
+      border-left: 5px solid var(--blue);
+      background: #eef4ff;
+      border-radius: 10px;
+      color: #263b5c;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .page {
+      position: absolute;
+      right: 28px;
+      bottom: 20px;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
+    svg {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1280px;
+      height: 720px;
+    }
+
+    .box {
+      fill: #fff;
+      stroke: var(--line);
+      stroke-width: 1.4;
+    }
+
+    .box-soft {
+      fill: #f8fbff;
+      stroke: #b9c8dc;
+      stroke-width: 1.2;
+    }
+
+    .box-green { fill: #effaf5; stroke: #88cfb3; stroke-width: 1.2; }
+    .box-blue { fill: #eef4ff; stroke: #9bb7f1; stroke-width: 1.2; }
+    .box-orange { fill: #fff5e9; stroke: #ecc38e; stroke-width: 1.2; }
+    .box-red { fill: #fff1f0; stroke: #ecaaa6; stroke-width: 1.2; }
+    .box-cyan { fill: #eefbfc; stroke: #92d3dc; stroke-width: 1.2; }
+    .box-purple { fill: #f4f0ff; stroke: #bfaef0; stroke-width: 1.2; }
+
+    .label {
+      font-size: 15px;
+      fill: var(--ink);
+      font-weight: 700;
+    }
+
+    .label-sm {
+      font-size: 12px;
+      fill: var(--muted);
+      font-weight: 600;
+    }
+
+    .label-md {
+      font-size: 13px;
+      fill: var(--ink);
+      font-weight: 700;
+    }
+
+    .zone-title {
+      font-size: 20px;
+      font-weight: 800;
+      fill: var(--blue);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      fill: var(--navy);
+    }
+
+    .icon {
+      fill: var(--blue);
+      stroke: none;
+    }
+
+    .icon-green { fill: var(--green); }
+    .icon-orange { fill: var(--orange); }
+    .icon-red { fill: var(--red); }
+    .icon-cyan { fill: var(--cyan); }
+    .icon-purple { fill: var(--purple); }
+    .icon-navy { fill: var(--navy); }
+
+    .arrow {
+      stroke: #667085;
+      stroke-width: 1.8;
+      fill: none;
+      marker-end: url(#arrow);
+    }
+
+    .arrow-blue {
+      stroke: var(--blue);
+      stroke-width: 2;
+      fill: none;
+      marker-end: url(#arrowBlue);
+    }
+
+    .dash {
+      stroke-dasharray: 7 5;
+    }
+
+    .pill-text {
+      fill: #fff;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; gap: 0; }
+      .slide { box-shadow: none; break-after: page; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="slide" aria-label="기술 스택">
+      <div class="tag">Architecture</div>
+      <div class="title">기술 스택</div>
+
+      <svg viewBox="0 0 1280 720" role="img" aria-label="기술 스택">
+        <defs>
+          <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#1b2d48" flood-opacity="0.10"/>
+          </filter>
+        </defs>
+
+        <g transform="translate(150 250)" filter="url(#cardShadow)">
+          <rect class="box" width="260" height="130" rx="14"/>
+          <rect x="10" y="16" width="3" height="30" rx="2" fill="#5b68e8"/>
+          <text x="20" y="34" class="section-title">Application</text>
+          <circle cx="82" cy="78" r="25" class="icon-green"/>
+          <text x="82" y="84" text-anchor="middle" class="pill-text">API</text>
+          <rect x="150" y="52" width="52" height="52" rx="12" class="icon-navy"/>
+          <text x="176" y="84" text-anchor="middle" class="pill-text">WEB</text>
+          <text x="82" y="118" text-anchor="middle" class="label-sm">FastAPI</text>
+          <text x="176" y="118" text-anchor="middle" class="label-sm">Nginx</text>
+        </g>
+
+        <g transform="translate(430 250)" filter="url(#cardShadow)">
+          <rect class="box" width="260" height="130" rx="14"/>
+          <rect x="10" y="16" width="3" height="30" rx="2" fill="#5b68e8"/>
+          <text x="20" y="34" class="section-title">Database</text>
+          <rect x="60" y="52" width="52" height="52" rx="12" class="icon-green"/>
+          <text x="86" y="84" text-anchor="middle" class="pill-text">SB</text>
+          <rect x="150" y="52" width="52" height="52" rx="12" class="icon"/>
+          <text x="176" y="84" text-anchor="middle" class="pill-text">PG</text>
+          <text x="86" y="118" text-anchor="middle" class="label-sm">Supabase</text>
+          <text x="176" y="118" text-anchor="middle" class="label-sm">PostgreSQL</text>
+        </g>
+
+        <g transform="translate(710 250)" filter="url(#cardShadow)">
+          <rect class="box" width="330" height="130" rx="14"/>
+          <rect x="10" y="16" width="3" height="30" rx="2" fill="#5b68e8"/>
+          <text x="20" y="34" class="section-title">Observability</text>
+          <circle cx="80" cy="78" r="25" class="icon-red"/>
+          <text x="80" y="84" text-anchor="middle" class="pill-text">P</text>
+          <circle cx="165" cy="78" r="25" class="icon-orange"/>
+          <text x="165" y="84" text-anchor="middle" class="pill-text">G</text>
+          <circle cx="250" cy="78" r="25" class="icon-cyan"/>
+          <text x="250" y="84" text-anchor="middle" class="pill-text">ELK</text>
+          <text x="80" y="118" text-anchor="middle" class="label-sm">Prometheus</text>
+          <text x="165" y="118" text-anchor="middle" class="label-sm">Grafana</text>
+          <text x="250" y="118" text-anchor="middle" class="label-sm">Logging</text>
+        </g>
+
+        <g transform="translate(150 405)" filter="url(#cardShadow)">
+          <rect class="box" width="330" height="130" rx="14"/>
+          <rect x="10" y="16" width="3" height="30" rx="2" fill="#5b68e8"/>
+          <text x="20" y="34" class="section-title">DevOps / Automation</text>
+          <circle cx="80" cy="78" r="25" class="icon-red"/>
+          <text x="80" y="84" text-anchor="middle" class="pill-text">GL</text>
+          <circle cx="165" cy="78" r="25" class="icon-orange"/>
+          <text x="165" y="84" text-anchor="middle" class="pill-text">CI</text>
+          <circle cx="250" cy="78" r="25" class="icon-purple"/>
+          <text x="250" y="84" text-anchor="middle" class="pill-text">CD</text>
+          <text x="80" y="118" text-anchor="middle" class="label-sm">GitLab</text>
+          <text x="165" y="118" text-anchor="middle" class="label-sm">Runner</text>
+          <text x="250" y="118" text-anchor="middle" class="label-sm">Argo CD</text>
+        </g>
+
+        <g transform="translate(500 405)" filter="url(#cardShadow)">
+          <rect class="box" width="290" height="130" rx="14"/>
+          <rect x="10" y="16" width="3" height="30" rx="2" fill="#5b68e8"/>
+          <text x="20" y="34" class="section-title">Backup / Storage</text>
+          <rect x="45" y="52" width="52" height="52" rx="12" class="icon-cyan"/>
+          <text x="71" y="84" text-anchor="middle" class="pill-text">M</text>
+          <rect x="119" y="52" width="52" height="52" rx="12" class="icon"/>
+          <text x="145" y="84" text-anchor="middle" class="pill-text">V</text>
+          <rect x="193" y="52" width="52" height="52" rx="12" class="icon-navy"/>
+          <text x="219" y="84" text-anchor="middle" class="pill-text">R</text>
+          <text x="71" y="118" text-anchor="middle" class="label-sm">MinIO</text>
+          <text x="145" y="118" text-anchor="middle" class="label-sm">Velero</text>
+          <text x="219" y="118" text-anchor="middle" class="label-sm">restic</text>
+        </g>
+
+        <g transform="translate(810 405)" filter="url(#cardShadow)">
+          <rect class="box" width="260" height="130" rx="14"/>
+          <rect x="10" y="16" width="3" height="30" rx="2" fill="#5b68e8"/>
+          <text x="20" y="34" class="section-title">Container / Network</text>
+          <circle cx="72" cy="78" r="25" class="icon"/>
+          <text x="72" y="84" text-anchor="middle" class="pill-text">K8s</text>
+          <rect x="132" y="52" width="52" height="52" rx="12" class="icon-orange"/>
+          <text x="158" y="84" text-anchor="middle" class="pill-text">H</text>
+          <text x="72" y="118" text-anchor="middle" class="label-sm">Kubernetes</text>
+          <text x="158" y="118" text-anchor="middle" class="label-sm">Harbor</text>
+        </g>
+      </svg>
+
+      <div class="page">01</div>
+    </section>
+
+    <section class="slide" aria-label="프로젝트 전체 아키텍처">
+      <div class="tag">Architecture</div>
+      <div class="title">프로젝트 전체 아키텍처</div>
+
+      <svg viewBox="0 0 1280 720" role="img" aria-label="프로젝트 전체 아키텍처">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#667085"/>
+          </marker>
+          <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#5b68e8"/>
+          </marker>
+        </defs>
+
+        <g transform="translate(0 42)">
+        <rect x="84" y="220" width="190" height="265" rx="10" class="box-soft"/>
+        <text x="84" y="202" class="zone-title">사용자 / 개발자</text>
+        <rect x="110" y="252" width="138" height="55" rx="10" class="box-blue"/>
+        <text x="179" y="276" text-anchor="middle" class="label">Web 접속</text>
+        <text x="179" y="296" text-anchor="middle" class="label-sm">Cloudflare / Route</text>
+        <rect x="110" y="334" width="138" height="55" rx="10" class="box-red"/>
+        <text x="179" y="358" text-anchor="middle" class="label">Git Push</text>
+        <text x="179" y="378" text-anchor="middle" class="label-sm">Source / Manifest</text>
+        <rect x="110" y="416" width="138" height="42" rx="10" class="box-purple"/>
+        <text x="179" y="442" text-anchor="middle" class="label">운영 접속</text>
+
+        <rect x="360" y="178" width="370" height="355" rx="10" class="box-soft"/>
+        <text x="360" y="160" class="zone-title">mgmt 서버</text>
+        <text x="384" y="210" class="section-title">CI/CD · 운영 플랫폼</text>
+
+        <rect x="388" y="236" width="128" height="58" rx="10" class="box-red"/>
+        <text x="452" y="260" text-anchor="middle" class="label">GitLab</text>
+        <text x="452" y="280" text-anchor="middle" class="label-sm">Repo</text>
+        <rect x="556" y="236" width="128" height="58" rx="10" class="box-orange"/>
+        <text x="620" y="260" text-anchor="middle" class="label">Runner</text>
+        <text x="620" y="280" text-anchor="middle" class="label-sm">Build</text>
+        <rect x="388" y="318" width="128" height="58" rx="10" class="box-purple"/>
+        <text x="452" y="342" text-anchor="middle" class="label">Argo CD</text>
+        <text x="452" y="362" text-anchor="middle" class="label-sm">GitOps</text>
+        <rect x="556" y="318" width="128" height="58" rx="10" class="box-orange"/>
+        <text x="620" y="342" text-anchor="middle" class="label">Harbor</text>
+        <text x="620" y="362" text-anchor="middle" class="label-sm">Registry</text>
+        <rect x="388" y="400" width="128" height="58" rx="10" class="box-green"/>
+        <text x="452" y="424" text-anchor="middle" class="label">Supabase</text>
+        <text x="452" y="444" text-anchor="middle" class="label-sm">PostgreSQL</text>
+        <rect x="556" y="400" width="128" height="58" rx="10" class="box-cyan"/>
+        <text x="620" y="424" text-anchor="middle" class="label">MinIO</text>
+        <text x="620" y="444" text-anchor="middle" class="label-sm">Backup Store</text>
+        <rect x="388" y="478" width="128" height="38" rx="10" class="box-blue"/>
+        <text x="452" y="502" text-anchor="middle" class="label-md">Prometheus / Grafana</text>
+        <rect x="556" y="478" width="128" height="38" rx="10" class="box-blue"/>
+        <text x="620" y="502" text-anchor="middle" class="label-md">ELK Logging</text>
+
+        <rect x="830" y="178" width="360" height="355" rx="10" class="box-soft"/>
+        <text x="830" y="160" class="zone-title">각 팀 AIO 클러스터</text>
+        <text x="854" y="210" class="section-title">Kubernetes Workloads</text>
+        <rect x="858" y="236" width="140" height="58" rx="10" class="box-blue"/>
+        <text x="928" y="260" text-anchor="middle" class="label">web-service</text>
+        <text x="928" y="280" text-anchor="middle" class="label-sm">FastAPI</text>
+        <rect x="1022" y="236" width="140" height="58" rx="10" class="box-blue"/>
+        <text x="1092" y="260" text-anchor="middle" class="label">web-service</text>
+        <text x="1092" y="280" text-anchor="middle" class="label-sm">Nginx</text>
+        <rect x="858" y="320" width="140" height="58" rx="10" class="box-purple"/>
+        <text x="928" y="344" text-anchor="middle" class="label">Tailscale</text>
+        <text x="928" y="364" text-anchor="middle" class="label-sm">Operator</text>
+        <rect x="1022" y="320" width="140" height="58" rx="10" class="box-green"/>
+        <text x="1092" y="344" text-anchor="middle" class="label">Monitoring</text>
+        <text x="1092" y="364" text-anchor="middle" class="label-sm">Agent</text>
+        <rect x="858" y="404" width="140" height="58" rx="10" class="box-orange"/>
+        <text x="928" y="428" text-anchor="middle" class="label">Filebeat</text>
+        <text x="928" y="448" text-anchor="middle" class="label-sm">DaemonSet</text>
+        <rect x="1022" y="404" width="140" height="58" rx="10" class="box-cyan"/>
+        <text x="1092" y="428" text-anchor="middle" class="label">Velero</text>
+        <text x="1092" y="448" text-anchor="middle" class="label-sm">Backup</text>
+
+        <path class="arrow" d="M 248 362 L 388 265"/>
+        <text x="276" y="292" class="label-sm">code</text>
+        <path class="arrow" d="M 516 265 L 556 265"/>
+        <text x="524" y="252" class="label-sm">CI</text>
+        <path class="arrow" d="M 620 294 L 620 318"/>
+        <path class="arrow" d="M 556 347 L 516 347"/>
+        <text x="520" y="336" class="label-sm">manifest</text>
+        <path class="arrow-blue" d="M 516 347 C 640 300, 730 286, 858 265"/>
+        <text x="656" y="284" class="label-sm">GitOps sync</text>
+        <path class="arrow" d="M 684 347 C 738 328, 784 298, 858 272"/>
+        <text x="727" y="323" class="label-sm">image pull</text>
+        <path class="arrow" d="M 248 280 C 390 150, 750 124, 928 236"/>
+        <text x="662" y="128" class="label-sm">user traffic</text>
+        <path class="arrow-blue dash" d="M 928 349 C 775 374, 746 410, 684 429"/>
+        <text x="740" y="407" class="label-sm">private network</text>
+        <path class="arrow dash" d="M 1092 349 C 850 580, 635 560, 452 516"/>
+        <text x="740" y="574" class="label-sm">metrics / logs</text>
+        </g>
+      </svg>
+
+      <div class="page">02</div>
+    </section>
+
+    <section class="slide" aria-label="백업 아키텍처">
+      <div class="tag">Architecture</div>
+      <div class="title">백업 아키텍처</div>
+
+      <svg viewBox="0 0 1280 720" role="img" aria-label="백업 아키텍처">
+        <defs>
+          <marker id="arrowB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#667085"/>
+          </marker>
+        </defs>
+
+        <text x="90" y="214" class="zone-title">백업 생성 위치</text>
+        <text x="500" y="214" class="zone-title">중앙 저장소</text>
+        <text x="895" y="214" class="zone-title">외부 보관</text>
+
+        <rect x="90" y="242" width="330" height="70" rx="12" class="box-blue"/>
+        <text x="112" y="270" class="label">AIO Velero Backup</text>
+        <text x="112" y="294" class="label-sm">web-service / tailscale namespace</text>
+
+        <rect x="90" y="330" width="330" height="70" rx="12" class="box-cyan"/>
+        <text x="112" y="358" class="label">AIO etcd Snapshot</text>
+        <text x="112" y="382" class="label-sm">control-plane snapshot.db</text>
+
+        <rect x="90" y="418" width="330" height="70" rx="12" class="box-green"/>
+        <text x="112" y="446" class="label">mgmt DB / Config Backup</text>
+        <text x="112" y="470" class="label-sm">PostgreSQL dump, Storage, 설정</text>
+
+        <rect x="90" y="506" width="330" height="70" rx="12" class="box-orange"/>
+        <text x="112" y="534" class="label">mgmt restic Backup</text>
+        <text x="112" y="558" class="label-sm">Harbor, GitLab, Grafana volumes</text>
+
+        <rect x="500" y="242" width="300" height="334" rx="16" fill="#f6fbff" stroke="#88a8cf" stroke-width="1.6"/>
+        <text x="650" y="276" text-anchor="middle" class="section-title">mgmt MinIO</text>
+        <text x="650" y="300" text-anchor="middle" class="label-sm">https://s3.imcherry5778.xyz</text>
+
+        <rect x="532" y="326" width="236" height="45" rx="10" class="box-blue"/>
+        <text x="650" y="354" text-anchor="middle" class="label-md">bucket: velero / team prefix</text>
+        <rect x="532" y="386" width="236" height="45" rx="10" class="box-cyan"/>
+        <text x="650" y="414" text-anchor="middle" class="label-md">bucket: etcd / team / daily</text>
+        <rect x="532" y="446" width="236" height="45" rx="10" class="box-green"/>
+        <text x="650" y="474" text-anchor="middle" class="label-md">bucket: db-backup</text>
+        <rect x="532" y="506" width="236" height="45" rx="10" class="box-orange"/>
+        <text x="650" y="534" text-anchor="middle" class="label-md">bucket: restic</text>
+
+        <rect x="900" y="320" width="250" height="150" rx="16" class="box-red"/>
+        <text x="1025" y="360" text-anchor="middle" class="section-title">AWS S3</text>
+        <text x="1025" y="388" text-anchor="middle" class="label-sm">Offsite mirror</text>
+        <text x="1025" y="416" text-anchor="middle" class="label-sm">MinIO 장애 대비</text>
+
+        <path d="M 420 277 L 532 349" stroke="#667085" stroke-width="1.8" fill="none" marker-end="url(#arrowB)"/>
+        <path d="M 420 365 L 532 409" stroke="#667085" stroke-width="1.8" fill="none" marker-end="url(#arrowB)"/>
+        <path d="M 420 453 L 532 469" stroke="#667085" stroke-width="1.8" fill="none" marker-end="url(#arrowB)"/>
+        <path d="M 420 541 L 532 529" stroke="#667085" stroke-width="1.8" fill="none" marker-end="url(#arrowB)"/>
+        <path d="M 800 409 L 900 395" stroke="#667085" stroke-width="2" fill="none" marker-end="url(#arrowB)"/>
+
+        <rect x="148" y="602" width="985" height="52" rx="12" fill="#eef4ff" stroke="#b7c8ee"/>
+        <text x="640" y="633" text-anchor="middle" class="label">
+          각 클러스터는 자기 백업을 직접 만들고, mgmt MinIO는 중앙 저장소, AWS S3는 외부 복제 저장소 역할을 합니다.
+        </text>
+      </svg>
+
+      <div class="page">03</div>
+    </section>
+  </main>
+</body>
+</html>
