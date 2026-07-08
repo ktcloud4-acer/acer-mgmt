@@ -8,7 +8,6 @@ Docker Traefik과 연결된다.
 
 ```text
 compose/
-├── Makefile
 ├── scripts/
 │   ├── bootstrap.sh
 │   └── boot-reconcile.sh
@@ -25,31 +24,39 @@ compose/
 
 ## 사용
 
-저장소 루트에서는 접두사가 있는 명령을 사용한다.
-
-```bash
-make compose-up   s=edge/traefik
-make compose-ps   s=cicd/gitlab
-make compose-logs s=observability/elk
-make compose-down s=data/kafka
-```
-
-기존 명령도 호환된다.
-
-```bash
-make up   s=edge/traefik
-make logs s=edge/traefik
-```
-
-`compose/` 안에서 직접 실행할 수도 있다.
+`compose/` 안에서 서비스별 Compose 파일을 직접 지정한다.
 
 ```bash
 cd compose
-make up s=edge/traefik
+docker network inspect mgmt-proxy >/dev/null 2>&1 || docker network create mgmt-proxy
+docker network inspect mgmt-data >/dev/null 2>&1 || docker network create mgmt-data
+
+docker compose --env-file ../.env \
+  --env-file /run/acer-mgmt/secrets/edge/traefik.env \
+  -f stacks/edge/traefik/compose.yaml up -d
+
+docker compose --env-file ../.env \
+  -f stacks/edge/traefik/compose.yaml logs -f --tail=200
 ```
 
-공통 환경변수는 저장소 루트의 `.env`에서 읽고, 서비스 전용
-`stacks/<domain>/<service>/.env`가 있으면 해당 파일을 우선한다.
+공통 환경변수는 저장소 루트의 `.env`에서 읽는다. 이 파일은 비시크릿
+호스트 설정 전용이다. 시크릿은 Vault Agent가 렌더링한 런타임 파일로
+주입한다.
+
+Compose env 파일 주입 순서는 다음과 같다. 뒤쪽 파일이 앞쪽 값을 override 한다.
+
+```text
+../.env                                      # 비시크릿 공통 설정
+stacks/<domain>/<service>/.env              # 기존 호환용 로컬 override
+/run/acer-mgmt/secrets/<domain>/<service>.env # Vault Agent 렌더 시크릿
+```
+
+새 시크릿은 `stacks/.../.env`나 루트 `.env`에 추가하지 않는다. Vault KV와
+Vault Agent template을 통해 `/run/acer-mgmt/secrets/...` 아래로 렌더링한다.
+필요한 키 이름은 [`vault-secrets.env.example`](vault-secrets.env.example)을
+참고한다.
+
+특정 env 파일이 없으면 해당 `--env-file` 인자는 생략한다.
 
 ## k3d 연동
 

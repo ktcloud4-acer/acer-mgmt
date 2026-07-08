@@ -36,33 +36,35 @@ Docker Traefik이 종료하고 k3d 내부 Traefik에는 HTTP로 전달한다.
 
 ## 설치
 
-저장소 루트에서 실행한다.
+`k3d/` 디렉터리에서 실행한다.
 
 ```bash
-make cluster-tools
-make cluster-create
-make argocd-bootstrap
-make argocd-smoke
+cd k3d
+make tools
+make create
+make bootstrap
+make smoke
 ```
 
-`cluster-tools`는 사용자 경로 `~/.local/bin`에 검증된 k3d, kubectl, argocd
-바이너리를 설치한다. `cluster-create`는 멱등하게 기존 클러스터를 시작하거나 새로
+`tools`는 사용자 경로 `~/.local/bin`에 검증된 k3d, kubectl, argocd
+바이너리를 설치한다. `create`는 멱등하게 기존 클러스터를 시작하거나 새로
 생성하고 kubeconfig를 `secrets/k3d/mgmt.kubeconfig`에 기록한다.
 
 ## 상태 확인
 
 ```bash
-make cluster-status
+cd k3d
+make status
 make argocd-status
 
-KUBECONFIG=secrets/k3d/mgmt.kubeconfig kubectl get pods -n argocd
+KUBECONFIG=../secrets/k3d/mgmt.kubeconfig kubectl get pods -n argocd
 curl -H 'Host: argocd.imcherry5778.xyz' http://127.0.0.1:8081/
 ```
 
 초기 관리자 암호:
 
 ```bash
-KUBECONFIG=secrets/k3d/mgmt.kubeconfig \
+KUBECONFIG=../secrets/k3d/mgmt.kubeconfig \
   argocd admin initial-password -n argocd
 ```
 
@@ -86,7 +88,8 @@ k3s 상태는 `/home/mgmt-data/k3d/mgmt`에 저장한다. 클러스터 삭제는
 확인해야 한다.
 
 ```bash
-make cluster-destroy CONFIRM=mgmt
+cd k3d
+make destroy CONFIRM=mgmt
 ```
 
 삭제 전에 Argo CD 설정과 클러스터 credential Secret을 별도로 백업해야 한다.

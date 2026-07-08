@@ -1,9 +1,9 @@
 # cloudflared (Cloudflare Tunnel) — 공인 IP 없이 외부 노출
-# 토큰은 루트 .env 의 CF_TUNNEL_TOKEN (Makefile 이 --env-file 로 주입).
+# 토큰은 docker compose 실행 시 지정한 env 파일의 CF_TUNNEL_TOKEN에서 주입.
 # 인입 라우팅(Public Hostname)은 Cloudflare Zero Trust 대시보드에서 설정:
 #   <svc>.${BASE_DOMAIN}  →  Service: HTTP  →  traefik:80
 # (토큰 기반 터널은 ingress 를 대시보드에서 관리. config.yml 불필요.)
-# 기동:  make up s=edge/cloudflared
+# 기동: docker compose --env-file ../.env -f stacks/edge/cloudflared/compose.yaml up -d
 
 services:
   cloudflared:

@@ -98,6 +98,7 @@ SH
 
   PATH="${fake_bin}:/usr/bin:/bin" \
     BASE_DOMAIN="imcherry5778.xyz" \
+    DNS_SMOKE_DISABLE_DIRECT=true \
     EXPECTED_IP="100.117.59.96" \
     KUBECONFIG_FILE="${tmp}/missing.kubeconfig" \
     "$SCRIPT" >"$stdout" 2>"$stderr"

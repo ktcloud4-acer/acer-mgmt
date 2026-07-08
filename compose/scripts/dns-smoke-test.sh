@@ -6,6 +6,7 @@ ADGUARD_DNS_IP=${ADGUARD_DNS_IP:-100.117.59.96}
 EXPECTED_IP=${EXPECTED_IP:-100.117.59.96}
 KUBECONFIG_FILE=${KUBECONFIG_FILE:-/home/user1/acer-mgmt/secrets/k3d/mgmt.kubeconfig}
 DNS_SMOKE_REQUIRE_DIRECT=${DNS_SMOKE_REQUIRE_DIRECT:-false}
+DNS_SMOKE_DISABLE_DIRECT=${DNS_SMOKE_DISABLE_DIRECT:-false}
 
 has_cmd() {
   local name="$1"
@@ -21,9 +22,9 @@ is_truthy() {
 
 query_short() {
   local name="$1"
-  if has_cmd dig; then
+  if ! is_truthy "$DNS_SMOKE_DISABLE_DIRECT" && has_cmd dig; then
     dig @"$ADGUARD_DNS_IP" "$name" +short
-  elif has_cmd nslookup; then
+  elif ! is_truthy "$DNS_SMOKE_DISABLE_DIRECT" && has_cmd nslookup; then
     nslookup "$name" "$ADGUARD_DNS_IP" | awk '/^Address: / { answer=$2 } END { sub(/#.*/, "", answer); if (answer != "") print answer }'
   elif has_cmd getent; then
     getent ahostsv4 "$name" | awk 'NF { print $1; exit }'
@@ -34,7 +35,7 @@ query_short() {
 }
 
 has_direct_dns_tool() {
-  has_cmd dig || has_cmd nslookup
+  ! is_truthy "$DNS_SMOKE_DISABLE_DIRECT" && { has_cmd dig || has_cmd nslookup; }
 }
 
 assert_adguard_answer() {
