@@ -55,6 +55,7 @@ if has_direct_dns_tool; then
   assert_adguard_answer "alertmanager.${BASE_DOMAIN}"
   assert_adguard_answer "harbor.${BASE_DOMAIN}"
   assert_adguard_answer "argocd.${BASE_DOMAIN}"
+  assert_adguard_answer "keycloak.${BASE_DOMAIN}"
 elif is_truthy "$DNS_SMOKE_REQUIRE_DIRECT"; then
   echo "Missing direct DNS query command: dig or nslookup" >&2
   exit 1
