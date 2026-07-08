@@ -1,0 +1,177 @@
+# NetBox — 인프라 IPAM/CMDB (source of truth).
+# TLS 는 Traefik 이 종단하고 NetBox 는 Docker 내부망에서 평문 HTTP(8080, Granian)로 대기한다.
+# db/redis 는 프로젝트 기본 네트워크(default)에만, 웹 프론트만 mgmt-proxy 에 연결한다(keycloak 패턴).
+# SSO 는 Keycloak realm 'mgmt' 의 OIDC 로 통합한다. 자세한 설정은 config/extra.py 참고.
+
+x-netbox: &netbox
+  image: docker.io/netboxcommunity/netbox:v4.5-4.0.2
+  restart: unless-stopped
+  depends_on:
+    netbox-db:
+      condition: service_healthy
+    netbox-redis:
+      condition: service_started
+    netbox-redis-cache:
+      condition: service_started
+  environment:
+    TZ: ${TZ:-Asia/Seoul}
+    # ── Database ─────────────────────────────
+    DB_HOST: netbox-db
+    DB_NAME: netbox
+    DB_USER: netbox
+    DB_PASSWORD: ${NETBOX_DB_PASSWORD:?NETBOX_DB_PASSWORD must be set}
+    # ── Redis (tasks) ────────────────────────
+    REDIS_HOST: netbox-redis
+    REDIS_DATABASE: "0"
+    REDIS_PASSWORD: ${NETBOX_REDIS_PASSWORD:?NETBOX_REDIS_PASSWORD must be set}
+    REDIS_SSL: "false"
+    # ── Redis (cache) ────────────────────────
+    REDIS_CACHE_HOST: netbox-redis-cache
+    REDIS_CACHE_DATABASE: "1"
+    REDIS_CACHE_PASSWORD: ${NETBOX_REDIS_CACHE_PASSWORD:?NETBOX_REDIS_CACHE_PASSWORD must be set}
+    REDIS_CACHE_SSL: "false"
+    # ── Security ─────────────────────────────
+    SECRET_KEY: ${NETBOX_SECRET_KEY:?NETBOX_SECRET_KEY must be set}
+    ALLOWED_HOSTS: netbox.${BASE_DOMAIN}
+    # ── SSO: Keycloak OIDC (config/extra.py 에서 os.environ 로 소비) ──
+    NETBOX_PUBLIC_URL: https://netbox.${BASE_DOMAIN}
+    NETBOX_OIDC_ENDPOINT: https://keycloak.${BASE_DOMAIN}/realms/${KEYCLOAK_REALM:-mgmt}
+    NETBOX_OIDC_CLIENT_ID: ${NETBOX_OIDC_CLIENT_ID:-netbox}
+    NETBOX_OIDC_CLIENT_SECRET: ${NETBOX_OIDC_CLIENT_SECRET:?NETBOX_OIDC_CLIENT_SECRET must be set}
+    NETBOX_OIDC_LOGOUT_URL: https://keycloak.${BASE_DOMAIN}/realms/${KEYCLOAK_REALM:-mgmt}/protocol/openid-connect/logout
+    # ── 최초 1회 슈퍼유저(브레이크글래스). 부팅 후 SKIP_SUPERUSER=true 로 전환 권장 ──
+    SKIP_SUPERUSER: "false"
+    SUPERUSER_NAME: ${NETBOX_SUPERUSER_NAME:-admin}
+    SUPERUSER_EMAIL: ${NETBOX_SUPERUSER_EMAIL:-imcherry5778@gmail.com}
+    SUPERUSER_PASSWORD: ${NETBOX_SUPERUSER_PASSWORD:?NETBOX_SUPERUSER_PASSWORD must be set}
+    SUPERUSER_API_TOKEN: ${NETBOX_SUPERUSER_API_TOKEN:?NETBOX_SUPERUSER_API_TOKEN must be set}
+  volumes:
+    - netbox-media:/opt/netbox/netbox/media:rw
+    - netbox-reports:/opt/netbox/netbox/reports:rw
+    - netbox-scripts:/opt/netbox/netbox/scripts:rw
+    - ./config/extra.py:/etc/netbox/config/extra.py:z,ro
+  networks:
+    - default
+
+services:
+  netbox:
+    <<: *netbox
+    container_name: netbox
+    networks:
+      - default
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login/"]
+      start_period: 90s
+      timeout: 5s
+      interval: 15s
+      retries: 10
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.netbox.rule=Host(`netbox.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.netbox.entrypoints=websecure"
+      - "traefik.http.routers.netbox.middlewares=secure-headers@file"
+      - "traefik.http.services.netbox.loadbalancer.server.port=8080"
+
+  netbox-worker:
+    <<: *netbox
+    container_name: netbox-worker
+    depends_on:
+      netbox:
+        condition: service_healthy
+    command:
+      - /opt/netbox/venv/bin/python
+      - /opt/netbox/netbox/manage.py
+      - rqworker
+    healthcheck:
+      test: ["CMD-SHELL", "ps -aux | grep -v grep | grep -q rqworker || exit 1"]
+
+  netbox-housekeeping:
+    <<: *netbox
+    container_name: netbox-housekeeping
+    depends_on:
+      netbox:
+        condition: service_healthy
+    command:
+      - /opt/netbox/housekeeping.sh
+    healthcheck:
+      test: ["CMD-SHELL", "ps -aux | grep -v grep | grep -q housekeeping || exit 1"]
+
+  netbox-db:
+    image: docker.io/postgres:18-alpine
+    container_name: netbox-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: netbox
+      POSTGRES_USER: netbox
+      POSTGRES_PASSWORD: ${NETBOX_DB_PASSWORD:?NETBOX_DB_PASSWORD must be set}
+      TZ: ${TZ:-Asia/Seoul}
+    volumes:
+      - netbox-postgres:/var/lib/postgresql/data
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -t 2 -d netbox -U netbox"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  netbox-redis:
+    image: docker.io/valkey/valkey:9.0-alpine
+    container_name: netbox-redis
+    restart: unless-stopped
+    command:
+      - sh
+      - -c
+      - valkey-server --appendonly yes --requirepass "$$REDIS_PASSWORD"
+    environment:
+      REDIS_PASSWORD: ${NETBOX_REDIS_PASSWORD:?NETBOX_REDIS_PASSWORD must be set}
+    volumes:
+      - netbox-redis:/data
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  netbox-redis-cache:
+    image: docker.io/valkey/valkey:9.0-alpine
+    container_name: netbox-redis-cache
+    restart: unless-stopped
+    command:
+      - sh
+      - -c
+      - valkey-server --requirepass "$$REDIS_PASSWORD"
+    environment:
+      REDIS_PASSWORD: ${NETBOX_REDIS_CACHE_PASSWORD:?NETBOX_REDIS_CACHE_PASSWORD must be set}
+    volumes:
+      - netbox-redis-cache:/data
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  netbox-postgres:
+    name: netbox-postgres
+  netbox-redis:
+    name: netbox-redis
+  netbox-redis-cache:
+    name: netbox-redis-cache
+  netbox-media:
+    name: netbox-media
+  netbox-reports:
+    name: netbox-reports
+  netbox-scripts:
+    name: netbox-scripts
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true

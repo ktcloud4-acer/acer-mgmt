@@ -19,6 +19,7 @@ compose/
     ├── security/
     ├── cicd/
     ├── data/
+    ├── infra/
     └── backup/
 ```
 
