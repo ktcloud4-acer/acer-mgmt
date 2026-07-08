@@ -9,9 +9,8 @@ SSO 는 Keycloak realm `mgmt` 의 OIDC 로 통합한다.
 | 컨테이너 | 이미지 | 역할 |
 |---|---|---|
 | `netbox` | `netboxcommunity/netbox:v4.5-4.0.2` | 웹/API (Granian, 내부 8080) |
-| `netbox-worker` | 〃 | 백그라운드 작업(rqworker) |
-| `netbox-housekeeping` | 〃 | 주기적 정리 작업 |
-| `netbox-db` | `postgres:18-alpine` | 데이터베이스 |
+| `netbox-worker` | 〃 | 백그라운드 작업(rqworker) + housekeeping 스케줄 |
+| `netbox-db` | `postgres:18-alpine` | 데이터베이스 (볼륨은 `/var/lib/postgresql`) |
 | `netbox-redis` | `valkey/valkey:9.0-alpine` | 작업 큐(영속) |
 | `netbox-redis-cache` | `valkey/valkey:9.0-alpine` | 캐시(비영속) |
 
@@ -21,7 +20,7 @@ db/redis 는 프로젝트 기본 네트워크에만 있어 외부로 노출되�
 ## 시크릿 (Vault)
 
 값은 커밋하지 않는다. Vault KV 에 저장하고 Vault Agent 가
-`/run/acer-mgmt/secrets/infra/netbox.env` 로 렌더링한다. 필요한 키는
+`/home/mgmt-data/vault-agent/secrets/netbox.env` 로 렌더링한다. 필요한 키는
 [`../../../vault-secrets.env.example`](../../../vault-secrets.env.example) 참고.
 
 ```bash
@@ -59,10 +58,10 @@ env 로 노출되지 않는 설정(`CSRF_TRUSTED_ORIGINS`, social-auth OIDC)은
 cd compose
 docker network inspect mgmt-proxy >/dev/null 2>&1 || docker network create mgmt-proxy
 docker compose --env-file ../.env \
-  --env-file /run/acer-mgmt/secrets/infra/netbox.env \
+  --env-file /home/mgmt-data/vault-agent/secrets/netbox.env \
   -f stacks/infra/netbox/compose.yaml up -d
 docker compose --env-file ../.env \
-  --env-file /run/acer-mgmt/secrets/infra/netbox.env \
+  --env-file /home/mgmt-data/vault-agent/secrets/netbox.env \
   -f stacks/infra/netbox/compose.yaml ps
 ```
 
