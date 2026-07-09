@@ -14,9 +14,7 @@ configMapGenerator:
       - context=notifications/context.yaml
       - service.webhook.argocd_slack=notifications/service.webhook.argocd_slack.yaml
       - template.app-failure=notifications/template.app-failure.yaml
-      - template.app-deployed=notifications/template.app-deployed.yaml
       - trigger.on-failure=notifications/trigger.on-failure.yaml
-      - trigger.on-deployed=notifications/trigger.on-deployed.yaml
 
 generatorOptions:
   disableNameSuffixHash: true

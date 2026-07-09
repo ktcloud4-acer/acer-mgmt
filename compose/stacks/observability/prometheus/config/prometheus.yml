@@ -52,14 +52,6 @@ scrape_configs:
           service: alertmanager
           scope: infra
           cluster: mgmt
-      - targets:
-          - https://argocd.imcherry5778.xyz/
-        labels:
-          team: platform
-          channel: argocd
-          service: argocd
-          scope: argocd
-          cluster: mgmt
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -72,4 +64,3 @@ scrape_configs:
 # monitoring/prometheus-agent Application and remote_written here. If direct
 # mgmt-side scraping is needed later, use opencost-api-proxy-scrape.example.yml
 # as the starting point after provisioning per-cluster bearer token files.
-
