@@ -1,7 +1,7 @@
 services:
 
   rustfs:
-    image: rustfs/rustfs
+    image: rustfs/rustfs:latest@sha256:fa19210ac4697c79d7ccca1ec9b0eb91aebacc6691991ffb14014bb3c67e6cc3
     environment:
       RUSTFS_ACCESS_KEY: ${MINIO_ROOT_USER}
       RUSTFS_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
@@ -19,7 +19,7 @@ services:
       - rustfs-data:/data
 
   rustfs-createbucket:
-    image: rustfs/rc
+    image: rustfs/rc:v0.1.25
     depends_on:
       rustfs:
         condition: service_healthy
