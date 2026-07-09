@@ -79,6 +79,10 @@
         description: IPAM / CMDB — 인프라 source of truth
 
 - Security:
+    - Keycloak:
+        icon: keycloak.png
+        href: https://keycloak.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: Central SSO identity provider
     - Vault:
         icon: vault.png
         href: https://vault.{{HOMEPAGE_VAR_BASE_DOMAIN}}
