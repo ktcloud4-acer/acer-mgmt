@@ -27,7 +27,7 @@ services:
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
       - "traefik.http.routers.homepage.rule=Host(`home.${BASE_DOMAIN}`)"
       - "traefik.http.routers.homepage.entrypoints=websecure"
-      - "traefik.http.routers.homepage.middlewares=secure-headers@file"
+      - "traefik.http.routers.homepage.middlewares=sso-auth@file,secure-headers@file"
       - "traefik.http.services.homepage.loadbalancer.server.port=3000"
 
 networks:
