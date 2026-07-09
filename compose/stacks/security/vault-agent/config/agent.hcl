@@ -80,6 +80,12 @@ template {
   perms       = "0640"
 }
 
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/wazuh\" }}{{ .Data.data.agent_enrollment_password }}{{ end }}"
+  destination = "/vault/secrets/security/wazuh-authd.pass"
+  perms       = "0640"
+}
+
 # --- sonarqube (env_file, 컨테이너 변수명으로 렌더) ---
 template {
   contents    = "{{ with secret \"kv/data/mgmt/sonarqube\" }}SONAR_JDBC_PASSWORD={{ .Data.data.db_password }}\nSONAR_AUTH_JWTBASE64HS256SECRET={{ .Data.data.jwt_secret }}\nPOSTGRES_PASSWORD={{ .Data.data.db_password }}\n{{ end }}"

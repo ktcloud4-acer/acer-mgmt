@@ -17,6 +17,9 @@ Wazuh components into `acer-aio` or team clusters.
 - Wazuh API: `${TAILSCALE_IP}:55000/tcp`.
 - Persistent data: `${DATA_ROOT}/wazuh`.
 - Secrets: `/run/acer-mgmt/secrets/security/wazuh.env`, rendered by Vault Agent.
+- Enrollment password file:
+  `/run/acer-mgmt/secrets/security/wazuh-authd.pass`, rendered by Vault Agent
+  and mounted to `/var/ossec/etc/authd.pass`.
 
 ## Required Vault-rendered env
 
@@ -86,4 +89,3 @@ After the central stack is healthy, enroll endpoints in this order:
 2. `acer-aio` host agent.
 3. `ggg` Kubernetes agent DaemonSet.
 4. Remaining team Kubernetes clusters.
-
