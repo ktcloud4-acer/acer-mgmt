@@ -1,0 +1,51 @@
+groups:
+  - name: falco-runtime
+    interval: 1m
+    rules:
+      - alert: FalcoMetricsMissing
+        expr: |
+          (count by (cluster) (up{cluster=~"ggg|khb|ljw|nmg|oje"}) > 0)
+            unless on (cluster)
+          (count by (cluster) (falcosecurity_falco_version_info{cluster=~"ggg|khb|ljw|nmg|oje"}) > 0)
+        for: 30m
+        labels:
+          severity: warning
+          team: monitoring
+          channel: infra
+          service: falco
+          scope: cluster
+          cluster: "{{ $labels.cluster }}"
+        annotations:
+          title: "[falco] Falco metrics missing"
+          summary: "{{ $labels.cluster }} cluster is sending metrics, but Falco metrics are missing."
+          description: "The cluster appears to be reachable through prometheus-agent remote_write, but falco-metrics is not present. Check the falco-{{ $labels.cluster }} Argo CD Application and the falco DaemonSet."
+
+      - alert: FalcoEventDrops
+        expr: increase(falcosecurity_scap_n_drops_total{cluster=~"ggg|khb|ljw|nmg|oje"}[10m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: monitoring
+          channel: infra
+          service: falco
+          scope: cluster
+          cluster: "{{ $labels.cluster }}"
+        annotations:
+          title: "[falco] Falco event drops detected"
+          summary: "{{ $labels.cluster }} / {{ $labels.instance }} Falco dropped syscall events."
+          description: "Falco is losing runtime events. Check node pressure, Falco CPU/memory usage, and whether the rule volume is too high."
+
+      - alert: FalcoOutputDrops
+        expr: increase(falcosecurity_falco_outputs_queue_num_drops_total{cluster=~"ggg|khb|ljw|nmg|oje"}[10m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: monitoring
+          channel: infra
+          service: falco
+          scope: cluster
+          cluster: "{{ $labels.cluster }}"
+        annotations:
+          title: "[falco] Falco output queue drops detected"
+          summary: "{{ $labels.cluster }} / {{ $labels.instance }} Falco output queue dropped alerts."
+          description: "Falco generated alerts faster than the output path could handle. Check Falco logs and downstream log collection."
