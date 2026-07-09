@@ -52,6 +52,10 @@ stacks/<domain>/<service>/.env              # 기존 호환용 로컬 override
 /run/acer-mgmt/secrets/<domain>/<service>.env # Vault Agent 렌더 시크릿
 ```
 
+운영 호스트에서 `/run/acer-mgmt/secrets`가 없으면 부트 수렴 스크립트는 기존
+Vault Agent 데이터 경로인 `/home/mgmt-data/vault-agent/secrets`를 fallback으로
+사용한다.
+
 새 시크릿은 `stacks/.../.env`나 루트 `.env`에 추가하지 않는다. Vault KV와
 Vault Agent template을 통해 `/run/acer-mgmt/secrets/...` 아래로 렌더링한다.
 필요한 키 이름은 [`vault-secrets.env.example`](vault-secrets.env.example)을

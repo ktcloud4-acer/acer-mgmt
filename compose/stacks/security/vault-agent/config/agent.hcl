@@ -96,7 +96,7 @@ template {
 
 # gitlab compose env 파일.
 template {
-  contents    = "{{ with secret \"kv/data/mgmt/common\" }}ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}"
+  contents    = "{{ with secret \"kv/data/mgmt/common\" }}ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/gitlab\" }}GITLAB_OIDC_CLIENT_SECRET={{ .Data.data.oidc_client_secret }}\n{{ end }}"
   destination = "/vault/secrets/cicd/gitlab.env"
   perms       = "0640"
 }

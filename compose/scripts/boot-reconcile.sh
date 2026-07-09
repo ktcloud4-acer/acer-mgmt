@@ -25,7 +25,13 @@ log "repo: ${REPO}"
 PROXY_NET="${PROXY_NET:-mgmt-proxy}"
 KAFKA_NET="${KAFKA_NET:-mgmt-data}"
 CONFIG_ENV_FILE="${CONFIG_ENV_FILE:-../.env}"
-VAULT_ENV_ROOT="${VAULT_ENV_ROOT:-/run/acer-mgmt/secrets}"
+if [[ -z "${VAULT_ENV_ROOT:-}" ]]; then
+  if [[ -d /run/acer-mgmt/secrets ]]; then
+    VAULT_ENV_ROOT="/run/acer-mgmt/secrets"
+  else
+    VAULT_ENV_ROOT="/home/mgmt-data/vault-agent/secrets"
+  fi
+fi
 
 ensure_network() {
   local network="$1"

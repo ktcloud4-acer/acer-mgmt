@@ -57,5 +57,6 @@ assert_contains "$agent" "CF_DNS_API_TOKEN="
 assert_contains "$agent" "KEYCLOAK_ADMIN_PASSWORD="
 assert_contains "$agent" "KEYCLOAK_DB_PASSWORD="
 assert_contains "$agent" "ADMIN_PASSWORD="
+assert_contains "$agent" "GITLAB_OIDC_CLIENT_SECRET="
 
 echo "non-secret root env contract tests passed"
