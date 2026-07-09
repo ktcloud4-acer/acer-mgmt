@@ -1,3 +1,0 @@
-# Successful sync/deploy events are intentionally not sent to Slack.
-# The infra Slack channel is reserved for actionable failure conditions.
-[]

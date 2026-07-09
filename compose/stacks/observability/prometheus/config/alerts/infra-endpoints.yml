@@ -17,19 +17,3 @@ groups:
           title: "[infra] endpoint 응답 실패"
           summary: "{{ $labels.service }} endpoint가 10분 이상 정상 응답하지 않습니다."
           description: "외부 접근 경로 기준의 핵심 관측 endpoint 알림입니다. Traefik 라우팅, TLS/DNS, 대상 컨테이너 상태를 확인하세요."
-
-      - alert: ArgoCdEndpointDown
-        expr: probe_success{job="blackbox-http",scope="argocd",service="argocd"} == 0
-        for: 10m
-        labels:
-          severity: critical
-          team: platform
-          channel: argocd
-          service: argocd
-          scope: argocd
-          cluster: mgmt
-          target: "{{ $labels.target }}"
-        annotations:
-          title: "[argocd] Argo CD endpoint 응답 실패"
-          summary: "Argo CD endpoint가 10분 이상 정상 응답하지 않습니다."
-          description: "Argo CD UI/API 외부 접근 경로 알림입니다. k3d Argo CD server, Traefik k3d 라우팅, DNS/TLS 상태를 확인하세요."

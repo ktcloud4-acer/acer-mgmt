@@ -59,13 +59,6 @@ template {
   perms       = "0640"
 }
 
-# Alertmanager Argo CD Slack 웹훅 (#argocd-알림).
-template {
-  contents    = "{{ with secret \"kv/data/mgmt/alertmanager\" }}{{ .Data.data.slack_webhook_argocd }}{{ end }}"
-  destination = "/vault/secrets/alertmanager/slack_webhook_argocd"
-  perms       = "0640"
-}
-
 # --- traefik (Cloudflare DNS-01 token) ---
 template {
   contents    = "{{ with secret \"kv/data/mgmt/traefik\" }}CF_DNS_API_TOKEN={{ .Data.data.cf_dns_api_token }}\n{{ end }}"

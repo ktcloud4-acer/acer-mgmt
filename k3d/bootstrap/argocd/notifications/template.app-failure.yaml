@@ -1,5 +1,5 @@
 message: |
-  [ArgoCD 알림] 배포 실패 또는 장애 감지
+  [ArgoCD 알림] 앱 실패 또는 Degraded 감지
   앱: {{.app.metadata.name}}
   프로젝트: {{.app.spec.project}}
   대상: {{.app.spec.destination.server}} / {{.app.spec.destination.namespace}}
@@ -13,5 +13,5 @@ webhook:
     method: POST
     body: |
       {
-        "text": "[ArgoCD 알림] 배포 실패 또는 장애 감지\n앱: {{.app.metadata.name}}\n프로젝트: {{.app.spec.project}}\n대상: {{.app.spec.destination.server}} / {{.app.spec.destination.namespace}}\n상태: Health={{.app.status.health.status}}, Sync={{.app.status.sync.status}}\n리비전: {{.app.status.sync.revision}}\n저장소: {{.app.spec.source.repoURL}}\n바로가기: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}\n런북: {{.context.runbookUrl}}"
+        "text": "[ArgoCD 알림] 앱 실패 또는 Degraded 감지\n앱: {{.app.metadata.name}}\n프로젝트: {{.app.spec.project}}\n대상: {{.app.spec.destination.server}} / {{.app.spec.destination.namespace}}\n상태: Health={{.app.status.health.status}}, Sync={{.app.status.sync.status}}\n리비전: {{.app.status.sync.revision}}\n저장소: {{.app.spec.source.repoURL}}\n바로가기: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}\n런북: {{.context.runbookUrl}}"
       }
