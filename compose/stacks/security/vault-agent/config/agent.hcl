@@ -73,6 +73,13 @@ template {
   perms       = "0640"
 }
 
+# --- wazuh (central security event stack) ---
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/wazuh\" }}WAZUH_INDEXER_USERNAME={{ .Data.data.indexer_username }}\nWAZUH_INDEXER_PASSWORD={{ .Data.data.indexer_password }}\nWAZUH_DASHBOARD_USERNAME={{ .Data.data.dashboard_username }}\nWAZUH_DASHBOARD_PASSWORD={{ .Data.data.dashboard_password }}\nWAZUH_API_USERNAME={{ .Data.data.api_username }}\nWAZUH_API_PASSWORD={{ .Data.data.api_password }}\nWAZUH_AGENT_ENROLLMENT_PASSWORD={{ .Data.data.agent_enrollment_password }}\n{{ end }}"
+  destination = "/vault/secrets/security/wazuh.env"
+  perms       = "0640"
+}
+
 # --- sonarqube (env_file, 컨테이너 변수명으로 렌더) ---
 template {
   contents    = "{{ with secret \"kv/data/mgmt/sonarqube\" }}SONAR_JDBC_PASSWORD={{ .Data.data.db_password }}\nSONAR_AUTH_JWTBASE64HS256SECRET={{ .Data.data.jwt_secret }}\nPOSTGRES_PASSWORD={{ .Data.data.db_password }}\n{{ end }}"
