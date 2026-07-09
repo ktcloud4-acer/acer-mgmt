@@ -3,7 +3,7 @@
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.4.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.4.3
     container_name: elasticsearch
     restart: unless-stopped
     mem_limit: 4g
@@ -26,7 +26,7 @@ services:
       start_period: 1m
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:9.4.2
+    image: docker.elastic.co/kibana/kibana:9.4.3
     container_name: kibana
     restart: unless-stopped
     mem_limit: 2g
@@ -57,7 +57,7 @@ services:
       - "traefik.http.services.kibana.loadbalancer.server.port=5601"
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:9.4.2
+    image: docker.elastic.co/logstash/logstash:9.4.3
     container_name: logstash
     restart: unless-stopped
     mem_limit: 2g
@@ -88,7 +88,7 @@ services:
       start_period: 1m
 
   logstash-consumer:
-    image: docker.elastic.co/logstash/logstash:9.4.2
+    image: docker.elastic.co/logstash/logstash:9.4.3
     container_name: logstash-consumer
     restart: unless-stopped
     mem_limit: 2g
