@@ -37,12 +37,12 @@ assert_file "$sre_dashboard"
 assert_file "$api_config"
 assert_file "$worker_config"
 
-assert_contains "$bp_doc" "API availability"
-assert_contains "$bp_doc" "Error budget"
-assert_contains "$bp_doc" "Argo CD Operating Baseline"
-assert_contains "$bp_spec" "SRE control plane"
+assert_contains "$bp_doc" "API 가용성"
+assert_contains "$bp_doc" "에러 버짓"
+assert_contains "$bp_doc" "Argo CD 운영 기준"
+assert_contains "$bp_spec" "SRE 운영 모범 사례 구현 설계"
 
-assert_contains "$argo_inventory" "Argo CD Application Inventory"
+assert_contains "$argo_inventory" "Argo CD Application 인벤토리"
 assert_contains "$argo_inventory" "scalecart-khb"
 assert_contains "$argo_inventory" "automated.prune=true"
 
