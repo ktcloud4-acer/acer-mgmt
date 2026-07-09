@@ -1,0 +1,144 @@
+# Wazuh single-node central stack for ACER security events.
+# Dashboard is exposed through Traefik; agent/API ports bind to Tailscale only.
+
+services:
+  wazuh-manager:
+    image: wazuh/wazuh-manager:4.14.6
+    container_name: wazuh-manager
+    hostname: wazuh.manager
+    restart: unless-stopped
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 655360
+        hard: 655360
+    environment:
+      INDEXER_URL: https://wazuh.indexer:9200
+      INDEXER_USERNAME: ${WAZUH_INDEXER_USERNAME:-admin}
+      INDEXER_PASSWORD: ${WAZUH_INDEXER_PASSWORD:?WAZUH_INDEXER_PASSWORD must be rendered by Vault Agent}
+      FILEBEAT_SSL_VERIFICATION_MODE: full
+      SSL_CERTIFICATE_AUTHORITIES: /etc/ssl/root-ca.pem
+      SSL_CERTIFICATE: /etc/ssl/filebeat.pem
+      SSL_KEY: /etc/ssl/filebeat.key
+      API_USERNAME: ${WAZUH_API_USERNAME:-wazuh-wui}
+      API_PASSWORD: ${WAZUH_API_PASSWORD:?WAZUH_API_PASSWORD must be rendered by Vault Agent}
+      TZ: ${TZ:-Asia/Seoul}
+    ports:
+      - "${TAILSCALE_IP:?TAILSCALE_IP must be set}:1514:1514/tcp"
+      - "${TAILSCALE_IP:?TAILSCALE_IP must be set}:1515:1515/tcp"
+      - "${TAILSCALE_IP:?TAILSCALE_IP must be set}:55000:55000/tcp"
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/manager/api-configuration:/var/ossec/api/configuration:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/manager/etc:/var/ossec/etc:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/manager/logs:/var/ossec/logs:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/manager/queue:/var/ossec/queue:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/manager/var-multigroups:/var/ossec/var/multigroups:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/manager/integrations:/var/ossec/integrations:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/manager/active-response:/var/ossec/active-response/bin:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/manager/agentless:/var/ossec/agentless:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/manager/wodles:/var/ossec/wodles:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/filebeat/etc:/etc/filebeat:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/filebeat/var:/var/lib/filebeat:Z
+      - ./config/wazuh_indexer_ssl_certs/root-ca-manager.pem:/etc/ssl/root-ca.pem:ro,Z
+      - ./config/wazuh_indexer_ssl_certs/wazuh.manager.pem:/etc/ssl/filebeat.pem:ro,Z
+      - ./config/wazuh_indexer_ssl_certs/wazuh.manager-key.pem:/etc/ssl/filebeat.key:ro,Z
+      - ./config/wazuh_cluster/wazuh_manager.conf:/wazuh-config-mount/etc/ossec.conf:ro,Z
+    networks:
+      default:
+        aliases:
+          - wazuh.manager
+    depends_on:
+      - wazuh-indexer
+    healthcheck:
+      test: ["CMD-SHELL", "/var/ossec/bin/wazuh-control status | grep -q running"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 2m
+
+  wazuh-indexer:
+    image: wazuh/wazuh-indexer:4.14.6
+    container_name: wazuh-indexer
+    hostname: wazuh.indexer
+    restart: unless-stopped
+    environment:
+      OPENSEARCH_JAVA_OPTS: ${WAZUH_INDEXER_JAVA_OPTS:--Xms2g -Xmx2g}
+      TZ: ${TZ:-Asia/Seoul}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/indexer:/var/lib/wazuh-indexer:Z
+      - ./config/wazuh_indexer_ssl_certs/root-ca.pem:/usr/share/wazuh-indexer/config/certs/root-ca.pem:ro,Z
+      - ./config/wazuh_indexer_ssl_certs/wazuh.indexer-key.pem:/usr/share/wazuh-indexer/config/certs/wazuh.indexer.key:ro,Z
+      - ./config/wazuh_indexer_ssl_certs/wazuh.indexer.pem:/usr/share/wazuh-indexer/config/certs/wazuh.indexer.pem:ro,Z
+      - ./config/wazuh_indexer_ssl_certs/admin.pem:/usr/share/wazuh-indexer/config/certs/admin.pem:ro,Z
+      - ./config/wazuh_indexer_ssl_certs/admin-key.pem:/usr/share/wazuh-indexer/config/certs/admin-key.pem:ro,Z
+      - ./config/wazuh_indexer/wazuh.indexer.yml:/usr/share/wazuh-indexer/config/opensearch.yml:ro,Z
+    networks:
+      default:
+        aliases:
+          - wazuh.indexer
+    healthcheck:
+      test: ["CMD-SHELL", "curl -kfsS https://localhost:9200 >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 30
+      start_period: 2m
+
+  wazuh-dashboard:
+    image: wazuh/wazuh-dashboard:4.14.6
+    container_name: wazuh-dashboard
+    hostname: wazuh.dashboard
+    restart: unless-stopped
+    environment:
+      INDEXER_USERNAME: ${WAZUH_INDEXER_USERNAME:-admin}
+      INDEXER_PASSWORD: ${WAZUH_INDEXER_PASSWORD:?WAZUH_INDEXER_PASSWORD must be rendered by Vault Agent}
+      WAZUH_API_URL: https://wazuh.manager
+      DASHBOARD_USERNAME: ${WAZUH_DASHBOARD_USERNAME:-kibanaserver}
+      DASHBOARD_PASSWORD: ${WAZUH_DASHBOARD_PASSWORD:?WAZUH_DASHBOARD_PASSWORD must be rendered by Vault Agent}
+      API_USERNAME: ${WAZUH_API_USERNAME:-wazuh-wui}
+      API_PASSWORD: ${WAZUH_API_PASSWORD:?WAZUH_API_PASSWORD must be rendered by Vault Agent}
+      TZ: ${TZ:-Asia/Seoul}
+    volumes:
+      - ./config/wazuh_indexer_ssl_certs/wazuh.dashboard.pem:/usr/share/wazuh-dashboard/certs/wazuh-dashboard.pem:ro,Z
+      - ./config/wazuh_indexer_ssl_certs/wazuh.dashboard-key.pem:/usr/share/wazuh-dashboard/certs/wazuh-dashboard-key.pem:ro,Z
+      - ./config/wazuh_indexer_ssl_certs/root-ca.pem:/usr/share/wazuh-dashboard/certs/root-ca.pem:ro,Z
+      - ./config/wazuh_dashboard/opensearch_dashboards.yml:/usr/share/wazuh-dashboard/config/opensearch_dashboards.yml:ro,Z
+      - ./config/wazuh_dashboard/wazuh.yml:/usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/dashboard/config:/usr/share/wazuh-dashboard/data/wazuh/config:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/dashboard/custom:/usr/share/wazuh-dashboard/plugins/wazuh/public/assets/custom:Z
+    networks:
+      - default
+      - mgmt-proxy
+    depends_on:
+      wazuh-indexer:
+        condition: service_healthy
+      wazuh-manager:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -kfsS https://localhost:5601/api/status >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 30
+      start_period: 2m
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.wazuh.rule=Host(`wazuh.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.wazuh.entrypoints=websecure"
+      - "traefik.http.routers.wazuh.middlewares=secure-headers@file"
+      - "traefik.http.services.wazuh.loadbalancer.server.port=5601"
+      - "traefik.http.services.wazuh.loadbalancer.server.scheme=https"
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true
+
