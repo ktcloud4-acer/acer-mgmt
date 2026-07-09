@@ -64,7 +64,7 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "max": 100,
+          "max": 1,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
@@ -75,11 +75,11 @@
               },
               {
                 "color": "yellow",
-                "value": 99
+                "value": 0.99
               },
               {
                 "color": "green",
-                "value": 99.5
+                "value": 0.995
               }
             ]
           },

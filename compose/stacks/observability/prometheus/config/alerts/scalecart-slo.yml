@@ -99,11 +99,23 @@ groups:
             ),
             0
           )
+          and on(cluster)
+          (
+            sum by(cluster) (up{job="scalecart-api"}) > 0
+          )
 
       - record: scalecart:worker_kafka_lag:max
         expr: |
-          max by(cluster) (
-            kafka_consumer_fetch_manager_records_lag_max{job="scalecart-worker"}
+          (
+            max by(cluster) (
+              kafka_consumer_fetch_manager_records_lag_max{job="scalecart-worker",topic!=""}
+              ==
+              kafka_consumer_fetch_manager_records_lag_max{job="scalecart-worker",topic!=""}
+            )
+          )
+          or on(cluster)
+          (
+            0 * sum by(cluster) (up{job="scalecart-worker"})
           )
 
   - name: scalecart-slo-alerts
