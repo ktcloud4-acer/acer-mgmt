@@ -73,16 +73,22 @@ template {
   perms       = "0640"
 }
 
-# --- wazuh (central security event stack) ---
+# --- teleport (central access plane) ---
 template {
-  contents    = "{{ with secret \"kv/data/mgmt/wazuh\" }}WAZUH_INDEXER_USERNAME={{ .Data.data.indexer_username }}\nWAZUH_INDEXER_PASSWORD={{ .Data.data.indexer_password }}\nWAZUH_DASHBOARD_USERNAME={{ .Data.data.dashboard_username }}\nWAZUH_DASHBOARD_PASSWORD={{ .Data.data.dashboard_password }}\nWAZUH_API_USERNAME={{ .Data.data.api_username }}\nWAZUH_API_PASSWORD={{ .Data.data.api_password }}\nWAZUH_AGENT_ENROLLMENT_PASSWORD={{ .Data.data.agent_enrollment_password }}\n{{ end }}"
-  destination = "/vault/secrets/security/wazuh.env"
+  contents    = "{{ with secret \"kv/data/mgmt/teleport\" }}TELEPORT_OIDC_CLIENT_SECRET={{ .Data.data.oidc_client_secret }}\n{{ end }}"
+  destination = "/vault/secrets/security/teleport.env"
   perms       = "0640"
 }
 
 template {
-  contents    = "{{ with secret \"kv/data/mgmt/wazuh\" }}{{ .Data.data.agent_enrollment_password }}{{ end }}"
-  destination = "/vault/secrets/security/wazuh-authd.pass"
+  contents    = "{{ with secret \"kv/data/mgmt/teleport\" }}{{ .Data.data.tls_cert_pem }}{{ end }}"
+  destination = "/vault/secrets/security/teleport/tls.crt"
+  perms       = "0640"
+}
+
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/teleport\" }}{{ .Data.data.tls_key_pem }}{{ end }}"
+  destination = "/vault/secrets/security/teleport/tls.key"
   perms       = "0640"
 }
 

@@ -36,6 +36,27 @@ filebeat.inputs:
         log_type: docker
         log_track: harbor
 
+  - type: filestream
+    id: mgmt-teleport-audit
+    paths:
+      - "/home/mgmt-data/teleport/log/**/*.log"
+      - "/home/mgmt-data/teleport/log/*.log"
+    parsers:
+      - ndjson:
+          target: app
+          add_error_key: true
+    fields_under_root: true
+    fields:
+      user: mgmt
+      log_type: access
+      labels:
+        team: mgmt
+        platform: mgmt
+        node_role: mgmt
+        log_type: access
+        log_track: teleport
+        service: teleport
+
 filebeat.autodiscover:
   providers:
     - type: docker

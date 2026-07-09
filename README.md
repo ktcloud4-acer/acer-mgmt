@@ -18,7 +18,7 @@ acer-mgmt/
 
 | 실행 계층 | 역할 | 상세 문서 |
 |---|---|---|
-| Docker Compose | GitLab, Harbor, Traefik, Vault, Prometheus 등 | [`compose/README.md`](compose/README.md) |
+| Docker Compose | GitLab, Harbor, Traefik, Vault, Teleport, Prometheus 등 | [`compose/README.md`](compose/README.md) |
 | k3d | k3s v1.35 관리 클러스터와 Argo CD | [`k3d/README.md`](k3d/README.md) |
 | 원격 Kubernetes | 팀원별 애플리케이션 워크로드 | 별도 `acer-aio` 클러스터 |
 

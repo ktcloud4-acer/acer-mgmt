@@ -1,0 +1,203 @@
+groups:
+  - name: scalecart-slo-recording
+    interval: 1m
+    rules:
+      - record: scalecart:api_requests:rate5m
+        expr: |
+          sum by(cluster) (
+            rate(http_server_requests_seconds_count{job="scalecart-api",uri!~"/actuator/.*"}[5m])
+          )
+
+      - record: scalecart:api_errors:rate5m
+        expr: |
+          sum by(cluster) (
+            rate(http_server_requests_seconds_count{job="scalecart-api",uri!~"/actuator/.*",status=~"5.."}[5m])
+          )
+
+      - record: scalecart:api_error_ratio:5m
+        expr: |
+          scalecart:api_errors:rate5m / scalecart:api_requests:rate5m
+
+      - record: scalecart:api_error_ratio:30m
+        expr: |
+          sum by(cluster) (
+            rate(http_server_requests_seconds_count{job="scalecart-api",uri!~"/actuator/.*",status=~"5.."}[30m])
+          )
+          /
+          sum by(cluster) (
+            rate(http_server_requests_seconds_count{job="scalecart-api",uri!~"/actuator/.*"}[30m])
+          )
+
+      - record: scalecart:api_error_ratio:1h
+        expr: |
+          sum by(cluster) (
+            rate(http_server_requests_seconds_count{job="scalecart-api",uri!~"/actuator/.*",status=~"5.."}[1h])
+          )
+          /
+          sum by(cluster) (
+            rate(http_server_requests_seconds_count{job="scalecart-api",uri!~"/actuator/.*"}[1h])
+          )
+
+      - record: scalecart:api_error_ratio:6h
+        expr: |
+          sum by(cluster) (
+            rate(http_server_requests_seconds_count{job="scalecart-api",uri!~"/actuator/.*",status=~"5.."}[6h])
+          )
+          /
+          sum by(cluster) (
+            rate(http_server_requests_seconds_count{job="scalecart-api",uri!~"/actuator/.*"}[6h])
+          )
+
+      - record: scalecart:api_availability:5m
+        expr: |
+          1 - scalecart:api_error_ratio:5m
+
+      - record: scalecart:api_latency:p50_5m
+        expr: |
+          histogram_quantile(
+            0.50,
+            sum by(cluster, le) (
+              rate(http_server_requests_seconds_bucket{job="scalecart-api",uri!~"/actuator/.*"}[5m])
+            )
+          )
+
+      - record: scalecart:api_latency:p95_5m
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by(cluster, le) (
+              rate(http_server_requests_seconds_bucket{job="scalecart-api",uri!~"/actuator/.*"}[5m])
+            )
+          )
+
+      - record: scalecart:api_latency:p99_5m
+        expr: |
+          histogram_quantile(
+            0.99,
+            sum by(cluster, le) (
+              rate(http_server_requests_seconds_bucket{job="scalecart-api",uri!~"/actuator/.*"}[5m])
+            )
+          )
+
+      - record: scalecart:api_error_budget_remaining:30d
+        labels:
+          slo: "99.5"
+        expr: |
+          clamp_min(
+            1 -
+            (
+              sum by(cluster) (
+                increase(http_server_requests_seconds_count{job="scalecart-api",uri!~"/actuator/.*",status=~"5.."}[30d])
+              )
+              /
+              (
+                0.005 *
+                sum by(cluster) (
+                  increase(http_server_requests_seconds_count{job="scalecart-api",uri!~"/actuator/.*"}[30d])
+                )
+              )
+            ),
+            0
+          )
+
+      - record: scalecart:worker_kafka_lag:max
+        expr: |
+          max by(cluster) (
+            kafka_consumer_fetch_manager_records_lag_max{job="scalecart-worker"}
+          )
+
+  - name: scalecart-slo-alerts
+    interval: 1m
+    rules:
+      - alert: ScaleCartApiErrorBudgetFastBurn
+        expr: |
+          (
+            scalecart:api_error_ratio:5m > (14.4 * 0.005)
+          )
+          and on(cluster)
+          (
+            scalecart:api_error_ratio:1h > (14.4 * 0.005)
+          )
+        for: 5m
+        labels:
+          severity: critical
+          team: scalecart
+          channel: infra
+          service: scalecart-api
+          scope: slo
+          cluster: "{{ $labels.cluster }}"
+          slo: "99.5"
+        annotations:
+          title: "[slo] ScaleCart API error budget fast burn"
+          summary: "{{ $labels.cluster }} ScaleCart API가 99.5% availability error budget을 빠르게 소진 중입니다."
+          description: "5분과 1시간 창에서 5xx 비율이 fast-burn 기준을 넘었습니다. 최근 배포, API Pod readiness/restart, DB/Kafka 의존성, Argo CD revision을 확인하세요."
+
+      - alert: ScaleCartApiErrorBudgetSlowBurn
+        expr: |
+          (
+            scalecart:api_error_ratio:30m > (6 * 0.005)
+          )
+          and on(cluster)
+          (
+            scalecart:api_error_ratio:6h > (6 * 0.005)
+          )
+        for: 30m
+        labels:
+          severity: warning
+          team: scalecart
+          channel: infra
+          service: scalecart-api
+          scope: slo
+          cluster: "{{ $labels.cluster }}"
+          slo: "99.5"
+        annotations:
+          title: "[slo] ScaleCart API error budget slow burn"
+          summary: "{{ $labels.cluster }} ScaleCart API error budget이 장시간 소진 중입니다."
+          description: "30분과 6시간 창에서 5xx 비율이 slow-burn 기준을 넘었습니다. 지속적인 에러율 상승 원인을 업무 시간 우선순위로 조사하세요."
+
+      - alert: ScaleCartApiP95LatencyHigh
+        expr: scalecart:api_latency:p95_5m > 1
+        for: 30m
+        labels:
+          severity: warning
+          team: scalecart
+          channel: infra
+          service: scalecart-api
+          scope: slo
+          cluster: "{{ $labels.cluster }}"
+          slo: "p95<1s"
+        annotations:
+          title: "[slo] ScaleCart API P95 latency high"
+          summary: "{{ $labels.cluster }} ScaleCart API P95 latency가 30분 이상 1초를 넘었습니다."
+          description: "부하 증가, DB/Kafka 지연, Pod CPU throttling, 최근 배포를 확인하세요. P99와 error budget 알림이 같이 있으면 장애 대응으로 전환하세요."
+
+      - alert: ScaleCartApiP99LatencyHigh
+        expr: scalecart:api_latency:p99_5m > 3
+        for: 30m
+        labels:
+          severity: warning
+          team: scalecart
+          channel: infra
+          service: scalecart-api
+          scope: slo
+          cluster: "{{ $labels.cluster }}"
+          slo: "p99<3s"
+        annotations:
+          title: "[slo] ScaleCart API P99 latency high"
+          summary: "{{ $labels.cluster }} ScaleCart API P99 latency가 30분 이상 3초를 넘었습니다."
+          description: "tail latency 조사 알림입니다. 트래픽 피크, GC, DB pool, Kafka publish latency, Tempo traces를 확인하세요."
+
+      - alert: ScaleCartWorkerKafkaLagHigh
+        expr: scalecart:worker_kafka_lag:max > 500
+        for: 15m
+        labels:
+          severity: warning
+          team: scalecart
+          channel: infra
+          service: scalecart-worker
+          scope: slo
+          cluster: "{{ $labels.cluster }}"
+        annotations:
+          title: "[slo] ScaleCart worker Kafka lag high"
+          summary: "{{ $labels.cluster }} ScaleCart worker Kafka lag가 15분 이상 높습니다."
+          description: "KEDA scaling 상태, worker Pod readiness/restart, Kafka broker, retry/DLQ 증가 여부를 확인하세요."

@@ -83,6 +83,10 @@
         icon: keycloak.png
         href: https://keycloak.{{HOMEPAGE_VAR_BASE_DOMAIN}}
         description: Central SSO identity provider
+    - Teleport:
+        icon: teleport.png
+        href: https://teleport.{{HOMEPAGE_VAR_BASE_DOMAIN}}:3080
+        description: SSH, Kubernetes, and internal app access plane
     - Vault:
         icon: vault.png
         href: https://vault.{{HOMEPAGE_VAR_BASE_DOMAIN}}

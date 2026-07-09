@@ -1,0 +1,88 @@
+version: v3
+
+teleport:
+  nodename: acer-mgmt-teleport
+  data_dir: /var/lib/teleport
+  log:
+    output: stderr
+    severity: INFO
+
+auth_service:
+  enabled: true
+  cluster_name: acer-mgmt
+  listen_addr: 0.0.0.0:3025
+  authentication:
+    type: local
+    second_factor: otp
+    webauthn:
+      rp_id: teleport.imcherry5778.xyz
+  session_recording_config:
+    mode: proxy-sync
+  proxy_listener_mode: separate
+
+proxy_service:
+  enabled: true
+  web_listen_addr: 0.0.0.0:3080
+  public_addr: teleport.imcherry5778.xyz:3080
+  ssh_listen_addr: 0.0.0.0:3023
+  ssh_public_addr: teleport.imcherry5778.xyz:3023
+  tunnel_listen_addr: 0.0.0.0:3024
+  tunnel_public_addr: teleport.imcherry5778.xyz:3024
+  kube_listen_addr: 0.0.0.0:3026
+  kube_public_addr: teleport.imcherry5778.xyz:3026
+  https_keypairs:
+    - cert_file: /run/teleport/tls/tls.crt
+      key_file: /run/teleport/tls/tls.key
+  https_keypairs_reload_interval: 1h
+
+ssh_service:
+  enabled: false
+
+kubernetes_service:
+  enabled: false
+
+db_service:
+  enabled: false
+
+discovery_service:
+  enabled: false
+
+app_service:
+  enabled: true
+  apps:
+    - name: grafana
+      uri: http://grafana:3000
+      labels:
+        env: mgmt
+        owner: observability
+    - name: kibana
+      uri: http://kibana:5601
+      labels:
+        env: mgmt
+        owner: observability
+    - name: prometheus
+      uri: http://prometheus:9090
+      labels:
+        env: mgmt
+        owner: observability
+    - name: alertmanager
+      uri: http://alertmanager:9093
+      labels:
+        env: mgmt
+        owner: observability
+    - name: keycloak
+      uri: http://keycloak:8080
+      labels:
+        env: mgmt
+        owner: security
+    - name: vault
+      uri: https://vault:8200
+      insecure_skip_verify: true
+      labels:
+        env: mgmt
+        owner: security
+    - name: netbox
+      uri: http://netbox:8080
+      labels:
+        env: mgmt
+        owner: infra
