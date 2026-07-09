@@ -3,7 +3,7 @@
 
 services:
   kafka:
-    image: apache/kafka:4.3.0
+    image: apache/kafka:4.3.1
     container_name: kafka
     restart: unless-stopped
     mem_limit: 2g
