@@ -1,0 +1,48 @@
+# OAuth2 Proxy - shared Traefik forward-auth endpoint backed by Keycloak.
+
+services:
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.3
+    container_name: oauth2-proxy
+    restart: unless-stopped
+    user: "100:1000"
+    command:
+      - --http-address=0.0.0.0:4180
+      - --provider=keycloak-oidc
+      - --provider-display-name=Keycloak
+      - --scope=openid email profile
+      - --oidc-issuer-url=https://keycloak.${BASE_DOMAIN}/realms/mgmt
+      - --client-id=oauth2-proxy
+      - --client-secret-file=/run/secrets/oauth2_proxy_client_secret
+      - --cookie-secret-file=/run/secrets/oauth2_proxy_cookie_secret
+      - --cookie-domain=.${BASE_DOMAIN}
+      - --whitelist-domain=.${BASE_DOMAIN}
+      - --email-domain=*
+      - --allowed-group=${OAUTH2_PROXY_ALLOWED_GROUP:-platform-admin}
+      - --redirect-url=https://auth.${BASE_DOMAIN}/oauth2/callback
+      - --reverse-proxy=true
+      - --trusted-proxy-ip=${OAUTH2_PROXY_TRUSTED_PROXY_IP:-172.18.0.0/16}
+      - --set-xauthrequest=true
+      - --skip-provider-button=true
+      - --cookie-secure=true
+      - --cookie-samesite=lax
+      - --cookie-expire=8h
+      - --cookie-refresh=1h
+      - --upstream=static://202
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/oauth2_proxy_client_secret:/run/secrets/oauth2_proxy_client_secret:ro,z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/oauth2_proxy_cookie_secret:/run/secrets/oauth2_proxy_cookie_secret:ro,z
+    networks:
+      - mgmt-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.oauth2-proxy.rule=Host(`auth.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.oauth2-proxy.entrypoints=websecure"
+      - "traefik.http.routers.oauth2-proxy.middlewares=secure-headers@file"
+      - "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true

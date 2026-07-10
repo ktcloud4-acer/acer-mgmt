@@ -73,6 +73,19 @@ template {
   perms       = "0640"
 }
 
+# --- oauth2-proxy (Traefik forward-auth backed by Keycloak) ---
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/oauth2-proxy\" }}{{ .Data.data.client_secret }}{{ end }}"
+  destination = "/vault/secrets/oauth2_proxy_client_secret"
+  perms       = "0640"
+}
+
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/oauth2-proxy\" }}{{ .Data.data.cookie_secret }}{{ end }}"
+  destination = "/vault/secrets/oauth2_proxy_cookie_secret"
+  perms       = "0640"
+}
+
 # --- teleport (central access plane) ---
 template {
   contents    = "{{ with secret \"kv/data/mgmt/teleport\" }}TELEPORT_OIDC_CLIENT_SECRET={{ .Data.data.oidc_client_secret }}\n{{ end }}"
