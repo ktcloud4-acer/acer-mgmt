@@ -31,6 +31,8 @@ for secret_key in \
   CF_DNS_API_TOKEN \
   KEYCLOAK_ADMIN_PASSWORD \
   KEYCLOAK_DB_PASSWORD \
+  OAUTH2_PROXY_CLIENT_SECRET \
+  OAUTH2_PROXY_COOKIE_SECRET \
   MINIO_ROOT_USER \
   VELERO_ACCESS_KEY \
   VELERO_SECRET_KEY \
@@ -46,6 +48,8 @@ assert_contains "$root_env_example" "KEYCLOAK_REALM=mgmt"
 for rendered_path in \
   '/vault/secrets/edge/traefik.env' \
   '/vault/secrets/security/keycloak.env' \
+  '/vault/secrets/oauth2_proxy_client_secret' \
+  '/vault/secrets/oauth2_proxy_cookie_secret' \
   '/vault/secrets/backup/minio.env' \
   '/vault/secrets/cicd/gitlab.env' \
   '/vault/secrets/cicd/semaphore.env' \
@@ -58,5 +62,6 @@ assert_contains "$agent" "KEYCLOAK_ADMIN_PASSWORD="
 assert_contains "$agent" "KEYCLOAK_DB_PASSWORD="
 assert_contains "$agent" "ADMIN_PASSWORD="
 assert_contains "$agent" "GITLAB_OIDC_CLIENT_SECRET="
+assert_contains "$agent" "kv/data/mgmt/oauth2-proxy"
 
 echo "non-secret root env contract tests passed"
