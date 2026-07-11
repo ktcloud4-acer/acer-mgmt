@@ -11,6 +11,8 @@ assert.equal(existsSync(runnerPath), true, `Missing ${runnerPath}`)
 
 const scenario = readFileSync(scenarioPath, 'utf8')
 const runner = readFileSync(runnerPath, 'utf8')
+const semaphoreDockerfile = readFileSync('compose/stacks/cicd/semaphore/Dockerfile', 'utf8')
+const semaphoreCompose = readFileSync('compose/stacks/cicd/semaphore/compose.yaml', 'utf8')
 
 assert.match(scenario, /ramping-arrival-rate/)
 assert.match(scenario, /http_req_failed/)
@@ -19,6 +21,8 @@ assert.match(scenario, /\/api\/demo\/state/)
 assert.match(scenario, /Authorization.*Bearer/)
 assert.match(runner, /K6_ACCESS_TOKEN/)
 assert.match(runner, /k6 run compose\/scripts\/k6\/scalecart-api-hpa\.js/)
+assert.match(semaphoreDockerfile, /ARG K6_VERSION=v1\.0\.0-rc2/)
+assert.match(semaphoreCompose, /acer\/semaphore-k6:v2\.18\.25-k6\.1\.0\.0-rc2/)
 
 assert.equal(existsSync(dashboardPath), true, `Missing ${dashboardPath}`)
 

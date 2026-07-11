@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: acer/semaphore-k6:v2.18.25-k6.0.59.0
+    image: acer/semaphore-k6:v2.18.25-k6.1.0.0-rc2
     container_name: semaphore
     restart: unless-stopped
     depends_on:

@@ -1,6 +1,6 @@
 FROM semaphoreui/semaphore:v2.18.25
 
-ARG K6_VERSION=v0.59.0
+ARG K6_VERSION=v1.0.0-rc2
 
 USER root
 
