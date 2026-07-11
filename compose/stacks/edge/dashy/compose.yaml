@@ -1,0 +1,30 @@
+# Dashy — Keycloak-protected management operations shell.
+services:
+  dashy:
+    image: ghcr.io/lissy93/dashy:4.1.5
+    container_name: dashy
+    restart: unless-stopped
+    user: "1000:1000"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+      DISABLE_CONFIG_BACKUPS: "true"
+    volumes:
+      - ./config:/app/user-data:ro,Z
+    networks:
+      - mgmt-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.dashy.rule=Host(`dash.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.dashy.entrypoints=websecure"
+      - "traefik.http.routers.dashy.middlewares=sso-auth@file,secure-headers@file"
+      - "traefik.http.services.dashy.loadbalancer.server.port=8080"
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true
