@@ -21,6 +21,8 @@ for command in kubectl jq docker; do
   require_command "$command"
 done
 
+KUBECONFIG="$MGMT_KUBECONFIG" kubectl create namespace external-secrets --dry-run=client -o yaml |
+  KUBECONFIG="$MGMT_KUBECONFIG" kubectl apply -f - >/dev/null
 KUBECONFIG="$MGMT_KUBECONFIG" kubectl apply -f "$ARGOCD_REPO/security/eso/mgmt/vault-auth.yaml" >/dev/null
 
 for _ in $(seq 1 30); do
