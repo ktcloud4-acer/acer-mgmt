@@ -16,6 +16,7 @@ fail() {
 
 if command -v jq >/dev/null 2>&1; then
   jq empty "$workflow"
+  jq -e '.id == "w2QbrmV1sZx4cKp9"' "$workflow" >/dev/null
   jq -e '.name == "ACER 전체 운영 다이제스트"' "$workflow" >/dev/null
   jq -e '.settings.timezone == "Asia/Seoul"' "$workflow" >/dev/null
   jq -e '[.nodes[].type] | index("n8n-nodes-base.manualTrigger")' "$workflow" >/dev/null
@@ -33,7 +34,7 @@ const required = [
   'n8n-nodes-base.httpRequest',
   'n8n-nodes-base.code',
 ];
-if (workflow.name !== 'ACER 전체 운영 다이제스트' || workflow.settings?.timezone !== 'Asia/Seoul' || required.some((type) => !types.includes(type))) {
+if (workflow.id !== 'w2QbrmV1sZx4cKp9' || workflow.name !== 'ACER 전체 운영 다이제스트' || workflow.settings?.timezone !== 'Asia/Seoul' || required.some((type) => !types.includes(type))) {
   process.exit(1);
 }
 NODE
