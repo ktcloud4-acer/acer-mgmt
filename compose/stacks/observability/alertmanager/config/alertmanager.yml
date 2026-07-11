@@ -18,6 +18,19 @@ route:
         - severity="test"
     - receiver: slack-infra-alerts
       matchers:
+        - source="falco"
+      group_by:
+        - rule
+        - severity
+        - cluster
+        - k8s_ns_name
+        - k8s_pod_name
+        - container_name
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+    - receiver: slack-infra-alerts
+      matchers:
         - severity="critical"
       repeat_interval: 4h
     - receiver: slack-infra-alerts
@@ -31,9 +44,25 @@ receivers:
   - name: slack-infra-alerts
     slack_configs:
       - send_resolved: true
-        title: '{{ if eq .Status "firing" }}[긴급]{{ else }}[복구]{{ end }} {{ if .CommonAnnotations.title }}{{ .CommonAnnotations.title }}{{ else }}{{ .CommonLabels.alertname }}{{ end }}'
+        title: '{{ if eq .CommonLabels.source "falco" }}[Falco][{{ if eq .Status "firing" }}발생{{ else }}복구{{ end }}] {{ .CommonLabels.rule }}{{ else }}{{ if eq .Status "firing" }}[긴급]{{ else }}[복구]{{ end }} {{ if .CommonAnnotations.title }}{{ .CommonAnnotations.title }}{{ else }}{{ .CommonLabels.alertname }}{{ end }}{{ end }}'
         text: |-
           {{ range .Alerts }}
+          {{ if eq .Labels.source "falco" }}
+          상태: {{ if eq .Status "firing" }}발생{{ else }}복구{{ end }}
+          심각도: {{ .Labels.severity }} (Falco 우선순위: {{ .Labels.priority }})
+          범위: {{ if .Labels.scope }}{{ .Labels.scope }}{{ else }}Kubernetes 런타임{{ end }}
+          클러스터: {{ if .Labels.cluster }}{{ .Labels.cluster }}{{ else }}미지정{{ end }}
+          탐지 규칙: {{ .Labels.rule }}
+          네임스페이스: {{ if .Labels.k8s_ns_name }}{{ .Labels.k8s_ns_name }}{{ else }}-{{ end }}
+          Pod: {{ if .Labels.k8s_pod_name }}{{ .Labels.k8s_pod_name }}{{ else }}-{{ end }}
+          서비스/컨테이너: {{ if .Labels.service }}{{ .Labels.service }}{{ else if .Labels.container_name }}{{ .Labels.container_name }}{{ else }}-{{ end }}
+          노드: {{ if .Labels.hostname }}{{ .Labels.hostname }}{{ else }}-{{ end }}
+          대상: {{ if .Labels.k8s_ns_name }}{{ .Labels.k8s_ns_name }}/{{ .Labels.k8s_pod_name }}{{ else if .Labels.hostname }}{{ .Labels.hostname }}{{ else }}-{{ end }}
+          실행 명령: {{ if .Labels.proc_cmdline }}{{ .Labels.proc_cmdline }}{{ else }}-{{ end }}
+          접근 파일: {{ if .Labels.fd_name }}{{ .Labels.fd_name }}{{ else }}-{{ end }}
+          요약: {{ .Annotations.summary }}
+          설명: {{ .Annotations.description }}
+          {{ else }}
           상태: {{ .Status }}
           심각도: {{ .Labels.severity }}
           범위: {{ if .Labels.scope }}{{ .Labels.scope }}{{ else }}-{{ end }}
@@ -42,4 +71,5 @@ receivers:
           대상: {{ if .Labels.target }}{{ .Labels.target }}{{ else if .Labels.instance }}{{ .Labels.instance }}{{ else if .Labels.node }}{{ .Labels.node }}{{ else if .Labels.pod }}{{ .Labels.namespace }}/{{ .Labels.pod }}{{ else }}-{{ end }}
           요약: {{ .Annotations.summary }}
           설명: {{ .Annotations.description }}
+          {{ end }}
           {{ end }}
