@@ -33,7 +33,6 @@ if _oidc_endpoint:
 #
 # `platform-admin`은 서비스별 그룹 전환 중 기존 운영자를 끊지 않기 위한 임시
 # 호환 관리자 그룹이다. 신규 권한 부여는 netbox-editor/netbox-admin만 사용한다.
-from django.contrib.auth.models import Group
 from netbox.settings import SOCIAL_AUTH_PIPELINE as _BASE_SOCIAL_AUTH_PIPELINE
 
 _NETBOX_EDITOR_GROUP = "netbox-editor"
@@ -44,6 +43,11 @@ def map_keycloak_groups(response=None, user=None, *args, **kwargs):
     """Synchronize the managed NetBox role and administrator bit at OIDC login."""
     if not user or not isinstance(response, dict):
         return
+
+    # extra.py is imported while Django settings are assembled. Importing the
+    # auth model here, after the social-auth pipeline runs, avoids accessing
+    # the app registry before it has been initialized.
+    from django.contrib.auth.models import Group
 
     keycloak_groups = {str(group) for group in (response.get("groups") or [])}
     is_admin = bool(_NETBOX_ADMIN_GROUPS.intersection(keycloak_groups))
