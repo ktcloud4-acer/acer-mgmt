@@ -24,7 +24,7 @@ proxy_service:
   enabled: true
   web_listen_addr: 0.0.0.0:3080
   public_addr: teleport.imcherry5778.xyz:3080
-  ssh_listen_addr: 0.0.0.0:3023
+  listen_addr: 0.0.0.0:3023
   ssh_public_addr: teleport.imcherry5778.xyz:3023
   tunnel_listen_addr: 0.0.0.0:3024
   tunnel_public_addr: teleport.imcherry5778.xyz:3024

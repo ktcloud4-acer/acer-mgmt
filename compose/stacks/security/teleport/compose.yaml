@@ -7,10 +7,6 @@ services:
     container_name: teleport
     hostname: teleport
     restart: unless-stopped
-    command:
-      - teleport
-      - start
-      - --config=/etc/teleport/teleport.yaml
     environment:
       TZ: ${TZ:-Asia/Seoul}
     ports:
