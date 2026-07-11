@@ -38,3 +38,8 @@ options:
   kubeconfig:
     updateDefaultKubeconfig: false
     switchCurrentContext: false
+  runtime:
+    ulimits:
+      - name: nofile
+        soft: 65535
+        hard: 65535

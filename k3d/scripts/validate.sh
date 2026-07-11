@@ -6,6 +6,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 source "${ROOT}/versions.env"
 
 grep -Fq "image: rancher/k3s:${K3S_VERSION}" "${ROOT}/config.yaml"
+grep -Fq 'name: nofile' "${ROOT}/config.yaml"
+grep -Fq 'soft: 65535' "${ROOT}/config.yaml"
+grep -Fq 'hard: 65535' "${ROOT}/config.yaml"
 grep -Fq "/${ARGOCD_VERSION}/manifests/install.yaml" \
   "${ROOT}/bootstrap/argocd/kustomization.yaml"
 
