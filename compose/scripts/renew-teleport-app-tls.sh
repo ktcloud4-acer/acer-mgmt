@@ -42,7 +42,7 @@ key="$workdir/certificates/${BASE_DOMAIN}.key"
 [[ -s "$cert" && -s "$key" ]] || { echo 'ACME certificate files were not created' >&2; exit 1; }
 docker cp "$cert" "$VAULT_CONTAINER:/tmp/teleport-app-tls.crt"
 docker cp "$key" "$VAULT_CONTAINER:/tmp/teleport-app-tls.key"
-docker exec "$VAULT_CONTAINER" sh -s <<'VAULT_SCRIPT'
+docker exec -i "$VAULT_CONTAINER" sh -s <<'VAULT_SCRIPT'
 set -eu
 export VAULT_TOKEN="$(cat /tmp/.vt)"
 vault kv patch -mount=kv mgmt/teleport tls_cert_pem=- </tmp/teleport-app-tls.crt >/dev/null

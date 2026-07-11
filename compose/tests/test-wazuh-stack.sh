@@ -33,6 +33,7 @@ assert_contains "$bootstrap" "v4.14.6"
 assert_contains "$bootstrap" "internal_users.yml"
 assert_contains "$secrets_bootstrap" "openssl rand -hex 32"
 assert_contains "$secrets_bootstrap" "vault kv patch -mount=kv mgmt/wazuh"
+assert_contains "$secrets_bootstrap" 'docker exec -i "$VAULT_CONTAINER" sh -s'
 assert_contains "$agent_installer" "WAZUH_REGISTRATION_PASSWORD"
 assert_contains "$agent_installer" "packages.wazuh.com/4.x/yum/"
 assert_contains "$vault_agent" 'kv/data/mgmt/wazuh'

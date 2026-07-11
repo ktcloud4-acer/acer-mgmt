@@ -14,7 +14,7 @@ docker exec "$VAULT_CONTAINER" sh -c "test -s '$VAULT_TOKEN_FILE'" || {
   exit 1
 }
 
-if docker exec "$VAULT_CONTAINER" sh -s <<'VAULT_SCRIPT'
+if docker exec -i "$VAULT_CONTAINER" sh -s <<'VAULT_SCRIPT'
 set -eu
 export VAULT_TOKEN="$(cat /tmp/.vt)"
 vault kv get -mount=kv mgmt/wazuh >/dev/null 2>&1
@@ -30,7 +30,7 @@ for field in indexer_password dashboard_password api_password registration_passw
   docker cp "$tmpdir/$field" "$VAULT_CONTAINER:/tmp/security-bp-$field"
 done
 
-docker exec "$VAULT_CONTAINER" sh -s <<'VAULT_SCRIPT'
+docker exec -i "$VAULT_CONTAINER" sh -s <<'VAULT_SCRIPT'
 set -eu
 export VAULT_TOKEN="$(cat /tmp/.vt)"
 for field in indexer_password dashboard_password api_password registration_password; do
