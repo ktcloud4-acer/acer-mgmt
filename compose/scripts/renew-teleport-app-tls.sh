@@ -40,15 +40,22 @@ docker run --rm \
 cert="$workdir/certificates/${BASE_DOMAIN}.crt"
 key="$workdir/certificates/${BASE_DOMAIN}.key"
 [[ -s "$cert" && -s "$key" ]] || { echo 'ACME certificate files were not created' >&2; exit 1; }
-docker cp "$cert" "$VAULT_CONTAINER:/tmp/teleport-app-tls.crt"
-docker cp "$key" "$VAULT_CONTAINER:/tmp/teleport-app-tls.key"
-docker exec -i "$VAULT_CONTAINER" sh -s <<'VAULT_SCRIPT'
-set -eu
-export VAULT_TOKEN="$(cat /tmp/.vt)"
-vault kv patch -mount=kv mgmt/teleport tls_cert_pem=- </tmp/teleport-app-tls.crt >/dev/null
-vault kv patch -mount=kv mgmt/teleport tls_key_pem=- </tmp/teleport-app-tls.key >/dev/null
-rm -f /tmp/teleport-app-tls.crt /tmp/teleport-app-tls.key
-VAULT_SCRIPT
+
+# Vault's container has a read-only root filesystem and this Vault version's
+# KV PATCH fallback is not reliable without the patch ACL capability. Preserve
+# the existing OIDC secret and replace the three known fields atomically.
+cert_b64="$(base64 -w0 "$cert")"
+key_b64="$(base64 -w0 "$key")"
+printf '%s\n%s\n' "$cert_b64" "$key_b64" | docker exec -i "$VAULT_CONTAINER" sh -c \
+  "set -eu; export VAULT_TOKEN=\"\$(cat '$VAULT_TOKEN_FILE')\"; \
+   IFS= read -r cert_b64; IFS= read -r key_b64; \
+   oidc_client_secret=\"\$(vault kv get -mount=kv -field=oidc_client_secret mgmt/teleport)\"; \
+   tls_cert_pem=\"\$(printf '%s' \"\$cert_b64\" | base64 -d)\"; \
+   tls_key_pem=\"\$(printf '%s' \"\$key_b64\" | base64 -d)\"; \
+   vault kv put -mount=kv mgmt/teleport \
+     oidc_client_secret=\"\$oidc_client_secret\" \
+     tls_cert_pem=\"\$tls_cert_pem\" \
+     tls_key_pem=\"\$tls_key_pem\" >/dev/null"
 
 docker restart vault-agent >/dev/null
 echo "Teleport TLS certificate updated in Vault for *.${BASE_DOMAIN} and *.teleport.${BASE_DOMAIN}."

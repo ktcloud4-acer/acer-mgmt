@@ -27,10 +27,16 @@ fi
 for field in indexer_password dashboard_password api_password registration_password; do
   umask 077
   openssl rand -hex 32 >"$tmpdir/$field"
-  docker exec -i "$VAULT_CONTAINER" sh -c \
-    "export VAULT_TOKEN=\"\$(cat '$VAULT_TOKEN_FILE')\"; vault kv patch -mount=kv mgmt/wazuh '${field}=-'" \
-    <"$tmpdir/$field" >/dev/null
 done
+
+printf '{"indexer_password":"%s","dashboard_password":"%s","api_password":"%s","registration_password":"%s"}\n' \
+  "$(<"$tmpdir/indexer_password")" \
+  "$(<"$tmpdir/dashboard_password")" \
+  "$(<"$tmpdir/api_password")" \
+  "$(<"$tmpdir/registration_password")" >"$tmpdir/wazuh.json"
+docker exec -i "$VAULT_CONTAINER" sh -c \
+  "export VAULT_TOKEN=\"\$(cat '$VAULT_TOKEN_FILE')\"; vault kv put -mount=kv mgmt/wazuh -" \
+  <"$tmpdir/wazuh.json" >/dev/null
 
 docker restart vault-agent >/dev/null
 echo 'Created isolated Wazuh credentials in Vault and restarted Vault Agent.'
