@@ -15,10 +15,6 @@
         icon: alertmanager.png
         href: https://alertmanager.{{HOMEPAGE_VAR_BASE_DOMAIN}}
         description: Alert routing, grouping, and silences
-    - Uptime Kuma:
-        icon: uptime-kuma.png
-        href: https://kuma.{{HOMEPAGE_VAR_BASE_DOMAIN}}
-        description: Private outside-in service and team-cluster status board
     - Kibana:
         icon: kibana.png
         href: https://kibana.{{HOMEPAGE_VAR_BASE_DOMAIN}}
