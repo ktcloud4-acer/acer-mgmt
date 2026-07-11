@@ -31,6 +31,7 @@ jq -e '
 
 grep -Fq 'ScaleCart API HPA Load Test' "$reconciler" || fail "task name is not reconciled"
 grep -Fq 'TEAM_K6_DRY_RUN' "$reconciler" || fail "dry-run guard is missing"
+[[ "$(grep -Fc 'project_id:$project' "$reconciler")" -eq 2 ]] || fail "Semaphore repository and environment payloads must include their project id"
 grep -Fq 'K6_KEY_FILE_ROOT:-/run/vault-k6' "$runner" || fail "runner does not use the Vault key directory"
 grep -Fq '${K6_TEAM}.env' "$runner" || fail "runner does not select a team-specific Vault key file"
 grep -Fq 'K6_RATE' "$runner" || fail "runner does not permit rate override"
