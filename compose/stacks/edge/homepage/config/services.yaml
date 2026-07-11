@@ -19,6 +19,10 @@
         icon: kibana.png
         href: https://kibana.{{HOMEPAGE_VAR_BASE_DOMAIN}}
         description: Central log search and analysis
+    - n8n:
+        icon: n8n.png
+        href: https://n8n.{{HOMEPAGE_VAR_BASE_DOMAIN}}
+        description: Platform operations-digest automation
 
 - Backup:
     - MinIO:
