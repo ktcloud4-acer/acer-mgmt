@@ -9,12 +9,54 @@ http:
         - secure-headers
       service: k3d-ingress
     k3d-chaos-dashboard:
-      rule: "Host(`chaos.imcherry5778.xyz`)"
+      rule: "Host(`mgmt-chaos.imcherry5778.xyz`)"
       entryPoints:
         - websecure
       middlewares:
         - secure-headers
       service: k3d-ingress
+    legacy-chaos-dashboard:
+      rule: "Host(`chaos.imcherry5778.xyz`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - redirect-mgmt-chaos
+      service: k3d-ingress
+    nmg-chaos-dashboard:
+      rule: "Host(`nmg-chaos.imcherry5778.xyz`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - secure-headers
+      service: nmg-chaos-dashboard
+    ggg-chaos-dashboard:
+      rule: "Host(`ggg-chaos.imcherry5778.xyz`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - secure-headers
+      service: ggg-chaos-dashboard
+    khb-chaos-dashboard:
+      rule: "Host(`khb-chaos.imcherry5778.xyz`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - secure-headers
+      service: khb-chaos-dashboard
+    ljw-chaos-dashboard:
+      rule: "Host(`ljw-chaos.imcherry5778.xyz`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - secure-headers
+      service: ljw-chaos-dashboard
+    oje-chaos-dashboard:
+      rule: "Host(`oje-chaos.imcherry5778.xyz`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - secure-headers
+      service: oje-chaos-dashboard
 
   services:
     k3d-ingress:
@@ -22,3 +64,35 @@ http:
         passHostHeader: true
         servers:
           - url: "http://k3d-mgmt-serverlb:80"
+    nmg-chaos-dashboard:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: "https://nmg-chaos.tailc0244b.ts.net"
+    ggg-chaos-dashboard:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: "https://ggg-chaos.tailc0244b.ts.net"
+    khb-chaos-dashboard:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: "https://khb-chaos.tailc0244b.ts.net"
+    ljw-chaos-dashboard:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: "https://ljw-chaos.tailc0244b.ts.net"
+    oje-chaos-dashboard:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: "https://oje-chaos.tailc0244b.ts.net"
+
+  middlewares:
+    redirect-mgmt-chaos:
+      redirectRegex:
+        regex: '^https://chaos\\.imcherry5778\\.xyz/(.*)'
+        replacement: 'https://mgmt-chaos.imcherry5778.xyz/$1'
+        permanent: true

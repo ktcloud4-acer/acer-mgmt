@@ -142,6 +142,15 @@ template {
   perms       = "0640"
 }
 
+# Per-cluster Chaos Dashboard issuers.  Each file is consumed only while the
+# corresponding fixed Semaphore environment is reconciled; task output never
+# includes this long-lived issuer credential.
+template { contents = "CHAOS_TOKEN_ISSUER_KUBECONFIG_B64={{ with secret \"kv/data/mgmt/chaos/dashboard-token-issuers/nmg\" }}{{ .Data.data.kubeconfig_b64 }}{{ end }}\n" destination = "/vault/secrets/cicd/chaos-dashboard-token-issuers/nmg.env" perms = "0640" }
+template { contents = "CHAOS_TOKEN_ISSUER_KUBECONFIG_B64={{ with secret \"kv/data/mgmt/chaos/dashboard-token-issuers/ggg\" }}{{ .Data.data.kubeconfig_b64 }}{{ end }}\n" destination = "/vault/secrets/cicd/chaos-dashboard-token-issuers/ggg.env" perms = "0640" }
+template { contents = "CHAOS_TOKEN_ISSUER_KUBECONFIG_B64={{ with secret \"kv/data/mgmt/chaos/dashboard-token-issuers/khb\" }}{{ .Data.data.kubeconfig_b64 }}{{ end }}\n" destination = "/vault/secrets/cicd/chaos-dashboard-token-issuers/khb.env" perms = "0640" }
+template { contents = "CHAOS_TOKEN_ISSUER_KUBECONFIG_B64={{ with secret \"kv/data/mgmt/chaos/dashboard-token-issuers/ljw\" }}{{ .Data.data.kubeconfig_b64 }}{{ end }}\n" destination = "/vault/secrets/cicd/chaos-dashboard-token-issuers/ljw.env" perms = "0640" }
+template { contents = "CHAOS_TOKEN_ISSUER_KUBECONFIG_B64={{ with secret \"kv/data/mgmt/chaos/dashboard-token-issuers/oje\" }}{{ .Data.data.kubeconfig_b64 }}{{ end }}\n" destination = "/vault/secrets/cicd/chaos-dashboard-token-issuers/oje.env" perms = "0640" }
+
 # Dedicated API key files for the five fixed k6 demo targets. Semaphore mounts
 # this directory read-only; keys never enter a Semaphore project environment.
 template { contents = "K6_DEMO_API_KEY={{ with secret \"kv/data/mgmt/k6/ggg\" }}{{ .Data.data.api_key }}{{ end }}\n" destination = "/vault/secrets/cicd/k6/ggg.env" perms = "0644" }
