@@ -19,6 +19,8 @@ services:
       - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/alertmanager:/etc/alertmanager/secrets:ro,z
     networks:
       - mgmt-proxy
+    ports:
+      - "100.117.59.96:9093:9093"
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:9093/-/healthy"]
       interval: 15s
