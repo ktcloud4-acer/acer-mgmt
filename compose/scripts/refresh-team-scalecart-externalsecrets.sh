@@ -28,7 +28,6 @@ for team in "${teams[@]}"; do
   token="$(printf '%s' "$config" | jq -er '.bearerToken')"
   insecure="$(printf '%s' "$config" | jq -r '.tlsClientConfig.insecure // false')"
   ca_data="$(printf '%s' "$config" | jq -r '.tlsClientConfig.caData // ""')"
-  [[ "$insecure" = true || -n "$ca_data" ]] || { echo "missing TLS configuration for $team" >&2; exit 1; }
   kubeconfig_file="$(mktemp)"
   cleanup() { rm -f "$kubeconfig_file"; }
   trap cleanup RETURN
@@ -37,7 +36,7 @@ for team in "${teams[@]}"; do
     {
       apiVersion: "v1",
       kind: "Config",
-      clusters: [{name: "target", cluster: (if $insecure then {server: $server, "insecure-skip-tls-verify": true} else {server: $server, "certificate-authority-data": $ca} end)}],
+      clusters: [{name: "target", cluster: (if $insecure then {server: $server, "insecure-skip-tls-verify": true} elif $ca != "" then {server: $server, "certificate-authority-data": $ca} else {server: $server} end)}],
       contexts: [{name: "target", context: {cluster: "target", user: "argocd"}}],
       "current-context": "target",
       users: [{name: "argocd", user: {token: $token}}]
