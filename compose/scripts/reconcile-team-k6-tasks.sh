@@ -51,7 +51,8 @@ jq -c '.[]' "$manifest" | while IFS= read -r entry; do
   if [ -z "$environment_id" ] || [ "$environment_id" = null ]; then
     environment_id="$(api_post "/project/$project_id/environment" "$tmp_dir/environment.json" | jq -r '.id')"
   else
-    api_put "/project/$project_id/environment/$environment_id" "$tmp_dir/environment.json" >/dev/null
+    jq --argjson environment "$environment_id" '. + {id:$environment}' "$tmp_dir/environment.json" >"$tmp_dir/environment-update.json"
+    api_put "/project/$project_id/environment/$environment_id" "$tmp_dir/environment-update.json" >/dev/null
   fi
 
   view_id="$(api_get "/project/$project_id/views" | jq -r '.[] | select(.title == "All") | .id' | head -n1)"
