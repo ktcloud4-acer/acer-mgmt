@@ -28,6 +28,10 @@ assert_contains "$middlewares" "redirect-to-teleport-adguard"
 assert_contains "$middlewares" "redirect-to-teleport-vault"
 assert_contains "$dns_script" "for app in kibana prometheus alertmanager vault adguard traefik minio semaphore"
 assert_contains "$tls_script" "*.teleport."
+assert_contains "$tls_script" "vault kv put -mount=kv mgmt/teleport"
+if grep -Fq 'docker cp' "$tls_script" || grep -Fq 'vault kv patch' "$tls_script"; then
+  fail "Teleport TLS renewal must support Vault read-only rootfs and KV update ACLs"
+fi
 
 for stack in \
   "$ROOT_DIR/compose/stacks/edge/adguard/compose.yaml" \
