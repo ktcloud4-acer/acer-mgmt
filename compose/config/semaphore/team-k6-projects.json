@@ -1,0 +1,7 @@
+[
+  { "team": "ggg", "project": "acer-aio-ggg", "base_url": "https://ggg.imcherry5778.xyz", "vault_path": "mgmt/k6/ggg" },
+  { "team": "khb", "project": "acer-aio-khb", "base_url": "https://khb.imcherry5778.xyz", "vault_path": "mgmt/k6/khb" },
+  { "team": "ljw", "project": "acer-aio-ljw", "base_url": "https://ljw.imcherry5778.xyz", "vault_path": "mgmt/k6/ljw" },
+  { "team": "nmg", "project": "acer-aio-nmg", "base_url": "https://nmg.imcherry5778.xyz", "vault_path": "mgmt/k6/nmg" },
+  { "team": "oje", "project": "acer-aio-oje", "base_url": "https://oje.imcherry5778.xyz", "vault_path": "mgmt/k6/oje" }
+]

@@ -2,7 +2,7 @@ import http from 'k6/http'
 import { check } from 'k6'
 
 const baseUrl = String(__ENV.K6_BASE_URL || '').replace(/\/+$/, '')
-const accessToken = String(__ENV.K6_ACCESS_TOKEN || '')
+const demoApiKey = String(__ENV.K6_DEMO_API_KEY || '')
 const targetRate = Number(__ENV.K6_RATE || 150)
 const holdDuration = __ENV.K6_DURATION || '4m'
 
@@ -30,7 +30,7 @@ export const options = {
 
 export default function () {
   const response = http.get(`${baseUrl}/api/demo/state`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: { 'X-K6-Demo-Key': demoApiKey },
     tags: { name: 'demo-state' },
   })
 
