@@ -10,7 +10,7 @@
   "panels": [
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "A missing value is Unavailable, not Healthy.",
+      "description": "All configured team clusters are shown. A value of 0 means Unavailable; it is never treated as Healthy.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -41,7 +41,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum by (cluster) (up{job=\"chaos-mesh-controller\",cluster=~\"$cluster\"})",
+          "expr": "sum by (cluster) (up{job=\"chaos-mesh-controller\",cluster=~\"$cluster\"}) or label_replace(vector(0), \"cluster\", \"ggg\", \"cluster\", \".*\") or label_replace(vector(0), \"cluster\", \"khb\", \"cluster\", \".*\") or label_replace(vector(0), \"cluster\", \"ljw\", \"cluster\", \".*\") or label_replace(vector(0), \"cluster\", \"nmg\", \"cluster\", \".*\") or label_replace(vector(0), \"cluster\", \"oje\", \"cluster\", \".*\")",
           "legendFormat": "{{cluster}}",
           "range": false,
           "refId": "A"
@@ -285,16 +285,15 @@
   "templating": {
     "list": [
       {
-        "allValue": ".*",
+        "allValue": "ggg|khb|ljw|nmg|oje",
         "current": { "selected": true, "text": "All", "value": "$__all" },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "definition": "label_values(up{job=\"chaos-mesh-controller\"}, cluster)",
+        "definition": "ggg,khb,ljw,nmg,oje",
         "includeAll": true,
         "name": "cluster",
         "options": [],
-        "query": { "query": "label_values(up{job=\"chaos-mesh-controller\"}, cluster)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "query": "ggg,khb,ljw,nmg,oje",
         "refresh": 1,
-        "type": "query"
+        "type": "custom"
       },
       {
         "allValue": ".*",
