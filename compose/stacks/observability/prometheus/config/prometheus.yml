@@ -100,14 +100,26 @@ scrape_configs:
     metrics_path: /probe
     params: {module: [http_3xx]}
     static_configs:
-      - targets: ['https://gitlab.imcherry5778.xyz/']
-        labels: {team: platform, channel: infra, service: gitlab, scope: infra, cluster: mgmt}
       - targets: ['https://minio.imcherry5778.xyz/minio/health/live']
         labels: {team: platform, channel: infra, service: minio, scope: infra, cluster: mgmt}
       - targets: ['https://n8n.imcherry5778.xyz/healthz']
         labels: {team: platform, channel: infra, service: n8n, scope: infra, cluster: mgmt}
       - targets: ['https://adguard.imcherry5778.xyz/control/status']
         labels: {team: platform, channel: infra, service: adguard-ui, scope: infra, cluster: mgmt}
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: target
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  - job_name: blackbox-http-gitlab
+    metrics_path: /probe
+    params: {module: [http_3xx_gitlab]}
+    static_configs:
+      - targets: ['https://100.117.59.96/']
+        labels: {team: platform, channel: infra, service: gitlab, scope: infra, cluster: mgmt}
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
