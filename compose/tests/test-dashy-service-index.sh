@@ -56,5 +56,6 @@ assert_not_contains "$dashy_config" "target:"
 assert_not_contains "$dashy_config" "hideFromWorkspace:"
 assert_not_contains "$dashy_config" "Grafana Operations Summary"
 assert_not_contains "$dashy_config" "disableContextMenu: true"
+assert_not_contains "$dashy_config" ".png"
 
 echo "Dashy service index configuration tests passed"
