@@ -62,11 +62,15 @@ jq -nc \
   --arg ca "$ca_data" \
   '{token_reviewer_jwt: $token, kubernetes_host: $host, kubernetes_ca_cert: $ca}' |
   docker exec -i "$VAULT_CONTAINER" sh -ceu '
+    umask 077
+    config_file="$2"
+    trap "rm -f \"$config_file\"" EXIT
+    cat > "$2"
     export VAULT_ADDR=https://127.0.0.1:8200
     export VAULT_CACERT=/vault/tls/ca.crt
     export VAULT_TOKEN="$(cat /tmp/.vt)"
-    vault write auth/kubernetes-mgmt/config @- >/dev/null
-  '
+    vault write auth/kubernetes-mgmt/config "@$2" >/dev/null
+  ' sh /unused /tmp/vault-kubernetes-mgmt-config.json
 
 docker exec "$VAULT_CONTAINER" sh -ceu '
   export VAULT_ADDR=https://127.0.0.1:8200
