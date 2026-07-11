@@ -36,7 +36,8 @@ done
 }
 
 reviewer_token="$(printf '%s' "$reviewer_token_b64" | base64 -d)"
-ca_data="$(KUBECONFIG="$MGMT_KUBECONFIG" kubectl config view --raw -o json | jq -er '.clusters[0].cluster["certificate-authority-data"]')"
+ca_data_b64="$(KUBECONFIG="$MGMT_KUBECONFIG" kubectl config view --raw -o json | jq -er '.clusters[0].cluster["certificate-authority-data"]')"
+ca_pem="$(printf '%s' "$ca_data_b64" | base64 -d)"
 
 docker exec "$VAULT_CONTAINER" sh -ceu '
   export VAULT_ADDR=https://127.0.0.1:8200
@@ -59,7 +60,7 @@ POLICY
 jq -nc \
   --arg token "$reviewer_token" \
   --arg host "$VAULT_KUBERNETES_HOST" \
-  --arg ca "$ca_data" \
+  --arg ca "$ca_pem" \
   '{token_reviewer_jwt: $token, kubernetes_host: $host, kubernetes_ca_cert: $ca}' |
   docker exec -i "$VAULT_CONTAINER" sh -ceu '
     umask 077
