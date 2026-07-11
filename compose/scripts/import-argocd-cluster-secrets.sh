@@ -63,15 +63,15 @@ for cluster in "${clusters[@]}"; do
   container_payload_file="/tmp/argocd-cluster-${cluster}.json"
   jq -nc --arg name "$name" --arg server "$server" --arg config "$config" \
     '{name: $name, server: $server, config: $config}' >"$payload_file"
-  docker cp "$payload_file" "${VAULT_CONTAINER}:${container_payload_file}"
-
-  docker exec "$VAULT_CONTAINER" sh -ceu '
+  docker exec -i "$VAULT_CONTAINER" sh -ceu '
+      umask 077
+      cat > "$2"
       export VAULT_ADDR=https://127.0.0.1:8200
       export VAULT_CACERT=/vault/tls/ca.crt
       export VAULT_TOKEN="$(cat /tmp/.vt)"
       vault kv put -mount=kv "$1" "@$2" >/dev/null
       rm -f "$2"
-    ' sh "mgmt/argocd/clusters/${cluster}" "$container_payload_file"
+    ' sh "mgmt/argocd/clusters/${cluster}" "$container_payload_file" <"$payload_file"
   container_payload_file=''
 
   printf 'imported Argo CD cluster credential: %s\n' "$cluster"

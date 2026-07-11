@@ -17,7 +17,7 @@ done
 
 assert_contains "$import_script" 'argocd.argoproj.io/secret-type'
 assert_contains "$import_script" '== cluster'
-assert_contains "$import_script" 'docker cp "$payload_file"'
+assert_contains "$import_script" 'cat > "$2"'
 assert_contains "$import_script" 'vault kv put -mount=kv "$1" "@$2"'
 assert_contains "$import_script" 'mgmt/argocd/clusters/${cluster}'
 assert_contains "$import_script" 'ggg khb ljw nmg oje'
