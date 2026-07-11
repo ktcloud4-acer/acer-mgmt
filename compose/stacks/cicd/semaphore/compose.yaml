@@ -2,7 +2,10 @@
 
 services:
   semaphore:
-    image: semaphoreui/semaphore:v2.18.25
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: acer/semaphore-k6:v2.18.25-k6.0.59.0
     container_name: semaphore
     restart: unless-stopped
     depends_on:
