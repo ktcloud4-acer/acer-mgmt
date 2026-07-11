@@ -2,7 +2,7 @@
 
 services:
   semaphore:
-    image: semaphoreui/semaphore:v2.18.12
+    image: semaphoreui/semaphore:v2.18.25
     container_name: semaphore
     restart: unless-stopped
     depends_on:
