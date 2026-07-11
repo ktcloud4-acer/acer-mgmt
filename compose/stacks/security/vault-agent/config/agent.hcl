@@ -144,11 +144,11 @@ template {
 
 # Dedicated API key files for the five fixed k6 demo targets. Semaphore mounts
 # this directory read-only; keys never enter a Semaphore project environment.
-template { contents = "K6_DEMO_API_KEY={{ with secret \"kv/data/mgmt/k6/ggg\" }}{{ .Data.data.api_key }}{{ end }}\n" destination = "/vault/secrets/cicd/k6/ggg.env" perms = "0640" }
-template { contents = "K6_DEMO_API_KEY={{ with secret \"kv/data/mgmt/k6/khb\" }}{{ .Data.data.api_key }}{{ end }}\n" destination = "/vault/secrets/cicd/k6/khb.env" perms = "0640" }
-template { contents = "K6_DEMO_API_KEY={{ with secret \"kv/data/mgmt/k6/ljw\" }}{{ .Data.data.api_key }}{{ end }}\n" destination = "/vault/secrets/cicd/k6/ljw.env" perms = "0640" }
-template { contents = "K6_DEMO_API_KEY={{ with secret \"kv/data/mgmt/k6/nmg\" }}{{ .Data.data.api_key }}{{ end }}\n" destination = "/vault/secrets/cicd/k6/nmg.env" perms = "0640" }
-template { contents = "K6_DEMO_API_KEY={{ with secret \"kv/data/mgmt/k6/oje\" }}{{ .Data.data.api_key }}{{ end }}\n" destination = "/vault/secrets/cicd/k6/oje.env" perms = "0640" }
+template { contents = "K6_DEMO_API_KEY={{ with secret \"kv/data/mgmt/k6/ggg\" }}{{ .Data.data.api_key }}{{ end }}\n" destination = "/vault/secrets/cicd/k6/ggg.env" perms = "0644" }
+template { contents = "K6_DEMO_API_KEY={{ with secret \"kv/data/mgmt/k6/khb\" }}{{ .Data.data.api_key }}{{ end }}\n" destination = "/vault/secrets/cicd/k6/khb.env" perms = "0644" }
+template { contents = "K6_DEMO_API_KEY={{ with secret \"kv/data/mgmt/k6/ljw\" }}{{ .Data.data.api_key }}{{ end }}\n" destination = "/vault/secrets/cicd/k6/ljw.env" perms = "0644" }
+template { contents = "K6_DEMO_API_KEY={{ with secret \"kv/data/mgmt/k6/nmg\" }}{{ .Data.data.api_key }}{{ end }}\n" destination = "/vault/secrets/cicd/k6/nmg.env" perms = "0644" }
+template { contents = "K6_DEMO_API_KEY={{ with secret \"kv/data/mgmt/k6/oje\" }}{{ .Data.data.api_key }}{{ end }}\n" destination = "/vault/secrets/cicd/k6/oje.env" perms = "0644" }
 
 # gitlab compose env 파일.
 template {
