@@ -87,6 +87,9 @@ app_service:
       public_addr: tp-keycloak.imcherry5778.xyz
       rewrite:
         redirect: [keycloak.imcherry5778.xyz]
+        headers:
+          - "Host: tp-keycloak.imcherry5778.xyz"
+          - "Origin: https://tp-keycloak.imcherry5778.xyz:3080"
       labels:
         env: mgmt
         owner: security
