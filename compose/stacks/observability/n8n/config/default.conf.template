@@ -1,0 +1,23 @@
+server {
+    listen 8080;
+    server_name _;
+    server_tokens off;
+
+    location = /healthz {
+        return 204;
+    }
+
+    location = / {
+        limit_except POST {
+            deny all;
+        }
+
+        proxy_pass ${SLACK_WEBHOOK_INFRA};
+        proxy_set_header Host hooks.slack.com;
+        proxy_http_version 1.1;
+    }
+
+    location / {
+        return 404;
+    }
+}

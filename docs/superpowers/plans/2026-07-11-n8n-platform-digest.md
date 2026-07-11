@@ -4,7 +4,7 @@
 
 **Goal:** Deploy n8n on mgmt and deliver an on-demand and scheduled daily Slack digest for mgmt and every team cluster from central Prometheus data.
 
-**Architecture:** A two-container Compose project keeps n8n and its dedicated PostgreSQL database isolated while attaching only n8n to `mgmt-proxy` for Traefik and Prometheus access. A versioned workflow JSON queries central Prometheus, classifies each cluster as healthy, warning, critical, or missing, and sends a compact Slack message from either the Schedule or Manual trigger.
+**Architecture:** A three-container Compose project keeps n8n and its dedicated PostgreSQL database isolated while an internal Slack relay holds the webhook secret. A versioned workflow JSON queries central Prometheus, classifies each cluster as healthy, warning, critical, or missing, and posts a compact Slack message to the relay from either the Schedule or Manual trigger.
 
 **Tech Stack:** Docker Compose, n8n 2.26.8, PostgreSQL 17 Alpine, Traefik, OAuth2 Proxy, Vault Agent, Prometheus HTTP API, Slack incoming webhook, Bash validation tests.
 

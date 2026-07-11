@@ -29,6 +29,26 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  n8n-slack-relay:
+    image: nginx:1.27-alpine
+    container_name: n8n-slack-relay
+    restart: unless-stopped
+    environment:
+      SLACK_WEBHOOK_INFRA: ${SLACK_WEBHOOK_INFRA:?SLACK_WEBHOOK_INFRA must be set}
+    volumes:
+      - ./config/default.conf.template:/etc/nginx/templates/default.conf.template:ro,Z
+    networks:
+      - n8n-internal
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+
   n8n:
     image: docker.n8n.io/n8nio/n8n:2.26.8
     container_name: n8n
@@ -36,6 +56,8 @@ services:
     user: "1000:1000"
     depends_on:
       n8n-db:
+        condition: service_healthy
+      n8n-slack-relay:
         condition: service_healthy
     environment:
       TZ: ${TZ:-Asia/Seoul}
@@ -58,7 +80,6 @@ services:
       EXECUTIONS_DATA_PRUNE: "true"
       EXECUTIONS_DATA_MAX_AGE: "720"
       EXECUTIONS_DATA_PRUNE_MAX_COUNT: "500"
-      SLACK_WEBHOOK_INFRA: ${SLACK_WEBHOOK_INFRA:?SLACK_WEBHOOK_INFRA must be set}
     volumes:
       - ${DATA_ROOT:-/home/mgmt-data}/n8n/app:/home/node/.n8n:Z
       - ./workflows:/workflows:ro,Z

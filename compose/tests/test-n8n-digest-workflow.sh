@@ -55,7 +55,10 @@ grep -Fq 'khb' "$workflow" || fail "missing khb scope"
 grep -Fq 'ljw' "$workflow" || fail "missing ljw scope"
 grep -Fq 'nmg' "$workflow" || fail "missing nmg scope"
 grep -Fq 'oje' "$workflow" || fail "missing oje scope"
-grep -Fq 'SLACK_WEBHOOK_INFRA' "$workflow" || fail "missing Slack environment contract"
+grep -Fq 'http://n8n-slack-relay:8080/' "$workflow" || fail "missing Slack relay destination"
+if grep -Fq '$env' "$workflow"; then
+  fail "workflow must not access container environment variables"
+fi
 grep -Fq 'n8n import:workflow --input=/workflows/platform-digest.json' "$import_script" || fail "missing workflow import command"
 
 if grep -Eqi 'docker\\.sock|n8n-nodes-base\\.ssh|openstack' "$workflow"; then
