@@ -8,6 +8,13 @@ http:
       middlewares:
         - secure-headers
       service: k3d-ingress
+    k3d-chaos-dashboard:
+      rule: "Host(`chaos.imcherry5778.xyz`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - secure-headers
+      service: k3d-ingress
 
   services:
     k3d-ingress:
