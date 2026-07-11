@@ -41,7 +41,8 @@ services:
       - n8n-internal
       - mgmt-proxy
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/healthz"]
+      # nginx listens on IPv4; localhost may resolve to IPv6 first in Alpine.
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:8080/healthz"]
       interval: 15s
       timeout: 5s
       retries: 10
