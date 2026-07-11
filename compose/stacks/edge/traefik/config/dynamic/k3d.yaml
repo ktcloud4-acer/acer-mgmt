@@ -93,6 +93,6 @@ http:
   middlewares:
     redirect-mgmt-chaos:
       redirectRegex:
-        regex: '^https://chaos\\.imcherry5778\\.xyz/(.*)'
+        regex: '^https://chaos\.imcherry5778\.xyz/(.*)'
         replacement: 'https://mgmt-chaos.imcherry5778.xyz/$1'
         permanent: true
