@@ -133,15 +133,6 @@ template {
   perms       = "0640"
 }
 
-# A least-privilege kubeconfig used only by the Semaphore token-issuer task.
-# The source secret is populated during the post-GitOps bootstrap and is never
-# committed to this repository.
-template {
-  contents    = "{{ with secret \"kv/data/mgmt/chaos-dashboard-token-issuer\" }}{{ .Data.data.kubeconfig }}{{ end }}"
-  destination = "/vault/secrets/cicd/chaos-dashboard-token-issuer.kubeconfig"
-  perms       = "0644"
-}
-
 # gitlab compose env 파일.
 template {
   contents    = "{{ with secret \"kv/data/mgmt/common\" }}ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/gitlab\" }}GITLAB_OIDC_CLIENT_SECRET={{ .Data.data.oidc_client_secret }}\n{{ end }}"
