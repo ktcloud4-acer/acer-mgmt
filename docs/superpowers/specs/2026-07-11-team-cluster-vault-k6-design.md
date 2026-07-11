@@ -68,9 +68,10 @@ the ExternalSecret manifests and never connection credentials.
    a Semaphore secret.
 3. A Git-tracked task manifest maps each Semaphore project to its public API
    base URL and Vault secret path. The manifest does not hold any token.
-4. At task start, the runner receives that project’s short-lived API credential
-   from Vault and invokes the same checked-in k6 script. The task can override
-   non-secret rate and duration only.
+4. At task start, the runner reads its team’s Vault Agent-rendered `K6_DEMO_API_KEY`
+   file and invokes the same checked-in k6 script. This key is accepted only by
+   the read-only `GET /api/demo/state` endpoint; normal API routes still require
+   a Supabase JWT. The task can override non-secret rate and duration only.
 5. The load originates from the mgmt Semaphore runner, while the selected
    team’s API HPA reacts inside the selected target cluster.
 

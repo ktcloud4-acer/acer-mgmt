@@ -6,31 +6,29 @@ Run an operator-triggered k6 test from Semaphore and capture ScaleCart API HPA s
 
 ## Preconditions
 
-- The `acer-mgmt` Semaphore service is running from `acer/semaphore-k6:v2.18.25-k6.1.0.0-rc2`.
+- The `acer-mgmt` Semaphore service is running from `acer/semaphore-k6-kubectl:v2.18.25-k6.1.0.0-rc2-kubectl.1.35.6`.
 - Grafana has provisioned **ScaleCart API HPA Load Demo**.
 - Argo CD has synced the ScaleCart API image containing `apiDeployment` and `apiHpa` observability fields.
-- API HPA is idle at current/desired replicas `2 / 2`.
-- A current, protected `K6_ACCESS_TOKEN` with the ScaleCart `authenticated` audience is stored in Semaphore. Do not put the token in Git, a task log, or a command-line argument.
+- The selected team API HPA is idle at current/desired replicas `2 / 2`.
+- Vault Agent has rendered five files at `/home/mgmt-data/vault-agent/secrets/cicd/k6/*.env`. These files are mounted read-only into Semaphore; neither a user JWT nor a k6 key is stored in Semaphore.
 
 ## Semaphore task
 
-Create a Bash template in the `acer-mgmt` project.
+The reconciler creates one Bash template named **ScaleCart API HPA Load Test** in every team project. Select the project matching the cluster to demonstrate; do not use `acer-mgmt` for a team load test.
 
-| Setting | Value |
+| Semaphore project | Target URL | Vault key path |
 | --- | --- |
-| Template name | `load:scalecart-api-hpa` |
-| Repository | `acer-mgmt` on `main` |
-| Playbook | `compose/scripts/k6/run-scalecart-api-hpa.sh` |
-| `K6_BASE_URL` | `https://nmg.imcherry5778.xyz` |
-| `K6_RATE` | `150` |
-| `K6_DURATION` | `4m` |
-| `K6_ACCESS_TOKEN` | protected Semaphore secret |
+| `acer-aio-ggg` | `https://ggg.imcherry5778.xyz` | `kv/mgmt/k6/ggg` |
+| `acer-aio-khb` | `https://khb.imcherry5778.xyz` | `kv/mgmt/k6/khb` |
+| `acer-aio-ljw` | `https://ljw.imcherry5778.xyz` | `kv/mgmt/k6/ljw` |
+| `acer-aio-nmg` | `https://nmg.imcherry5778.xyz` | `kv/mgmt/k6/nmg` |
+| `acer-aio-oje` | `https://oje.imcherry5778.xyz` | `kv/mgmt/k6/oje` |
 
-The script targets the authenticated, read-only `GET /api/demo/state` endpoint. It ramps from 20 RPS to the configured rate over two minutes, holds the rate, then ramps down over 30 seconds. The task fails when HTTP failures reach 1%, named-endpoint P95 exceeds one second, or checks fall below 99%.
+Only `K6_RATE` and `K6_DURATION` are user-overridable. The runner sources the selected team key file and calls read-only `GET /api/demo/state` with `X-K6-Demo-Key`. The API accepts this key only for that one GET endpoint; all other API routes continue to require a Supabase JWT. k6 ramps from 20 RPS to the configured rate over two minutes, holds the rate, then ramps down over 30 seconds. The task fails when HTTP failures reach 1%, named-endpoint P95 exceeds one second, or checks fall below 99%.
 
 ## Demo procedure
 
-1. Open the ScaleCart Dashboard, Grafana **ScaleCart API HPA Load Demo**, and the Semaphore template run page.
+1. Open the selected team's ScaleCart Dashboard, its Grafana **ScaleCart API HPA Load Demo**, and that team's Semaphore template run page.
 2. Confirm Grafana reports API HPA current and desired replicas as `2` and ScaleCart Dashboard reports `API replicas 2 / 2`.
 3. Start the Semaphore task manually. Do not schedule it.
 4. In Grafana, record the request-rate/P95 panel, API CPU utilisation panel, and the desired/current replica timeline.
