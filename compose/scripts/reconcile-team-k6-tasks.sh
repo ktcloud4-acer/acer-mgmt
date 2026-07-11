@@ -42,12 +42,12 @@ jq -c '.[]' "$manifest" | while IFS= read -r entry; do
   repository_id="$(api_get "/project/$project_id/repositories" | jq -r '.[] | select(.name == "ScaleCart k6 automation") | .id' | head -n1)"
   if [ -z "$repository_id" ] || [ "$repository_id" = null ]; then
     none_key_id="$(api_get "/project/$project_id/keys" | jq -r '.[] | select(.type == "none") | .id' | head -n1)"
-    jq -n --arg name 'ScaleCart k6 automation' --arg path /opt/acer-mgmt --argjson key "$none_key_id" '{name:$name,git_url:$path,git_branch:"main",ssh_key_id:$key}' >"$tmp_dir/repository.json"
+    jq -n --arg name 'ScaleCart k6 automation' --arg path /opt/acer-mgmt --argjson key "$none_key_id" --argjson project "$project_id" '{name:$name,project_id:$project,git_url:$path,git_branch:"main",ssh_key_id:$key}' >"$tmp_dir/repository.json"
     repository_id="$(api_post "/project/$project_id/repositories" "$tmp_dir/repository.json" | jq -r '.id')"
   fi
 
   environment_id="$(api_get "/project/$project_id/environment" | jq -r '.[] | select(.name == "ScaleCart k6 target") | .id' | head -n1)"
-  jq -n --arg team "$team" --arg url "$base_url" '{name:"ScaleCart k6 target",json:"{}",env:{K6_TEAM:$team,K6_BASE_URL:$url}|tojson}' >"$tmp_dir/environment.json"
+  jq -n --arg team "$team" --arg url "$base_url" --argjson project "$project_id" '{name:"ScaleCart k6 target",project_id:$project,json:"{}",env:{K6_TEAM:$team,K6_BASE_URL:$url}|tojson}' >"$tmp_dir/environment.json"
   if [ -z "$environment_id" ] || [ "$environment_id" = null ]; then
     environment_id="$(api_post "/project/$project_id/environment" "$tmp_dir/environment.json" | jq -r '.id')"
   else
