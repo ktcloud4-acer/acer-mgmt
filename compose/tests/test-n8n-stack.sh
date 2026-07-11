@@ -23,7 +23,9 @@ assert_contains() {
 assert_not_contains() {
   local file="$1"
   local unexpected="$2"
-  grep -Fq -- "$unexpected" "$file" && fail "unexpected '${unexpected}' in ${file}"
+  if grep -Fq -- "$unexpected" "$file"; then
+    fail "unexpected '${unexpected}' in ${file}"
+  fi
 }
 
 stack="${REPO_ROOT}/compose/stacks/observability/n8n/compose.yaml"
