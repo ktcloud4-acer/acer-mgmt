@@ -30,6 +30,8 @@ assert_contains "$bootstrap_script" 'argocd-cluster-reader'
 assert_contains "$bootstrap_script" 'external-secrets'
 assert_contains "$bootstrap_script" 'vault-auth-token'
 assert_contains "$bootstrap_script" 'kubectl create namespace external-secrets'
+assert_contains "$bootstrap_script" 'vault write auth/kubernetes-mgmt/config "@$2"'
+assert_contains "$bootstrap_script" 'cat > "$2"'
 assert_contains "$bootstrap_script" 'umask 077'
 
 echo 'ARGOCD_CLUSTER_VAULT_SYNC_VALIDATION=PASS'
