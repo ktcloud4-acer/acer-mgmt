@@ -38,6 +38,7 @@ grep -Fq 'K6_KEY_FILE_ROOT:-/run/vault-k6' "$runner" || fail "runner does not us
 grep -Fq '${K6_TEAM}.env' "$runner" || fail "runner does not select a team-specific Vault key file"
 grep -Fq 'K6_RATE' "$runner" || fail "runner does not permit rate override"
 grep -Fq 'K6_DURATION' "$runner" || fail "runner does not permit duration override"
+grep -Fq 'exec bash ./compose/scripts/k6/run-scalecart-api-hpa.sh' "$runner" || fail "runner must invoke the checked-in k6 script without relying on execute bits"
 grep -Fq '/opt/acer-mgmt:ro' "$compose_file" || fail "Semaphore lacks the read-only automation repository mount"
 grep -Fq '/run/vault-k6:ro' "$compose_file" || fail "Semaphore lacks the read-only k6 key mount"
 grep -Fq 'kv/data/mgmt/k6/ggg' "$agent_config" || fail "Vault Agent lacks the ggg k6 key template"
