@@ -13,12 +13,14 @@ assert_not_contains() { ! grep -Fq -- "$2" "$1" || fail "did not expect '$2' in 
 
 assert_contains "$dockerfile" 'KUBECTL_VERSION=v1.35.6'
 assert_contains "$dockerfile" 'kubectl'
-assert_contains "$compose_file" '/vault-agent/secrets/cicd/chaos-dashboard-token-issuer.kubeconfig:/run/secrets/chaos-dashboard-token-issuer.kubeconfig:ro,z'
-assert_contains "$vault_agent" 'kv/data/mgmt/chaos-dashboard-token-issuer'
-assert_contains "$vault_agent" 'destination = "/vault/secrets/cicd/chaos-dashboard-token-issuer.kubeconfig"'
+assert_not_contains "$compose_file" 'chaos-dashboard-token-issuer.kubeconfig'
+assert_not_contains "$vault_agent" 'kv/data/mgmt/chaos-dashboard-token-issuer'
 assert_contains "$script" 'create token chaos-dashboard-manager --duration="${CHAOS_DASHBOARD_TOKEN_DURATION:-10m}"'
 assert_contains "$script" 'CHAOS_DASHBOARD_TOKEN_DURATION'
-assert_contains "$script" 'KUBECONFIG:-/run/secrets/chaos-dashboard-token-issuer.kubeconfig'
+assert_contains "$script" 'CHAOS_TOKEN_ISSUER_KUBECONFIG_B64'
+assert_contains "$script" 'base64 -d'
+assert_contains "$script" 'serviceaccounts/chaos-dashboard-manager'
+assert_contains "$script" '--subresource=token'
 assert_not_contains "$script" 'ssh '
 assert_not_contains "$script" 'cluster-admin'
 
@@ -38,11 +40,11 @@ fi
 exit 1
 SH
 chmod +x "$tmp/bin/kubectl"
-touch "$tmp/issuer.kubeconfig"
-PATH="$tmp/bin:$PATH" KUBECTL_LOG="$tmp/kubectl.log" KUBECONFIG="$tmp/issuer.kubeconfig" \
+PATH="$tmp/bin:$PATH" KUBECTL_LOG="$tmp/kubectl.log" \
+  CHAOS_TOKEN_ISSUER_KUBECONFIG_B64="$(printf 'test-kubeconfig' | base64 | tr -d '\n')" \
   "$script" >"$tmp/output"
 assert_contains "$tmp/output" 'test-dashboard-token'
-assert_contains "$tmp/kubectl.log" '-n chaos-mesh auth can-i create serviceaccounts/token --resource-name=chaos-dashboard-manager --quiet'
+assert_contains "$tmp/kubectl.log" '-n chaos-mesh auth can-i create serviceaccounts/chaos-dashboard-manager --subresource=token --quiet'
 assert_contains "$tmp/kubectl.log" '-n chaos-mesh create token chaos-dashboard-manager --duration=10m'
 
 echo 'SEMAPHORE_CHAOS_DASHBOARD_TOKEN_VALIDATION=PASS'
