@@ -14,6 +14,8 @@ for dashboard in kubernetes_nodes opencost_node_cost opencost_namespace_cost ope
   file="${DASHBOARD_DIR}/${dashboard}.json"
   [[ -f "$file" ]] || fail "missing template dashboard: $file"
   jq empty "$file"
+  uid="$(jq -r '.uid' "$file")"
+  [[ ${#uid} -le 40 ]] || fail "Grafana dashboard UID exceeds 40 characters: $file"
   assert_contains "$file" '"type": "query"'
   assert_contains "$file" '"name": "cluster"'
 done
