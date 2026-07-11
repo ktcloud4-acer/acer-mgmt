@@ -7,7 +7,7 @@ DATA_ROOT=${DATA_ROOT:-/home/mgmt-data}
 teams=(ggg khb ljw nmg oje)
 
 command -v docker >/dev/null 2>&1 || { echo 'docker is required' >&2; exit 1; }
-sudo install -d -m 0700 "${DATA_ROOT}/vault-agent/secrets/cicd/k6"
+sudo install -d -o 100 -g user1 -m 0750 "${DATA_ROOT}/vault-agent/secrets/cicd/k6"
 
 for team in "${teams[@]}"; do
   docker exec "$VAULT_CONTAINER" sh -ceu '
