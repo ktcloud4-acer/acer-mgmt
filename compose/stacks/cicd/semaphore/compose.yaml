@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: acer/semaphore-k6:v2.18.25-k6.1.0.0-rc2
+    image: acer/semaphore-k6-kubectl:v2.18.25-k6.1.0.0-rc2-kubectl.1.35.6
     container_name: semaphore
     restart: unless-stopped
     depends_on:
@@ -32,6 +32,8 @@ services:
     networks:
       - default
       - mgmt-proxy
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/cicd/chaos-dashboard-token-issuer.kubeconfig:/run/secrets/chaos-dashboard-token-issuer.kubeconfig:ro,z
     healthcheck:
       test: ["CMD-SHELL", "wget --spider -q http://localhost:3000/api/ping || exit 1"]
       interval: 15s
