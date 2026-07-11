@@ -16,7 +16,7 @@ for team in "${teams[@]}"; do
     export VAULT_CACERT=/vault/tls/ca.crt
     export VAULT_TOKEN="$(cat /tmp/.vt)"
     key="$(vault kv get -mount=kv -field=K6_DEMO_API_KEY "apps/scalecart/${team}" 2>/dev/null || true)"
-    if [ -z "$key" ]; then key="$(openssl rand -hex 32)"; fi
+    if [ -z "$key" ]; then key="$(dd if=/dev/urandom bs=32 count=1 2>/dev/null | od -An -tx1 | tr -d " \\n")"; fi
     app_payload="/tmp/k6-app-${team}.json"
     runner_payload="/tmp/k6-runner-${team}.json"
     trap "rm -f \"$app_payload\" \"$runner_payload\"" EXIT
