@@ -25,10 +25,15 @@ assert_not_contains() {
 dashy_compose="${DASHY_ROOT}/compose.yaml"
 dashy_config="${DASHY_ROOT}/config/conf.yml"
 status_config="${DASHY_ROOT}/config/status.yml"
+middlewares_config="${REPO_ROOT}/compose/stacks/edge/traefik/config/dynamic/middlewares.yaml"
+grafana_compose="${REPO_ROOT}/compose/stacks/observability/grafana/compose.yaml"
 
 for file in "$dashy_compose" "$dashy_config"; do
   assert_file "$file"
 done
+
+assert_file "$middlewares_config"
+assert_file "$grafana_compose"
 
 assert_contains "$dashy_compose" "image: ghcr.io/lissy93/dashy:4.1.5"
 assert_contains "$dashy_compose" "./config:/app/user-data:ro,Z"
@@ -57,5 +62,7 @@ assert_not_contains "$dashy_config" "hideFromWorkspace:"
 assert_not_contains "$dashy_config" "Grafana Operations Summary"
 assert_not_contains "$dashy_config" "disableContextMenu: true"
 assert_not_contains "$dashy_config" ".png"
+assert_not_contains "$middlewares_config" "frameDeny: true"
+assert_contains "$grafana_compose" 'GF_SECURITY_ALLOW_EMBEDDING: "true"'
 
 echo "Dashy service index configuration tests passed"

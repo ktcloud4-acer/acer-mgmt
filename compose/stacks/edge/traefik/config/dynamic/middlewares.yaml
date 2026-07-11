@@ -3,7 +3,8 @@ http:
   middlewares:
     secure-headers:
       headers:
-        frameDeny: true
+        # DEMO MODE: permit Dashy's modal and Workspace iframe views.
+        # Re-enable frameDeny before exposing this environment beyond the demo.
         contentTypeNosniff: true
         browserXssFilter: true
         stsSeconds: 31536000

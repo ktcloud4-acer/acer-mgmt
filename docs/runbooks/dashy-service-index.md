@@ -1,7 +1,11 @@
 # Dashy Service Index Deployment
 
-Dashy is a Keycloak-protected service index deployed alongside Homepage.  It
-does not collect monitoring data, embed privileged services, or change Grafana.
+Dashy is a Keycloak-protected service index deployed alongside Homepage. It
+does not collect monitoring data. The current **demo mode** permits iframe
+views globally through Traefik and enables Grafana embedding, so Dashy's modal
+and Workspace opening methods can be demonstrated. This is not a production
+security profile; restore `frameDeny: true` and remove
+`GF_SECURITY_ALLOW_EMBEDDING` before production exposure.
 
 Run `bash compose/tests/test-dashy-service-index.sh` from the repository root
 before deployment.
@@ -33,7 +37,7 @@ remain reachable.
 After signing in as `platform-admin`, verify the seven service groups and that
 a normal left-click opens a service in a new tab. Dashy's built-in right-click
 context menu remains enabled so operators can choose another supported opening
-method, including modal or Workspace.
+method, including modal or Workspace. Grafana must render in both iframe modes.
 
 ## Rollback
 
