@@ -1,7 +1,12 @@
 # Semaphore UI + PostgreSQL
 
+x-semaphore-vault-env: &semaphore-vault-env
+  env_file:
+    - ${SEMAPHORE_VAULT_ENV_FILE:-/home/mgmt-data/vault-agent/secrets/cicd/semaphore.env}
+
 services:
   semaphore:
+    <<: *semaphore-vault-env
     build:
       context: .
       dockerfile: Dockerfile
@@ -19,14 +24,9 @@ services:
       SEMAPHORE_DB: semaphore
       SEMAPHORE_DB_NAME: semaphore
       SEMAPHORE_DB_USER: semaphore
-      SEMAPHORE_DB_PASS: ${SEMAPHORE_DB_PASSWORD:?SEMAPHORE_DB_PASSWORD must be set}
       SEMAPHORE_ADMIN: ${SEMAPHORE_ADMIN_USER:-admin}
       SEMAPHORE_ADMIN_NAME: Administrator
       SEMAPHORE_ADMIN_EMAIL: admin@${BASE_DOMAIN}
-      SEMAPHORE_ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD must be set}
-      SEMAPHORE_ACCESS_KEY_ENCRYPTION: ${SEMAPHORE_ACCESS_KEY_ENCRYPTION:?SEMAPHORE_ACCESS_KEY_ENCRYPTION must be set}
-      SEMAPHORE_COOKIE_HASH: ${SEMAPHORE_COOKIE_HASH:?SEMAPHORE_COOKIE_HASH must be set}
-      SEMAPHORE_COOKIE_ENCRYPTION: ${SEMAPHORE_COOKIE_ENCRYPTION:?SEMAPHORE_COOKIE_ENCRYPTION must be set}
       SEMAPHORE_SCHEDULE_TIMEZONE: ${TZ:-Asia/Seoul}
       SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore
     networks:
@@ -47,6 +47,7 @@ services:
       - "traefik.http.services.semaphore.loadbalancer.server.port=3000"
 
   semaphore-db:
+    <<: *semaphore-vault-env
     image: postgres:17-alpine
     container_name: semaphore-db
     restart: unless-stopped
@@ -54,7 +55,6 @@ services:
     environment:
       POSTGRES_DB: semaphore
       POSTGRES_USER: semaphore
-      POSTGRES_PASSWORD: ${SEMAPHORE_DB_PASSWORD:?SEMAPHORE_DB_PASSWORD must be set}
     volumes:
       - semaphore-postgres:/var/lib/postgresql/data
     networks:

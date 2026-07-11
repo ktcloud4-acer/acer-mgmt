@@ -128,8 +128,17 @@ template {
 
 # semaphore compose env 파일. compose.yaml 이 기대하는 변수명으로 렌더한다.
 template {
-  contents    = "{{ with secret \"kv/data/mgmt/semaphore\" }}SEMAPHORE_DB_PASSWORD={{ .Data.data.db_password }}\nSEMAPHORE_ACCESS_KEY_ENCRYPTION={{ .Data.data.access_key_encryption }}\nSEMAPHORE_COOKIE_HASH={{ .Data.data.cookie_hash }}\nSEMAPHORE_COOKIE_ENCRYPTION={{ .Data.data.cookie_encryption }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}"
+  contents    = "{{ with secret \"kv/data/mgmt/semaphore\" }}SEMAPHORE_DB_PASS={{ .Data.data.db_password }}\nSEMAPHORE_ACCESS_KEY_ENCRYPTION={{ .Data.data.access_key_encryption }}\nSEMAPHORE_COOKIE_HASH={{ .Data.data.cookie_hash }}\nSEMAPHORE_COOKIE_ENCRYPTION={{ .Data.data.cookie_encryption }}\nPOSTGRES_PASSWORD={{ .Data.data.db_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}SEMAPHORE_ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}"
   destination = "/vault/secrets/cicd/semaphore.env"
+  perms       = "0640"
+}
+
+# Central Chaos Dashboard issuer kubeconfig. This file is read only by the
+# Semaphore reconciliation job, which imports it as one encrypted task-scoped
+# environment variable; it is not mounted into every Semaphore task.
+template {
+  contents    = "CHAOS_TOKEN_ISSUER_KUBECONFIG_B64={{ with secret \"kv/data/mgmt/chaos-dashboard-token-issuer\" }}{{ .Data.data.kubeconfig_b64 }}{{ end }}\n"
+  destination = "/vault/secrets/cicd/chaos-dashboard-token-issuer.env"
   perms       = "0640"
 }
 
