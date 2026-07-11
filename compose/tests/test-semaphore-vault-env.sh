@@ -10,6 +10,7 @@ assert_not_contains() { ! grep -Fq -- "$2" "$1" || fail "did not expect '$2' in 
 
 compose_file="${REPO_ROOT}/compose/stacks/cicd/semaphore/compose.yaml"
 vault_agent="${REPO_ROOT}/compose/stacks/security/vault-agent/config/agent.hcl"
+issuer_bootstrap="${REPO_ROOT}/compose/scripts/bootstrap-vault-chaos-dashboard-issuer.sh"
 
 assert_contains "$compose_file" 'SEMAPHORE_VAULT_ENV_FILE:-/home/mgmt-data/vault-agent/secrets/cicd/semaphore.env'
 assert_contains "$compose_file" 'env_file:'
@@ -25,5 +26,11 @@ assert_contains "$vault_agent" 'SEMAPHORE_ADMIN_PASSWORD='
 assert_contains "$vault_agent" 'kv/data/mgmt/chaos-dashboard-token-issuer'
 assert_contains "$vault_agent" 'destination = "/vault/secrets/cicd/chaos-dashboard-token-issuer.env"'
 assert_contains "$vault_agent" 'CHAOS_TOKEN_ISSUER_KUBECONFIG_B64='
+
+assert_contains "$issuer_bootstrap" 'chaos-dashboard-token-issuer'
+assert_contains "$issuer_bootstrap" 'kubernetes.io/service-account-token'
+assert_contains "$issuer_bootstrap" 'mgmt/chaos-dashboard-token-issuer'
+assert_contains "$issuer_bootstrap" 'vault kv put -mount=kv'
+assert_not_contains "$issuer_bootstrap" 'cluster-admin'
 
 echo 'SEMAPHORE_VAULT_ENV_VALIDATION=PASS'
