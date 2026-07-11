@@ -69,25 +69,25 @@ scrape_configs:
       - targets: ['https://teleport.imcherry5778.xyz:3080/webapi/ping']
         labels: {team: platform, channel: infra, service: teleport, scope: infra, cluster: mgmt}
       - targets: ['https://nmg-operator.tailc0244b.ts.net/livez']
-        labels: {team: nmg, channel: infra, service: nmg-api, scope: team, cluster: nmg}
+        labels: {team: nmg, channel: infra, service: nmg-api, scope: team, cluster: nmg, lifecycle: standby}
       - targets: ['https://nmg.imcherry5778.xyz/']
-        labels: {team: nmg, channel: infra, service: nmg-dashboard, scope: team, cluster: nmg}
+        labels: {team: nmg, channel: infra, service: nmg-dashboard, scope: team, cluster: nmg, lifecycle: standby}
       - targets: ['https://ggg-operator.tailc0244b.ts.net/livez']
-        labels: {team: ggg, channel: infra, service: ggg-api, scope: team, cluster: ggg}
+        labels: {team: ggg, channel: infra, service: ggg-api, scope: team, cluster: ggg, lifecycle: active}
       - targets: ['https://ggg.imcherry5778.xyz/']
-        labels: {team: ggg, channel: infra, service: ggg-dashboard, scope: team, cluster: ggg}
+        labels: {team: ggg, channel: infra, service: ggg-dashboard, scope: team, cluster: ggg, lifecycle: active}
       - targets: ['https://oje-operator.tailc0244b.ts.net/livez']
-        labels: {team: oje, channel: infra, service: oje-api, scope: team, cluster: oje}
+        labels: {team: oje, channel: infra, service: oje-api, scope: team, cluster: oje, lifecycle: standby}
       - targets: ['https://oje.imcherry5778.xyz/']
-        labels: {team: oje, channel: infra, service: oje-dashboard, scope: team, cluster: oje}
+        labels: {team: oje, channel: infra, service: oje-dashboard, scope: team, cluster: oje, lifecycle: standby}
       - targets: ['https://khb-operator.tailc0244b.ts.net/livez']
-        labels: {team: khb, channel: infra, service: khb-api, scope: team, cluster: khb}
+        labels: {team: khb, channel: infra, service: khb-api, scope: team, cluster: khb, lifecycle: standby}
       - targets: ['https://khb.imcherry5778.xyz/']
-        labels: {team: khb, channel: infra, service: khb-dashboard, scope: team, cluster: khb}
+        labels: {team: khb, channel: infra, service: khb-dashboard, scope: team, cluster: khb, lifecycle: standby}
       - targets: ['https://ljw-operator.tailc0244b.ts.net/livez']
-        labels: {team: ljw, channel: infra, service: ljw-api, scope: team, cluster: ljw}
+        labels: {team: ljw, channel: infra, service: ljw-api, scope: team, cluster: ljw, lifecycle: standby}
       - targets: ['https://ljw.imcherry5778.xyz/']
-        labels: {team: ljw, channel: infra, service: ljw-dashboard, scope: team, cluster: ljw}
+        labels: {team: ljw, channel: infra, service: ljw-dashboard, scope: team, cluster: ljw, lifecycle: standby}
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target

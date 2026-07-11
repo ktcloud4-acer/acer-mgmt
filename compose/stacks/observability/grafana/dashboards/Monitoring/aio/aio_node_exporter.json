@@ -1029,39 +1029,22 @@
         },
         "hide": 0,
         "includeAll": false,
-        "label": "Scrape path (cluster agent)",
+        "label": "Active scrape path (cluster agent)",
         "multi": false,
         "name": "cluster",
-        "options": [
-          {
-            "selected": true,
-            "text": "ggg",
-            "value": "ggg"
-          },
-          {
-            "selected": false,
-            "text": "khb",
-            "value": "khb"
-          },
-          {
-            "selected": false,
-            "text": "ljw",
-            "value": "ljw"
-          },
-          {
-            "selected": false,
-            "text": "nmg",
-            "value": "nmg"
-          },
-          {
-            "selected": false,
-            "text": "oje",
-            "value": "oje"
-          }
-        ],
-        "query": "ggg,khb,ljw,nmg,oje",
+        "options": [],
+        "query": {
+          "query": "label_values(up{job=\"host-vm\"}, cluster)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
         "skipUrlSync": false,
-        "type": "custom"
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(up{job=\"host-vm\"}, cluster)",
+        "refresh": 1
       }
     ]
   },
@@ -1071,7 +1054,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "AIO VM Resources via Cluster Scrape Path",
+  "title": "AIO VM Resources via Active Cluster Scrape Path",
   "uid": "aio-host-node-exporter",
   "version": 2,
   "weekStart": ""

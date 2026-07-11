@@ -1,4 +1,14 @@
 groups:
+  - name: cluster-lifecycle
+    interval: 1m
+    rules:
+      - record: cluster_monitoring_enabled
+        expr: |
+          label_replace(vector(1), "cluster", "ggg", "__name__", ".*")
+          or label_replace(vector(0), "cluster", "nmg", "__name__", ".*")
+          or label_replace(vector(0), "cluster", "oje", "__name__", ".*")
+          or label_replace(vector(0), "cluster", "khb", "__name__", ".*")
+          or label_replace(vector(0), "cluster", "ljw", "__name__", ".*")
   - name: infra-endpoints
     interval: 1m
     rules:
@@ -18,7 +28,7 @@ groups:
           summary: "{{ $labels.service }} endpoint가 10분 이상 정상 응답하지 않습니다."
           description: "외부 접근 경로 기준의 핵심 관측 endpoint 알림입니다. Traefik 라우팅, TLS/DNS, 대상 컨테이너 상태를 확인하세요."
       - alert: TeamEndpointDown
-        expr: probe_success{job="blackbox-http",scope="team"} == 0
+        expr: (probe_success{job="blackbox-http",scope="team",lifecycle="active"} == 0) and on(cluster) (cluster_monitoring_enabled == 1)
         for: 15m
         labels:
           severity: warning
