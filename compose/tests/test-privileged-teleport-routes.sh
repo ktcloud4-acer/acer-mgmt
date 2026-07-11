@@ -21,7 +21,7 @@ assert_contains() {
 
 assert_contains "$teleport_config" "name: adguard"
 assert_contains "$teleport_config" "public_addr: adguard.teleport.imcherry5778.xyz"
-if grep -Eq 'public_addr: .*:3080' "$teleport_config"; then
+if sed -n '/^  apps:/,$p' "$teleport_config" | grep -Eq '^[[:space:]]+public_addr: .*:3080'; then
   fail "Teleport application public_addr must not contain a proxy port"
 fi
 assert_contains "$teleport_config" "name: traefik"
