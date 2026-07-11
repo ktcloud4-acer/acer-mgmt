@@ -18,6 +18,7 @@ grep -Fq 'externalsecret scalecart' "$script" || fail "ScaleCart ExternalSecret 
 grep -Fq 'force-sync=' "$script" || fail "force-sync annotation is missing"
 grep -Fq 'insecure-skip-tls-verify' "$script" || fail "Argo cluster TLS mode must be preserved"
 grep -Fq 'else {server: $server}' "$script" || fail "system-trust TLS mode must be preserved"
+grep -Fq -- '--request-timeout=15s' "$script" || fail "cluster refresh requests must time out safely"
 ! grep -Fq 'echo "$token"' "$script" || fail "token must not be printed"
 
 echo "TEAM_EXTERNAL_SECRET_REFRESH_VALIDATION=PASS"
