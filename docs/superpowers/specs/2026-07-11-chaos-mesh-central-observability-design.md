@@ -41,8 +41,8 @@ Add a provisioned Grafana dashboard named **Chaos Mesh Resilience Overview** und
 
 The dashboard contains:
 
-1. Cluster and namespace variables.
-2. Controller scrape availability (`up`).
+1. A fixed five-cluster selector (`ggg`, `khb`, `ljw`, `nmg`, `oje`) and an experiment namespace variable.
+2. Controller scrape availability (`up`), with a zero-valued fallback for each configured cluster that has no telemetry so it is shown as Unavailable.
 3. Current experiments grouped by cluster, kind, experiment namespace, and phase from `chaos_controller_manager_chaos_experiments`. Prometheus reserves `namespace` for the scrape target, so the dashboard uses the metric's `exported_namespace` label for the experiment target namespace.
 4. Chaos warning-event rate from `chaos_controller_manager_emitted_event_total`.
 5. ScaleCart API request rate, error rate, and latency using the existing remote-written application metrics when available.
