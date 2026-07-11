@@ -43,7 +43,7 @@ for team in "${teams[@]}"; do
     }
   ' >"$kubeconfig_file"
 
-  KUBECONFIG="$kubeconfig_file" kubectl -n scalecart annotate externalsecret scalecart "force-sync=$refresh_stamp" --overwrite >/dev/null
+  KUBECONFIG="$kubeconfig_file" kubectl --request-timeout=15s -n scalecart annotate externalsecret scalecart "force-sync=$refresh_stamp" --overwrite >/dev/null
   rm -f "$kubeconfig_file"
   trap - RETURN
   echo "ExternalSecret refresh requested: $team"
