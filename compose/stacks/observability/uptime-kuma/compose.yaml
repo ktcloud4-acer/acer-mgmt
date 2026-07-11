@@ -1,0 +1,32 @@
+# Uptime Kuma — private outside-in status board for management and team paths.
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    container_name: uptime-kuma
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Seoul}
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/uptime-kuma:/app/data:Z
+    networks:
+      - default
+      - mgmt-proxy
+    healthcheck:
+      test: ["CMD", "extra/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.uptime-kuma.rule=Host(`kuma.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.uptime-kuma.entrypoints=websecure"
+      - "traefik.http.routers.uptime-kuma.middlewares=sso-auth@file,secure-headers@file"
+      - "traefik.http.services.uptime-kuma.loadbalancer.server.port=3001"
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true
