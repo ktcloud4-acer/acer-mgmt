@@ -53,15 +53,18 @@ assert_contains "$prometheus_compose" "--collector.textfile.directory=/textfile"
 assert_contains "$prometheus_compose" '${DATA_ROOT:-/home/mgmt-data}/node-exporter-textfile:/textfile:ro,Z'
 
 assert_contains "$blackbox_config" "http_2xx:"
+assert_contains "$blackbox_config" "http_3xx:"
+assert_contains "$blackbox_config" "dns_adguard:"
 assert_contains "$blackbox_config" "preferred_ip_protocol: ip4"
 
 assert_contains "$prometheus_config" "job_name: blackbox-http"
 assert_contains "$prometheus_config" "blackbox-exporter:9115"
 assert_contains "$prometheus_config" "https://grafana.imcherry5778.xyz/api/health"
 assert_contains "$prometheus_config" "https://alertmanager.imcherry5778.xyz/"
-assert_not_contains "$prometheus_config" "https://argocd.imcherry5778.xyz/"
+assert_contains "$prometheus_config" "https://argocd.imcherry5778.xyz/healthz"
 
 assert_contains "$endpoint_rules" "alert: InfraEndpointDown"
+assert_contains "$endpoint_rules" "alert: TeamEndpointDown"
 assert_contains "$endpoint_rules" "probe_success"
 assert_not_contains "$endpoint_rules" "alert: ArgoCdEndpointDown"
 assert_not_contains "$endpoint_rules" "scope: argocd"

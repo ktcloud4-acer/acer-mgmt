@@ -52,6 +52,104 @@ scrape_configs:
           service: alertmanager
           scope: infra
           cluster: mgmt
+      - targets: ['https://keycloak.imcherry5778.xyz/realms/mgmt/.well-known/openid-configuration']
+        labels: {team: platform, channel: infra, service: keycloak, scope: infra, cluster: mgmt}
+      - targets: ['https://vault.imcherry5778.xyz/v1/sys/health?standbyok=true&perfstandbyok=true']
+        labels: {team: platform, channel: infra, service: vault, scope: infra, cluster: mgmt}
+      - targets: ['https://harbor.imcherry5778.xyz/api/v2.0/health']
+        labels: {team: platform, channel: infra, service: harbor, scope: infra, cluster: mgmt}
+      - targets: ['https://argocd.imcherry5778.xyz/healthz']
+        labels: {team: platform, channel: infra, service: argocd, scope: infra, cluster: mgmt}
+      - targets: ['https://sonar.imcherry5778.xyz/api/system/status']
+        labels: {team: platform, channel: infra, service: sonar, scope: infra, cluster: mgmt}
+      - targets: ['https://kafka.imcherry5778.xyz/actuator/health']
+        labels: {team: platform, channel: infra, service: kafka, scope: infra, cluster: mgmt}
+      - targets: ['https://kibana.imcherry5778.xyz/api/status']
+        labels: {team: platform, channel: infra, service: kibana, scope: infra, cluster: mgmt}
+      - targets: ['https://teleport.imcherry5778.xyz:3080/webapi/ping']
+        labels: {team: platform, channel: infra, service: teleport, scope: infra, cluster: mgmt}
+      - targets: ['https://nmg-operator.tailc0244b.ts.net/livez']
+        labels: {team: nmg, channel: infra, service: nmg-api, scope: team, cluster: nmg}
+      - targets: ['https://nmg.imcherry5778.xyz/']
+        labels: {team: nmg, channel: infra, service: nmg-dashboard, scope: team, cluster: nmg}
+      - targets: ['https://ggg-operator.tailc0244b.ts.net/livez']
+        labels: {team: ggg, channel: infra, service: ggg-api, scope: team, cluster: ggg}
+      - targets: ['https://ggg.imcherry5778.xyz/']
+        labels: {team: ggg, channel: infra, service: ggg-dashboard, scope: team, cluster: ggg}
+      - targets: ['https://oje-operator.tailc0244b.ts.net/livez']
+        labels: {team: oje, channel: infra, service: oje-api, scope: team, cluster: oje}
+      - targets: ['https://oje.imcherry5778.xyz/']
+        labels: {team: oje, channel: infra, service: oje-dashboard, scope: team, cluster: oje}
+      - targets: ['https://khb-operator.tailc0244b.ts.net/livez']
+        labels: {team: khb, channel: infra, service: khb-api, scope: team, cluster: khb}
+      - targets: ['https://khb.imcherry5778.xyz/']
+        labels: {team: khb, channel: infra, service: khb-dashboard, scope: team, cluster: khb}
+      - targets: ['https://ljw-operator.tailc0244b.ts.net/livez']
+        labels: {team: ljw, channel: infra, service: ljw-api, scope: team, cluster: ljw}
+      - targets: ['https://ljw.imcherry5778.xyz/']
+        labels: {team: ljw, channel: infra, service: ljw-dashboard, scope: team, cluster: ljw}
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: target
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  - job_name: blackbox-http-3xx
+    metrics_path: /probe
+    params: {module: [http_3xx]}
+    static_configs:
+      - targets: ['https://gitlab.imcherry5778.xyz/']
+        labels: {team: platform, channel: infra, service: gitlab, scope: infra, cluster: mgmt}
+      - targets: ['https://minio.imcherry5778.xyz/minio/health/live']
+        labels: {team: platform, channel: infra, service: minio, scope: infra, cluster: mgmt}
+      - targets: ['https://n8n.imcherry5778.xyz/healthz']
+        labels: {team: platform, channel: infra, service: n8n, scope: infra, cluster: mgmt}
+      - targets: ['https://adguard.imcherry5778.xyz/control/status']
+        labels: {team: platform, channel: infra, service: adguard-ui, scope: infra, cluster: mgmt}
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: target
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  - job_name: blackbox-http-401
+    metrics_path: /probe
+    params: {module: [http_401]}
+    static_configs:
+      - targets: ['https://supabase.imcherry5778.xyz/rest/v1/']
+        labels: {team: platform, channel: infra, service: supabase, scope: infra, cluster: mgmt}
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: target
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  - job_name: blackbox-http-403
+    metrics_path: /probe
+    params: {module: [http_403]}
+    static_configs:
+      - targets: ['https://netbox.imcherry5778.xyz/api/status/']
+        labels: {team: platform, channel: infra, service: netbox, scope: infra, cluster: mgmt}
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: target
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  - job_name: blackbox-dns
+    metrics_path: /probe
+    params: {module: [dns_adguard]}
+    static_configs:
+      - targets: ['100.117.59.96:53']
+        labels: {team: platform, channel: infra, service: adguard-dns, scope: infra, cluster: mgmt}
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
