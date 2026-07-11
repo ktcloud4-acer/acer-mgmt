@@ -1,5 +1,5 @@
 # AdGuard Home — 내부 DNS 리졸버.
-#   서비스별 imcherry5778.xyz → 100.117.59.96 (tailnet) rewrite 를 UI 로 관리한다.
+#   *.imcherry5778.xyz → 100.117.59.96 (tailnet) 와일드카드 rewrite 를 UI 로 관리한다.
 #   Tailscale Split-DNS 로 imcherry5778.xyz 의 nameserver 를 이 리졸버(100.117.59.96)로
 #   지정하면 Cloudflare 없이 내부에서 모든 서브도메인이 해석된다.
 #   DNS(53)/UI(3000)는 tailnet IP 에만 바인딩(외부 미노출). traefik 라벨은 DNS 활성 후 서브도메인용.
