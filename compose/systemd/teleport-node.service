@@ -1,0 +1,18 @@
+[Unit]
+Description=Teleport Native SSH Node
+Documentation=https://goteleport.com/docs/enroll-resources/server-access/
+Wants=network-online.target
+After=network-online.target docker.service
+ConditionPathExists=/etc/teleport-node.yaml
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=/usr/local/bin/teleport start --config=/etc/teleport-node.yaml --pid-file=/run/teleport.pid --enable-selinux --ensure-selinux-enforcing
+ExecReload=/bin/sh -c "exec pkill -HUP -L -F /run/teleport.pid"
+PIDFile=/run/teleport.pid
+LimitNOFILE=524288
+
+[Install]
+WantedBy=multi-user.target

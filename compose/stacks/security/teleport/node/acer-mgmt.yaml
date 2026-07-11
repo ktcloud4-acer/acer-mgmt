@@ -1,0 +1,39 @@
+version: v3
+
+teleport:
+  nodename: acer-mgmt
+  data_dir: /var/lib/teleport-node
+  join_params:
+    token_name: /var/lib/teleport-node/join.token
+    method: token
+  proxy_server: teleport.imcherry5778.xyz:3080
+  log:
+    output: stderr
+    severity: INFO
+    format:
+      output: text
+
+auth_service:
+  enabled: false
+
+proxy_service:
+  enabled: false
+
+ssh_service:
+  enabled: true
+  permit_user_env: false
+  labels:
+    env: mgmt
+    owner: infra
+
+kubernetes_service:
+  enabled: false
+
+app_service:
+  enabled: false
+
+db_service:
+  enabled: false
+
+discovery_service:
+  enabled: false
