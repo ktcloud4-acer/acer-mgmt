@@ -7,6 +7,7 @@ reconciler="$root_dir/compose/scripts/reconcile-team-k6-tasks.sh"
 runner="$root_dir/compose/scripts/k6/semaphore-scalecart-api-hpa.sh"
 compose_file="$root_dir/compose/stacks/cicd/semaphore/compose.yaml"
 agent_config="$root_dir/compose/stacks/security/vault-agent/config/agent.hcl"
+bootstrap="$root_dir/compose/scripts/bootstrap-vault-k6-api-keys.sh"
 
 fail() {
   echo "TEAM_K6_PROJECTS_VALIDATION=FAIL: $*" >&2
@@ -38,5 +39,6 @@ grep -Fq '/opt/acer-mgmt:ro' "$compose_file" || fail "Semaphore lacks the read-o
 grep -Fq '/run/vault-k6:ro' "$compose_file" || fail "Semaphore lacks the read-only k6 key mount"
 grep -Fq 'kv/data/mgmt/k6/ggg' "$agent_config" || fail "Vault Agent lacks the ggg k6 key template"
 grep -Fq 'kv/data/mgmt/k6/oje' "$agent_config" || fail "Vault Agent lacks the oje k6 key template"
+grep -Fq 'install -d -p -m 0700' "$bootstrap" || fail "Vault k6 bootstrap must create nested render directories"
 
 echo "TEAM_K6_PROJECTS_VALIDATION=PASS"
