@@ -23,4 +23,4 @@ set -a
 set +a
 
 : "${K6_DEMO_API_KEY:?K6_DEMO_API_KEY is missing from the Vault-rendered key file}"
-exec ./compose/scripts/k6/run-scalecart-api-hpa.sh
+exec bash ./compose/scripts/k6/run-scalecart-api-hpa.sh
