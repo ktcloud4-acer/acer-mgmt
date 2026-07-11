@@ -26,16 +26,18 @@ for team in "${teams[@]}"; do
   server="$(printf '%s' "$secret_json" | jq -er '.data.server' | base64 -d)"
   config="$(printf '%s' "$secret_json" | jq -er '.data.config' | base64 -d)"
   token="$(printf '%s' "$config" | jq -er '.bearerToken')"
-  ca_data="$(printf '%s' "$config" | jq -er '.tlsClientConfig.caData')"
+  insecure="$(printf '%s' "$config" | jq -r '.tlsClientConfig.insecure // false')"
+  ca_data="$(printf '%s' "$config" | jq -r '.tlsClientConfig.caData // ""')"
+  [[ "$insecure" = true || -n "$ca_data" ]] || { echo "missing TLS configuration for $team" >&2; exit 1; }
   kubeconfig_file="$(mktemp)"
   cleanup() { rm -f "$kubeconfig_file"; }
   trap cleanup RETURN
 
-  jq -n --arg server "$server" --arg ca "$ca_data" --arg token "$token" '
+  jq -n --arg server "$server" --arg ca "$ca_data" --arg token "$token" --argjson insecure "$insecure" '
     {
       apiVersion: "v1",
       kind: "Config",
-      clusters: [{name: "target", cluster: {server: $server, "certificate-authority-data": $ca}}],
+      clusters: [{name: "target", cluster: (if $insecure then {server: $server, "insecure-skip-tls-verify": true} else {server: $server, "certificate-authority-data": $ca} end)}],
       contexts: [{name: "target", context: {cluster: "target", user: "argocd"}}],
       "current-context": "target",
       users: [{name: "argocd", user: {token: $token}}]
