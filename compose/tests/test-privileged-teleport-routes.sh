@@ -20,7 +20,10 @@ assert_contains() {
 }
 
 assert_contains "$teleport_config" "name: adguard"
-assert_contains "$teleport_config" "public_addr: adguard.teleport.imcherry5778.xyz:3080"
+assert_contains "$teleport_config" "public_addr: adguard.teleport.imcherry5778.xyz"
+if grep -Eq 'public_addr: .*:3080' "$teleport_config"; then
+  fail "Teleport application public_addr must not contain a proxy port"
+fi
 assert_contains "$teleport_config" "name: traefik"
 assert_contains "$teleport_config" "name: minio-console"
 assert_contains "$teleport_config" "name: semaphore"
