@@ -43,7 +43,7 @@ The dashboard contains:
 
 1. Cluster and namespace variables.
 2. Controller scrape availability (`up`).
-3. Current experiments grouped by cluster, kind, namespace, and phase from `chaos_controller_manager_chaos_experiments`.
+3. Current experiments grouped by cluster, kind, experiment namespace, and phase from `chaos_controller_manager_chaos_experiments`. Prometheus reserves `namespace` for the scrape target, so the dashboard uses the metric's `exported_namespace` label for the experiment target namespace.
 4. Chaos warning-event rate from `chaos_controller_manager_emitted_event_total`.
 5. ScaleCart API request rate, error rate, and latency using the existing remote-written application metrics when available.
 6. Node readiness and CPU/memory context from the existing Kubernetes metrics.
