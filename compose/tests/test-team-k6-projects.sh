@@ -39,6 +39,6 @@ grep -Fq '/opt/acer-mgmt:ro' "$compose_file" || fail "Semaphore lacks the read-o
 grep -Fq '/run/vault-k6:ro' "$compose_file" || fail "Semaphore lacks the read-only k6 key mount"
 grep -Fq 'kv/data/mgmt/k6/ggg' "$agent_config" || fail "Vault Agent lacks the ggg k6 key template"
 grep -Fq 'kv/data/mgmt/k6/oje' "$agent_config" || fail "Vault Agent lacks the oje k6 key template"
-grep -Fq 'install -d -p -m 0700' "$bootstrap" || fail "Vault k6 bootstrap must create nested render directories"
+grep -Fq 'sudo install -d -m 0700' "$bootstrap" || fail "Vault k6 bootstrap must create its protected render directory"
 
 echo "TEAM_K6_PROJECTS_VALIDATION=PASS"
