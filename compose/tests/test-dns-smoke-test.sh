@@ -41,7 +41,7 @@ case "$name" in
   imcherry5778.xyz)
     exit 0
     ;;
-  grafana.imcherry5778.xyz|alertmanager.imcherry5778.xyz|harbor.imcherry5778.xyz|argocd.imcherry5778.xyz|keycloak.imcherry5778.xyz|n8n.imcherry5778.xyz)
+  grafana.imcherry5778.xyz|alertmanager.imcherry5778.xyz|harbor.imcherry5778.xyz|argocd.imcherry5778.xyz|keycloak.imcherry5778.xyz|n8n.imcherry5778.xyz|teleport.imcherry5778.xyz|tp-alertmanager.imcherry5778.xyz)
     echo "${EXPECTED_IP:-100.117.59.96}"
     ;;
   registry-1.docker.io)
@@ -72,6 +72,8 @@ SH
   assert_contains "$stdout" "OK   argocd.imcherry5778.xyz -> 100.117.59.96"
   assert_contains "$stdout" "OK   keycloak.imcherry5778.xyz -> 100.117.59.96"
   assert_contains "$stdout" "OK   n8n.imcherry5778.xyz -> 100.117.59.96"
+  assert_contains "$stdout" "OK   teleport.imcherry5778.xyz -> 100.117.59.96"
+  assert_contains "$stdout" "OK   tp-alertmanager.imcherry5778.xyz -> 100.117.59.96"
   assert_contains "$stdout" "DNS smoke test completed"
 }
 
