@@ -26,33 +26,42 @@ if _oidc_endpoint:
     if _logout_url:
         LOGOUT_REDIRECT_URL = _logout_url
 
-# ── (선택) Keycloak 그룹 → NetBox 권한 매핑 ───────────────────────────
-# keycloak-netbox-bootstrap.sh 가 'groups' 클레임 매퍼를 만들어 두므로,
-# platform-admin 그룹 구성원을 자동으로 superuser/staff 로 승격하려면 아래
-# 파이프라인 스텝을 활성화한다. 활성화 전에는 SSO 로 처음 로그인한 사용자는
-# 권한 없는 계정으로 생성되며, 브레이크글래스 로컬 admin 이 권한을 부여한다.
+# ── Keycloak 그룹 → NetBox 권한 매핑 ──────────────────────────────────
+# Keycloak 그룹은 OIDC userinfo 의 `groups` claim 으로 들어온다. NetBox 4의
+# 사용자 모델에는 Django admin용 is_staff 필드가 없으므로, 편집 권한은 NetBox
+# 로컬 그룹의 Object Permission으로 관리하고 관리자만 is_superuser로 승격한다.
 #
-# from netbox.settings import SOCIAL_AUTH_PIPELINE as _BASE_PIPELINE
-#
-# def map_keycloak_groups(response=None, user=None, *args, **kwargs):
-#     if not user or not isinstance(response, dict):
-#         return
-#     groups = response.get("groups") or []
-#     is_admin = "platform-admin" in groups
-#     is_staff = is_admin or "platform-editor" in groups
-#     changed = False
-#     if user.is_superuser != is_admin:
-#         user.is_superuser = is_admin
-#         changed = True
-#     if user.is_staff != is_staff:
-#         user.is_staff = is_staff
-#         changed = True
-#     if changed:
-#         user.save()
-#
-# SOCIAL_AUTH_PIPELINE = tuple(_BASE_PIPELINE) + (
-#     "extra.map_keycloak_groups",
-# )
+# `platform-admin`은 서비스별 그룹 전환 중 기존 운영자를 끊지 않기 위한 임시
+# 호환 관리자 그룹이다. 신규 권한 부여는 netbox-editor/netbox-admin만 사용한다.
+from django.contrib.auth.models import Group
+from netbox.settings import SOCIAL_AUTH_PIPELINE as _BASE_SOCIAL_AUTH_PIPELINE
+
+_NETBOX_EDITOR_GROUP = "netbox-editor"
+_NETBOX_ADMIN_GROUPS = {"netbox-admin", "platform-admin"}
+
+
+def map_keycloak_groups(response=None, user=None, *args, **kwargs):
+    """Synchronize the managed NetBox role and administrator bit at OIDC login."""
+    if not user or not isinstance(response, dict):
+        return
+
+    keycloak_groups = {str(group) for group in (response.get("groups") or [])}
+    is_admin = bool(_NETBOX_ADMIN_GROUPS.intersection(keycloak_groups))
+
+    if user.is_superuser != is_admin:
+        user.is_superuser = is_admin
+        user.save(update_fields=["is_superuser"])
+
+    editor_group, _ = Group.objects.get_or_create(name=_NETBOX_EDITOR_GROUP)
+    if _NETBOX_EDITOR_GROUP in keycloak_groups:
+        user.groups.add(editor_group)
+    else:
+        user.groups.remove(editor_group)
+
+
+SOCIAL_AUTH_PIPELINE = tuple(_BASE_SOCIAL_AUTH_PIPELINE) + (
+    "extra.map_keycloak_groups",
+)
 
 # ── 운영 편의 ────────────────────────────────────────────────────────
 BANNER_TOP = "ACER 인프라 Source of Truth (IPAM/CMDB)"

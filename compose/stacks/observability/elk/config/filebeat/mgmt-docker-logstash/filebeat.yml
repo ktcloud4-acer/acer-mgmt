@@ -57,6 +57,54 @@ filebeat.inputs:
         log_track: teleport
         service: teleport
 
+  # Vault's file and socket audit devices contain the same request ID for a
+  # single API operation. Logstash fingerprints that ID and type so both
+  # durable audit sinks can be collected without double-counting an event.
+  - type: filestream
+    id: mgmt-vault-audit
+    paths:
+      - "/home/mgmt-data/vault-audit/vault-audit.log"
+      - "/home/mgmt-data/vault-audit-secondary/vault-audit-socket.log"
+    parsers:
+      - ndjson:
+          target: app
+          add_error_key: true
+    fields_under_root: true
+    fields:
+      user: mgmt
+      log_type: audit
+      labels:
+        team: mgmt
+        platform: mgmt
+        node_role: mgmt
+        log_type: audit
+        log_track: vault-audit
+        audit_source: vault
+        service: vault
+
+  # This is intentionally alerts-only. Wazuh raw events stay in the Wazuh
+  # indexer; actionable alerts are correlated with access audits in Kibana.
+  - type: filestream
+    id: mgmt-wazuh-alerts
+    paths:
+      - "/home/mgmt-data/wazuh/logs/alerts/alerts.json"
+    parsers:
+      - ndjson:
+          target: app
+          add_error_key: true
+    fields_under_root: true
+    fields:
+      user: mgmt
+      log_type: audit
+      labels:
+        team: mgmt
+        platform: mgmt
+        node_role: mgmt
+        log_type: audit
+        log_track: wazuh-alert
+        audit_source: wazuh
+        service: wazuh
+
 filebeat.autodiscover:
   providers:
     - type: docker

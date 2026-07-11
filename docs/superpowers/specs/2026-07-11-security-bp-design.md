@@ -29,7 +29,7 @@ temporary compatibility group, but service-specific groups are authoritative:
 | Group | Target role |
 |---|---|
 | `grafana-editor` | Grafana Editor |
-| `netbox-editor` | NetBox non-superuser editor |
+| `netbox-editor` | NetBox local RBAC group (its object permissions define editor scope) |
 | `netbox-admin` | NetBox superuser |
 | `argocd-deployer` | Argo CD application sync/update |
 | `argocd-admin` | Argo CD administrator |

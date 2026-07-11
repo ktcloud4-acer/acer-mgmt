@@ -26,7 +26,7 @@ services:
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
       - "traefik.http.routers.adguard.rule=Host(`adguard.${BASE_DOMAIN}`)"
       - "traefik.http.routers.adguard.entrypoints=websecure"
-      - "traefik.http.routers.adguard.middlewares=secure-headers@file"
+      - "traefik.http.routers.adguard.middlewares=redirect-to-teleport-adguard@file"
       - "traefik.http.services.adguard.loadbalancer.server.port=3000"
     healthcheck:
       test:

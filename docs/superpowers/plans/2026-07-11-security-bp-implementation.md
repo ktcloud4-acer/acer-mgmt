@@ -46,8 +46,10 @@ Expected: `FAIL` because the security-group bootstrap and mapping do not exist.
 - [ ] **Step 3: Write minimal implementation**
 
 Add an idempotent Keycloak group bootstrap script and enable a NetBox social-auth
-pipeline that grants staff to `netbox-editor` and superuser to `netbox-admin`,
-while accepting `platform-admin` only as a compatibility administrator group.
+pipeline that synchronizes `netbox-editor` into a NetBox role group and grants
+superuser only to `netbox-admin` or the temporary `platform-admin` compatibility
+group. NetBox does not use Django's `is_staff` field, so its local group
+permissions remain the editor authorization source.
 
 - [ ] **Step 4: Run test to verify it passes**
 

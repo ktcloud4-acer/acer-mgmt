@@ -50,17 +50,9 @@ discovery_service:
 app_service:
   enabled: true
   apps:
-    - name: grafana
-      uri: http://grafana:3000
-      public_addr: tp-grafana.imcherry5778.xyz
-      rewrite:
-        redirect: [grafana.imcherry5778.xyz]
-      labels:
-        env: mgmt
-        owner: observability
     - name: kibana
       uri: http://kibana:5601
-      public_addr: tp-kibana.imcherry5778.xyz
+      public_addr: kibana.teleport.imcherry5778.xyz:3080
       rewrite:
         redirect: [kibana.imcherry5778.xyz]
       labels:
@@ -68,7 +60,7 @@ app_service:
         owner: observability
     - name: prometheus
       uri: http://prometheus:9090
-      public_addr: tp-prometheus.imcherry5778.xyz
+      public_addr: prometheus.teleport.imcherry5778.xyz:3080
       rewrite:
         redirect: [prometheus.imcherry5778.xyz]
       labels:
@@ -76,37 +68,59 @@ app_service:
         owner: observability
     - name: alertmanager
       uri: http://alertmanager:9093
-      public_addr: tp-alertmanager.imcherry5778.xyz
+      public_addr: alertmanager.teleport.imcherry5778.xyz:3080
       rewrite:
         redirect: [alertmanager.imcherry5778.xyz]
       labels:
         env: mgmt
         owner: observability
-    - name: keycloak
-      uri: http://keycloak:8080/realms/mgmt/account/
-      public_addr: tp-keycloak.imcherry5778.xyz
-      rewrite:
-        redirect: [keycloak.imcherry5778.xyz]
-        headers:
-          - "Host: tp-keycloak.imcherry5778.xyz"
-          - "Origin: https://tp-keycloak.imcherry5778.xyz:3080"
-      labels:
-        env: mgmt
-        owner: security
     - name: vault
       uri: https://vault:8200
-      public_addr: tp-vault.imcherry5778.xyz
+      public_addr: vault.teleport.imcherry5778.xyz:3080
       rewrite:
         redirect: [vault.imcherry5778.xyz]
       insecure_skip_verify: true
       labels:
         env: mgmt
         owner: security
-    - name: netbox
-      uri: http://netbox:8080
-      public_addr: tp-netbox.imcherry5778.xyz
+    - name: adguard
+      uri: http://adguard:3000
+      public_addr: adguard.teleport.imcherry5778.xyz:3080
       rewrite:
-        redirect: [netbox.imcherry5778.xyz]
+        redirect: [adguard.imcherry5778.xyz]
+        headers:
+          - "Host: adguard.teleport.imcherry5778.xyz"
+          - "Origin: https://adguard.teleport.imcherry5778.xyz:3080"
       labels:
         env: mgmt
         owner: infra
+    - name: traefik
+      uri: http://traefik:8080
+      public_addr: traefik.teleport.imcherry5778.xyz:3080
+      rewrite:
+        redirect: [traefik.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: platform
+    - name: minio-console
+      uri: http://minio:9001
+      public_addr: minio.teleport.imcherry5778.xyz:3080
+      rewrite:
+        redirect: [minio.imcherry5778.xyz]
+        headers:
+          - "Host: minio.teleport.imcherry5778.xyz"
+          - "Origin: https://minio.teleport.imcherry5778.xyz:3080"
+      labels:
+        env: mgmt
+        owner: storage
+    - name: semaphore
+      uri: http://semaphore:3000
+      public_addr: semaphore.teleport.imcherry5778.xyz:3080
+      rewrite:
+        redirect: [semaphore.imcherry5778.xyz]
+        headers:
+          - "Host: semaphore.teleport.imcherry5778.xyz"
+          - "Origin: https://semaphore.teleport.imcherry5778.xyz:3080"
+      labels:
+        env: mgmt
+        owner: cicd

@@ -63,7 +63,7 @@ services:
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
       - "traefik.http.routers.vault.rule=Host(`vault.${BASE_DOMAIN}`)"
       - "traefik.http.routers.vault.entrypoints=websecure"
-      - "traefik.http.routers.vault.middlewares=secure-headers@file"
+      - "traefik.http.routers.vault.middlewares=redirect-to-teleport-vault@file"
       - "traefik.http.services.vault.loadbalancer.server.port=8200"
       - "traefik.http.services.vault.loadbalancer.server.scheme=https"
       - "traefik.http.services.vault.loadbalancer.serversTransport=vault-tls@file"

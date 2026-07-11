@@ -29,7 +29,7 @@ services:
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
       - "traefik.http.routers.minio-console.rule=Host(`minio.${BASE_DOMAIN}`)"
       - "traefik.http.routers.minio-console.entrypoints=websecure"
-      - "traefik.http.routers.minio-console.middlewares=secure-headers@file"
+      - "traefik.http.routers.minio-console.middlewares=redirect-to-teleport-minio@file"
       - "traefik.http.routers.minio-console.service=minio-console"
       - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
       - "traefik.http.routers.minio-api.rule=Host(`s3.${BASE_DOMAIN}`)"

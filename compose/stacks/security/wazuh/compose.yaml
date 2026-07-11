@@ -1,0 +1,113 @@
+# Wazuh single-node central components. Run bootstrap-wazuh-stack.sh once before
+# `docker compose up -d`; it prepares the pinned upstream configuration and TLS.
+services:
+  wazuh-manager:
+    image: wazuh/wazuh-manager:4.14.6
+    container_name: wazuh-manager
+    hostname: wazuh.manager
+    restart: unless-stopped
+    mem_limit: 3g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 655360
+        hard: 655360
+    environment:
+      INDEXER_URL: https://wazuh.indexer:9200
+      INDEXER_USERNAME: admin
+      INDEXER_PASSWORD: ${WAZUH_INDEXER_PASSWORD:?WAZUH_INDEXER_PASSWORD must be set}
+      FILEBEAT_SSL_VERIFICATION_MODE: full
+      SSL_CERTIFICATE_AUTHORITIES: /etc/ssl/root-ca.pem
+      SSL_CERTIFICATE: /etc/ssl/filebeat.pem
+      SSL_KEY: /etc/ssl/filebeat.key
+      API_USERNAME: wazuh-wui
+      API_PASSWORD: ${WAZUH_API_PASSWORD:?WAZUH_API_PASSWORD must be set}
+    ports:
+      - "${TAILSCALE_IP:?TAILSCALE_IP must be set}:1514:1514/tcp"
+      - "${TAILSCALE_IP:?TAILSCALE_IP must be set}:1515:1515/tcp"
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/manager-api:/var/ossec/api/configuration:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/manager-etc:/var/ossec/etc:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/logs:/var/ossec/logs:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/queue:/var/ossec/queue:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/multigroups:/var/ossec/var/multigroups:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/integrations:/var/ossec/integrations:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/active-response:/var/ossec/active-response/bin:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/agentless:/var/ossec/agentless:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/wodles:/var/ossec/wodles:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/filebeat-etc:/etc/filebeat:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/filebeat-var:/var/lib/filebeat:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_indexer_ssl_certs/root-ca-manager.pem:/etc/ssl/root-ca.pem:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_indexer_ssl_certs/wazuh.manager.pem:/etc/ssl/filebeat.pem:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_indexer_ssl_certs/wazuh.manager-key.pem:/etc/ssl/filebeat.key:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_cluster/wazuh_manager.conf:/wazuh-config-mount/etc/ossec.conf:ro,Z
+    networks:
+      - wazuh
+
+  wazuh-indexer:
+    image: wazuh/wazuh-indexer:4.14.6
+    container_name: wazuh-indexer
+    hostname: wazuh.indexer
+    restart: unless-stopped
+    mem_limit: 4g
+    environment:
+      OPENSEARCH_JAVA_OPTS: -Xms2g -Xmx2g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/indexer:/var/lib/wazuh-indexer:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_indexer_ssl_certs/root-ca.pem:/usr/share/wazuh-indexer/config/certs/root-ca.pem:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_indexer_ssl_certs/wazuh.indexer-key.pem:/usr/share/wazuh-indexer/config/certs/wazuh.indexer.key:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_indexer_ssl_certs/wazuh.indexer.pem:/usr/share/wazuh-indexer/config/certs/wazuh.indexer.pem:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_indexer_ssl_certs/admin.pem:/usr/share/wazuh-indexer/config/certs/admin.pem:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_indexer_ssl_certs/admin-key.pem:/usr/share/wazuh-indexer/config/certs/admin-key.pem:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_indexer/wazuh.indexer.yml:/usr/share/wazuh-indexer/config/opensearch.yml:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_indexer/internal_users.yml:/usr/share/wazuh-indexer/config/opensearch-security/internal_users.yml:ro,Z
+    networks:
+      - wazuh
+
+  wazuh-dashboard:
+    image: wazuh/wazuh-dashboard:4.14.6
+    container_name: wazuh-dashboard
+    hostname: wazuh.dashboard
+    restart: unless-stopped
+    mem_limit: 1g
+    environment:
+      INDEXER_USERNAME: admin
+      INDEXER_PASSWORD: ${WAZUH_INDEXER_PASSWORD:?WAZUH_INDEXER_PASSWORD must be set}
+      WAZUH_API_URL: https://wazuh.manager
+      DASHBOARD_USERNAME: kibanaserver
+      DASHBOARD_PASSWORD: ${WAZUH_DASHBOARD_PASSWORD:?WAZUH_DASHBOARD_PASSWORD must be set}
+      API_USERNAME: wazuh-wui
+      API_PASSWORD: ${WAZUH_API_PASSWORD:?WAZUH_API_PASSWORD must be set}
+    ports:
+      - "127.0.0.1:5602:5601/tcp"
+    volumes:
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_indexer_ssl_certs/wazuh.dashboard.pem:/usr/share/wazuh-dashboard/certs/wazuh-dashboard.pem:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_indexer_ssl_certs/wazuh.dashboard-key.pem:/usr/share/wazuh-dashboard/certs/wazuh-dashboard-key.pem:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_indexer_ssl_certs/root-ca.pem:/usr/share/wazuh-dashboard/certs/root-ca.pem:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_dashboard/opensearch_dashboards.yml:/usr/share/wazuh-dashboard/config/opensearch_dashboards.yml:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_dashboard/wazuh.yml:/usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/dashboard-config:/usr/share/wazuh-dashboard/data/wazuh/config:Z
+      - ${DATA_ROOT:-/home/mgmt-data}/wazuh/dashboard-custom:/usr/share/wazuh-dashboard/plugins/wazuh/public/assets/custom:Z
+    depends_on:
+      - wazuh-indexer
+      - wazuh-manager
+    networks:
+      - wazuh
+      - mgmt-proxy
+
+networks:
+  wazuh:
+    name: wazuh-internal
+    internal: true
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true
