@@ -63,6 +63,7 @@ assert_not_contains "$dashy_config" "Grafana Operations Summary"
 assert_not_contains "$dashy_config" "disableContextMenu: true"
 assert_not_contains "$dashy_config" ".png"
 assert_not_contains "$middlewares_config" "frameDeny: true"
+assert_contains "$middlewares_config" 'X-Frame-Options: ""'
 assert_contains "$grafana_compose" 'GF_SECURITY_ALLOW_EMBEDDING: "true"'
 
 echo "Dashy service index configuration tests passed"

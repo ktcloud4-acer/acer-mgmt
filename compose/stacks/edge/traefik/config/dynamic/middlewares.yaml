@@ -5,6 +5,9 @@ http:
       headers:
         # DEMO MODE: permit Dashy's modal and Workspace iframe views.
         # Re-enable frameDeny before exposing this environment beyond the demo.
+        # Remove backend frame-denial headers as well, without restarting each app.
+        customResponseHeaders:
+          X-Frame-Options: ""
         contentTypeNosniff: true
         browserXssFilter: true
         stsSeconds: 31536000

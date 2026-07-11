@@ -2,9 +2,10 @@
 
 Dashy is a Keycloak-protected service index deployed alongside Homepage. It
 does not collect monitoring data. The current **demo mode** permits iframe
-views globally through Traefik and enables Grafana embedding, so Dashy's modal
-and Workspace opening methods can be demonstrated. This is not a production
-security profile; restore `frameDeny: true` and remove
+views globally through Traefik, removes backend `X-Frame-Options` headers, and
+enables Grafana embedding, so Dashy's modal and Workspace opening methods can
+be demonstrated. This is not a production security profile; restore
+`frameDeny: true`, remove the `X-Frame-Options` response override, and remove
 `GF_SECURITY_ALLOW_EMBEDDING` before production exposure.
 
 Run `bash compose/tests/test-dashy-service-index.sh` from the repository root
