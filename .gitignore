@@ -31,3 +31,6 @@ compose/stacks/edge/homepage/config/proxmox.yaml
 # ── OS / 에디터 ─────────────────────────────────
 .DS_Store
 *.swp
+
+# ── 로컬 격리 작업공간 ───────────────────────────
+.worktrees/

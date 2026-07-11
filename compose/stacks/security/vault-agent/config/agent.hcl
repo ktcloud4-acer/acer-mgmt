@@ -59,6 +59,13 @@ template {
   perms       = "0640"
 }
 
+# --- n8n (전 팀 Prometheus 다이제스트) ---
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/n8n\" }}N8N_ENCRYPTION_KEY={{ .Data.data.encryption_key }}\nDB_POSTGRESDB_PASSWORD={{ .Data.data.db_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/grafana\" }}SLACK_WEBHOOK_INFRA={{ .Data.data.slack_webhook_infra }}\n{{ end }}"
+  destination = "/vault/secrets/observability/n8n.env"
+  perms       = "0640"
+}
+
 # --- traefik (Cloudflare DNS-01 token) ---
 template {
   contents    = "{{ with secret \"kv/data/mgmt/traefik\" }}CF_DNS_API_TOKEN={{ .Data.data.cf_dns_api_token }}\n{{ end }}"
