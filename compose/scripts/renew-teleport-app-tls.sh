@@ -33,7 +33,6 @@ docker run --rm \
   --dns cloudflare \
   --domains "$BASE_DOMAIN" \
   --domains "*.$BASE_DOMAIN" \
-  --domains "teleport.$BASE_DOMAIN" \
   --domains "*.teleport.$BASE_DOMAIN" \
   --path /certs run >/dev/null
 
