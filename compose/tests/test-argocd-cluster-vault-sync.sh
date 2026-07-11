@@ -15,7 +15,8 @@ for script in "$import_script" "$bootstrap_script"; do
   [[ -f "$script" ]] || fail "expected script is missing: $script"
 done
 
-assert_contains "$import_script" 'argocd.argoproj.io/secret-type=cluster'
+assert_contains "$import_script" 'argocd.argoproj.io/secret-type'
+assert_contains "$import_script" '== cluster'
 assert_contains "$import_script" 'kv/mgmt/argocd/clusters/${cluster}'
 assert_contains "$import_script" 'ggg khb ljw nmg oje'
 assert_contains "$import_script" 'umask 077'
