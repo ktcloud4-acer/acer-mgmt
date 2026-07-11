@@ -100,6 +100,21 @@ template {
   perms       = "0640"
 }
 
+# --- wazuh (host detection) ---
+# The central stack and enrolling agents use distinct credentials. Values are
+# rendered only to the runtime tmpfs; they never enter Compose files or Git.
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/wazuh\" }}WAZUH_INDEXER_PASSWORD={{ .Data.data.indexer_password }}\nWAZUH_DASHBOARD_PASSWORD={{ .Data.data.dashboard_password }}\nWAZUH_API_PASSWORD={{ .Data.data.api_password }}\n{{ end }}"
+  destination = "/vault/secrets/security/wazuh.env"
+  perms       = "0640"
+}
+
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/wazuh\" }}WAZUH_REGISTRATION_PASSWORD={{ .Data.data.registration_password }}\n{{ end }}"
+  destination = "/vault/secrets/security/wazuh-agent.env"
+  perms       = "0640"
+}
+
 template {
   contents    = "{{ with secret \"kv/data/mgmt/teleport\" }}{{ .Data.data.tls_cert_pem }}{{ end }}"
   destination = "/vault/secrets/security/teleport/tls.crt"

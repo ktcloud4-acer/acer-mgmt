@@ -61,6 +61,12 @@ services:
       KC_PROXY_HEADERS: xforwarded
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
+      # Keycloak's logging listener defaults successful events to DEBUG, which
+      # a production console does not emit. Keep event representations off and
+      # publish only the structured success/error audit lines to Filebeat.
+      KC_SPI_EVENTS_LISTENER__JBOSS_LOGGING__SUCCESS_LEVEL: info
+      KC_SPI_EVENTS_LISTENER__JBOSS_LOGGING__ERROR_LEVEL: error
+      KC_SPI_EVENTS_LISTENER__JBOSS_LOGGING__INCLUDE_REPRESENTATION: "false"
     volumes:
       - ${DATA_ROOT:-/home/mgmt-data}/keycloak:/opt/keycloak/data:Z
     networks:

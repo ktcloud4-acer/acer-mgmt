@@ -35,7 +35,7 @@ services:
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
       - "traefik.http.routers.prometheus.rule=Host(`prometheus.${BASE_DOMAIN}`)"
       - "traefik.http.routers.prometheus.entrypoints=websecure"
-      - "traefik.http.routers.prometheus.middlewares=secure-headers@file"
+      - "traefik.http.routers.prometheus.middlewares=redirect-to-teleport-prometheus@file"
       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
 
   node-exporter:
