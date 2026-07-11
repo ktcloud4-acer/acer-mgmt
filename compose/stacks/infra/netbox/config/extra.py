@@ -33,8 +33,6 @@ if _oidc_endpoint:
 #
 # `platform-admin`은 서비스별 그룹 전환 중 기존 운영자를 끊지 않기 위한 임시
 # 호환 관리자 그룹이다. 신규 권한 부여는 netbox-editor/netbox-admin만 사용한다.
-from netbox.settings import SOCIAL_AUTH_PIPELINE as _BASE_SOCIAL_AUTH_PIPELINE
-
 _NETBOX_EDITOR_GROUP = "netbox-editor"
 _NETBOX_ADMIN_GROUPS = {"netbox-admin", "platform-admin"}
 
@@ -63,7 +61,19 @@ def map_keycloak_groups(response=None, user=None, *args, **kwargs):
         user.groups.remove(editor_group)
 
 
-SOCIAL_AUTH_PIPELINE = tuple(_BASE_SOCIAL_AUTH_PIPELINE) + (
+# This is NetBox 4.5's stock pipeline plus the final local role synchronizer.
+# Configuration files are loaded before netbox.settings defines its default,
+# therefore importing SOCIAL_AUTH_PIPELINE here would create a circular import.
+SOCIAL_AUTH_PIPELINE = (
+    "social_core.pipeline.social_auth.social_details",
+    "social_core.pipeline.social_auth.social_uid",
+    "social_core.pipeline.social_auth.social_user",
+    "social_core.pipeline.user.get_username",
+    "social_core.pipeline.user.create_user",
+    "social_core.pipeline.social_auth.associate_user",
+    "netbox.authentication.user_default_groups_handler",
+    "social_core.pipeline.social_auth.load_extra_data",
+    "social_core.pipeline.user.user_details",
     "extra.map_keycloak_groups",
 )
 
