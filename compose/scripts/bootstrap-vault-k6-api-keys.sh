@@ -20,8 +20,8 @@ for team in "${teams[@]}"; do
     app_payload="/tmp/k6-app-${team}.json"
     runner_payload="/tmp/k6-runner-${team}.json"
     trap "rm -f \"$app_payload\" \"$runner_payload\"" EXIT
-    printf "{\\\"K6_DEMO_API_KEY\\\":\\\"%s\\\"}\\n" "$key" >"$app_payload"
-    printf "{\\\"api_key\\\":\\\"%s\\\"}\\n" "$key" >"$runner_payload"
+    printf "{\"K6_DEMO_API_KEY\":\"%s\"}\n" "$key" >"$app_payload"
+    printf "{\"api_key\":\"%s\"}\n" "$key" >"$runner_payload"
     vault kv patch -mount=kv "apps/scalecart/${team}" "@$app_payload" >/dev/null
     vault kv patch -mount=kv "mgmt/k6/${team}" "@$runner_payload" >/dev/null
   ' sh "$team"
