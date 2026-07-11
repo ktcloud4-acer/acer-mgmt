@@ -1,0 +1,178 @@
+{
+  "name": "ACER 전체 운영 다이제스트",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "e622c486-ff28-4c7f-8ff2-7986bd26a808",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -700,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 5 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "d82a3ebd-1f41-4a2f-a7ec-a167d57b2075",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cf154913-c6c0-4f39-999b-3c12d90ba7a8",
+              "name": "promql",
+              "value": "label_replace(ALERTS{alertstate=\"firing\"}, \"digest_kind\", \"alert\", \"alertname\", \".*\") or label_replace(up{cluster=~\"ggg|khb|ljw|nmg|oje\",job=~\"host-vm|kubernetes-nodes|kube-state-metrics\"}, \"digest_kind\", \"up\", \"job\", \".*\") or label_replace(min_over_time(up{cluster=~\"ggg|khb|ljw|nmg|oje\",job=~\"host-vm|kubernetes-nodes|kube-state-metrics\"}[24h]), \"digest_kind\", \"up_24h\", \"job\", \".*\") or label_replace(sum by (cluster) (kube_node_status_condition{condition=\"Ready\",status=\"true\"}), \"digest_kind\", \"ready_nodes\", \"cluster\", \".*\") or label_replace(count by (cluster) (kube_node_info), \"digest_kind\", \"total_nodes\", \"cluster\", \".*\") or label_replace(sum by (cluster, phase) (kube_pod_status_phase{phase=~\"Pending|Failed|Unknown\"}), \"digest_kind\", \"pod_phase\", \"cluster\", \".*\") or label_replace(sum by (cluster) (increase(kube_pod_container_status_restarts_total[24h])), \"digest_kind\", \"restarts_24h\", \"cluster\", \".*\") or label_replace(100 * (1 - avg(rate(node_cpu_seconds_total{job=\"mgmt-node\",mode=\"idle\"}[5m]))), \"digest_kind\", \"mgmt_cpu_pct\", \"job\", \".*\") or label_replace(100 * (1 - node_memory_MemAvailable_bytes{job=\"mgmt-node\"} / node_memory_MemTotal_bytes{job=\"mgmt-node\"}), \"digest_kind\", \"mgmt_mem_pct\", \"job\", \".*\") or label_replace(100 * (1 - node_filesystem_avail_bytes{job=\"mgmt-node\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=\"mgmt-node\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"}), \"digest_kind\", \"mgmt_disk_pct\", \"job\", \".*\")",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "be12691d-6fb5-462d-99e5-614856e53b2a",
+      "name": "Build PromQL",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -460,
+        210
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://prometheus:9090/api/v1/query",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $json.promql }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "de253fbd-a12f-46bc-87e8-796e657a91ff",
+      "name": "Query Prometheus",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -220,
+        210
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first().json?.data?.result;\nif (!Array.isArray(result)) {\n  throw new Error('Prometheus query returned no vector result');\n}\n\nconst clusters = ['ggg', 'khb', 'ljw', 'nmg', 'oje'];\nconst state = Object.fromEntries(clusters.map((cluster) => [cluster, { up: [], up24h: [], ready: null, total: null, pods: {}, restarts: 0 }]));\nconst alerts = [];\nconst mgmt = {};\n\nfor (const series of result) {\n  const metric = series.metric ?? {};\n  const kind = metric.digest_kind;\n  const value = Number(series.value?.[1] ?? 0);\n  const cluster = metric.cluster;\n\n  if (kind === 'alert') {\n    alerts.push({\n      name: metric.alertname ?? 'UnknownAlert',\n      severity: metric.severity ?? 'warning',\n      cluster: cluster ?? 'mgmt',\n    });\n    continue;\n  }\n\n  if (kind?.startsWith('mgmt_')) {\n    mgmt[kind] = value;\n    continue;\n  }\n\n  if (!state[cluster]) continue;\n  if (kind === 'up') state[cluster].up.push({ job: metric.job ?? 'unknown', instance: metric.instance ?? 'unknown', value });\n  if (kind === 'up_24h') state[cluster].up24h.push({ job: metric.job ?? 'unknown', instance: metric.instance ?? 'unknown', value });\n  if (kind === 'ready_nodes') state[cluster].ready = value;\n  if (kind === 'total_nodes') state[cluster].total = value;\n  if (kind === 'pod_phase') state[cluster].pods[metric.phase ?? 'Unknown'] = value;\n  if (kind === 'restarts_24h') state[cluster].restarts = value;\n}\n\nconst actions = [];\nfor (const alert of alerts) {\n  const icon = alert.severity === 'critical' ? '🔴' : '🟡';\n  actions.push(`${icon} ${alert.cluster}: ${alert.name} (${alert.severity})`);\n}\n\nconst statusLines = clusters.map((cluster) => {\n  const item = state[cluster];\n  const hostVmUp = item.up.some((target) => target.job === 'host-vm' && target.value === 1);\n  const ksmUp = item.up.some((target) => target.job === 'kube-state-metrics' && target.value === 1);\n  const nodeTargets = item.up.filter((target) => target.job === 'kubernetes-nodes');\n  const nodeTargetsUp = nodeTargets.filter((target) => target.value === 1).length;\n  const missing = !hostVmUp || !ksmUp || nodeTargets.length === 0 || item.total === null;\n  const currentlyDown = item.up.filter((target) => target.value !== 1);\n  const historicalDown = item.up24h.filter((target) => target.value !== 1);\n  const notReady = item.total === null || item.ready === null ? 0 : Math.max(item.total - item.ready, 0);\n  const failedPods = (item.pods.Failed ?? 0) + (item.pods.Unknown ?? 0);\n  const pendingPods = item.pods.Pending ?? 0;\n  const clusterAlerts = alerts.filter((alert) => alert.cluster === cluster);\n  const critical = clusterAlerts.some((alert) => alert.severity === 'critical') || notReady > 0 || failedPods > 0;\n  const warning = clusterAlerts.length > 0 || currentlyDown.length > 0 || historicalDown.length > 0 || pendingPods > 0 || item.restarts > 0;\n\n  if (missing) {\n    actions.push(`⚪ ${cluster}: 필수 Prometheus 시계열 미수집`);\n    return `⚪ ${cluster} — metrics 미수집 · 상태 판정 불가`;\n  }\n\n  const details = [\n    `Node ${item.ready}/${item.total} Ready`,\n    `scrape ${nodeTargetsUp}/${nodeTargets.length}`,\n  ];\n  if (pendingPods > 0) details.push(`Pending Pod ${pendingPods}`);\n  if (failedPods > 0) details.push(`Failed/Unknown Pod ${failedPods}`);\n  if (item.restarts > 0) details.push(`24h restart +${Math.round(item.restarts)}`);\n  if (historicalDown.length > 0) details.push(`24h target down ${historicalDown.length}`);\n\n  if (critical) return `🔴 ${cluster} — ${details.join(' · ')}`;\n  if (warning) return `🟡 ${cluster} — ${details.join(' · ')}`;\n  return `🟢 ${cluster} — ${details.join(' · ')}`;\n});\n\nconst percent = (value) => Number.isFinite(value) ? `${value.toFixed(1)}%` : '미수집';\nconst timestamp = new Intl.DateTimeFormat('ko-KR', {\n  timeZone: 'Asia/Seoul',\n  dateStyle: 'medium',\n  timeStyle: 'short',\n  hour12: false,\n}).format(new Date());\n\nconst actionSection = actions.length > 0\n  ? actions.map((action) => `• ${action}`).join('\\n')\n  : '• 없음';\nconst text = [\n  `☀️ *ACER 전체 운영 다이제스트* — ${timestamp} KST`,\n  '',\n  '*조치 필요*',\n  actionSection,\n  '',\n  '*클러스터 상태*',\n  ...statusLines,\n  '',\n  '*mgmt*',\n  `• CPU ${percent(mgmt.mgmt_cpu_pct)} · MEM ${percent(mgmt.mgmt_mem_pct)} · Disk ${percent(mgmt.mgmt_disk_pct)}`,\n].join('\\n');\n\nreturn [{ json: { text } }];"
+      },
+      "id": "bf8a1a74-173a-478d-bcb7-e48d1c8a429d",
+      "name": "Build Digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        20,
+        210
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_INFRA }}",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { text: $json.text } }}",
+        "options": {}
+      },
+      "id": "511b5128-d4d2-4b81-aa85-f0ca52cd5018",
+      "name": "Send Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        210
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Build PromQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Build PromQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build PromQL": {
+      "main": [
+        [
+          {
+            "node": "Query Prometheus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Prometheus": {
+      "main": [
+        [
+          {
+            "node": "Build Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Digest": {
+      "main": [
+        [
+          {
+            "node": "Send Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Seoul"
+  },
+  "versionId": "f63d04f5-dc29-4e34-95af-a0f341498aa5"
+}

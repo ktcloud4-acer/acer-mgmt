@@ -39,5 +39,4 @@ cd /home/user1/acer-mgmt/compose
 ```
 
 `ACER 전체 운영 다이제스트`는 매일 09:05 `Asia/Seoul`에 실행되고, n8n
-편집기에서 수동 실행해도 같은 Slack 메시지를 생성한다. `ACER 운영
-다이제스트 실패 알림`을 primary workflow의 Error Workflow로 지정한다.
+편집기에서 수동 실행해도 같은 Slack 메시지를 생성한다.

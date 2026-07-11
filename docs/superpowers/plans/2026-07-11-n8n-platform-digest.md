@@ -84,7 +84,6 @@ git commit -m "feat: add secure n8n observability stack"
 
 **Files:**
 - Create: `compose/stacks/observability/n8n/workflows/platform-digest.json`
-- Create: `compose/stacks/observability/n8n/workflows/platform-digest-error.json`
 - Create: `compose/stacks/observability/n8n/scripts/import-workflows.sh`
 - Create: `compose/tests/test-n8n-digest-workflow.sh`
 - Modify: `compose/stacks/observability/n8n/README.md`
@@ -110,8 +109,6 @@ grep -Fq 'ljw' "$workflow"
 grep -Fq 'nmg' "$workflow"
 grep -Fq 'oje' "$workflow"
 grep -Fq 'SLACK_WEBHOOK_INFRA' "$workflow"
-jq -e '.name == "ACER 운영 다이제스트 실패 알림"' "$error_workflow" >/dev/null
-jq -e '[.nodes[].type] | index("n8n-nodes-base.errorTrigger")' "$error_workflow" >/dev/null
 ```
 
 - [ ] **Step 2: Run the workflow test and confirm it fails because the workflow is absent**
@@ -122,7 +119,7 @@ Expected: failure reporting that `platform-digest.json` is missing.
 
 - [ ] **Step 3: Implement the workflow JSON and import script**
 
-The workflow starts both triggers into a single `Set Context` node. It requests Prometheus once per PromQL expression, then a Code node returns one Slack-ready `text` field. The Code node must classify metric absence as `⚪ 미수집`, not green, and include all firing alerts in an action section. Queries cover firing alerts, current scrape state, Ready/total nodes, Pending/Failed pods, 24-hour restarts, and mgmt CPU/memory/root-disk usage. A second workflow starts from `Error Trigger` and sends the failed workflow name, execution URL, and timestamp to the same Slack webhook. Configure the imported primary workflow to use this error workflow.
+The workflow starts both triggers into a single `Set Context` node. It requests Prometheus once per PromQL expression, then a Code node returns one Slack-ready `text` field. The Code node must classify metric absence as `⚪ 미수집`, not green, and include all firing alerts in an action section. Queries cover firing alerts, current scrape state, Ready/total nodes, Pending/Failed pods, 24-hour restarts, and mgmt CPU/memory/root-disk usage. Workflow failures remain available in n8n execution history while the Compose healthcheck monitors the n8n execution surface.
 
 The import script waits for n8n health, imports the JSON using `n8n import:workflow --input=/workflows/platform-digest.json`, and prints no environment values. The README records that the imported workflow needs activation in the n8n UI after the owner account is created.
 
