@@ -1,0 +1,29 @@
+services:
+  vault-agent:
+    image: hashicorp/vault:2.0.3
+    container_name: vault-agent
+    restart: unless-stopped
+    command: ["vault", "agent", "-config=/vault/config/agent.hcl"]
+    environment:
+      NAME: vault-agent
+    volumes:
+      - ./config/agent.hcl:/vault/config/agent.hcl:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets:/vault/secrets:rw,z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/tls:/vault/tls:ro,z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/templates:/vault/templates:ro,z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/auth:/vault/auth:rw,z
+      - vault-agent-file:/vault/file:z
+      - vault-agent-logs:/vault/logs:z
+    networks:
+      - mgmt-proxy
+
+volumes:
+  vault-agent-file:
+    name: vault-agent-file
+  vault-agent-logs:
+    name: vault-agent-logs
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true
