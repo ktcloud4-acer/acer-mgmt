@@ -1,0 +1,108 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "links": [
+    {
+      "icon": "external link",
+      "targetBlank": true,
+      "title": "Argo CD",
+      "type": "link",
+      "url": "https://argocd.imcherry5778.xyz"
+    },
+    {
+      "icon": "external link",
+      "targetBlank": true,
+      "title": "Semaphore",
+      "type": "link",
+      "url": "https://semaphore.imcherry5778.xyz"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 3 }, { "color": "red", "value": 5 }] }, "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "editorMode": "code", "expr": "kube_horizontalpodautoscaler_status_current_replicas{namespace=\"scalecart\",horizontalpodautoscaler=\"scalecart-api\",cluster=~\"$cluster\"}", "legendFormat": "current", "refId": "A" }],
+      "title": "API HPA Current Replicas",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 3 }, { "color": "red", "value": 5 }] }, "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{ "editorMode": "code", "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"scalecart\",horizontalpodautoscaler=\"scalecart-api\",cluster=~\"$cluster\"}", "legendFormat": "desired", "refId": "A" }],
+      "title": "API HPA Desired Replicas",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [{ "matcher": { "id": "byName", "options": "p95 latency" }, "properties": [{ "id": "unit", "value": "s" }] }] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
+      "id": 3,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "editorMode": "code", "expr": "scalecart:api_requests:rate1m{cluster=~\"$cluster\"}", "legendFormat": "RPS {{cluster}}", "refId": "A" },
+        { "editorMode": "code", "expr": "scalecart:api_latency:p95_1m{cluster=~\"$cluster\"}", "legendFormat": "p95 latency", "refId": "B" }
+      ],
+      "title": "k6 Load: API Request Rate and P95",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.7 }] }, "unit": "percentunit" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
+      "id": 4,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi" } },
+      "targets": [{ "editorMode": "code", "expr": "sum by(cluster) (rate(container_cpu_usage_seconds_total{namespace=\"scalecart\",pod=~\"scalecart-api-.*\",container!=\"\",image!=\"\"}[1m])) / sum by(cluster) (kube_pod_container_resource_requests{namespace=\"scalecart\",pod=~\"scalecart-api-.*\",resource=\"cpu\",unit=\"core\"})", "legendFormat": "CPU / request {{cluster}}", "refId": "A" }],
+      "title": "API CPU Utilisation (HPA target 70%)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 13 },
+      "id": 5,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "editorMode": "code", "expr": "kube_horizontalpodautoscaler_status_current_replicas{namespace=\"scalecart\",horizontalpodautoscaler=\"scalecart-api\",cluster=~\"$cluster\"}", "legendFormat": "current {{cluster}}", "refId": "A" },
+        { "editorMode": "code", "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"scalecart\",horizontalpodautoscaler=\"scalecart-api\",cluster=~\"$cluster\"}", "legendFormat": "desired {{cluster}}", "refId": "B" }
+      ],
+      "title": "API HPA Scale-out Timeline",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 41,
+  "tags": ["scalecart", "demo", "k6", "hpa"],
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"scalecart\",horizontalpodautoscaler=\"scalecart-api\"}, cluster)",
+        "includeAll": true,
+        "multi": true,
+        "name": "cluster",
+        "query": { "query": "label_values(kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"scalecart\",horizontalpodautoscaler=\"scalecart-api\"}, cluster)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-15m", "to": "now" },
+  "timezone": "browser",
+  "title": "ScaleCart API HPA Load Demo",
+  "uid": "scalecart-api-hpa-load-demo",
+  "version": 1
+}
