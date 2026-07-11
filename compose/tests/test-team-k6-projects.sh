@@ -18,9 +18,9 @@ fail() {
 [[ -f "$runner" ]] || fail "runner is missing"
 
 jq -e '
-  type == "array" and length == 5 and
+  . as $entries | type == "array" and length == 5 and
   all(["ggg", "khb", "ljw", "nmg", "oje"][]; . as $team |
-    any(.[]; .team == $team and .project == ("acer-aio-" + $team) and
+    any($entries[]; .team == $team and .project == ("acer-aio-" + $team) and
       .base_url == ("https://" + $team + ".imcherry5778.xyz") and
       .vault_path == ("mgmt/k6/" + $team)))
 ' "$manifest" >/dev/null || fail "team project manifest is invalid"
