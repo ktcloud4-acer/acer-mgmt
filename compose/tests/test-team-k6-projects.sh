@@ -17,17 +17,16 @@ fail() {
 [[ -f "$reconciler" ]] || fail "reconciler is missing"
 [[ -f "$runner" ]] || fail "runner is missing"
 
-node - "$manifest" <<'NODE' || exit 1
-const fs = require('fs')
-const entries = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'))
-const teams = ['ggg', 'khb', 'ljw', 'nmg', 'oje']
-if (!Array.isArray(entries) || entries.length !== teams.length) process.exit(1)
-for (const team of teams) {
-  const entry = entries.find((item) => item.team === team)
-  if (!entry || entry.project !== `acer-aio-${team}` || entry.base_url !== `https://${team}.imcherry5778.xyz` || entry.vault_path !== `mgmt/k6/${team}`) process.exit(1)
-}
-if (JSON.stringify(entries).match(/access[_-]?token|api[_-]?key|secret/i)) process.exit(1)
-NODE
+jq -e '
+  type == "array" and length == 5 and
+  all(["ggg", "khb", "ljw", "nmg", "oje"][]; . as $team |
+    any(.[]; .team == $team and .project == ("acer-aio-" + $team) and
+      .base_url == ("https://" + $team + ".imcherry5778.xyz") and
+      .vault_path == ("mgmt/k6/" + $team)))
+' "$manifest" >/dev/null || fail "team project manifest is invalid"
+
+! grep -Eqi 'access[_-]?token|api[_-]?key|secret' "$manifest" \
+  || fail "manifest must not contain credentials"
 
 grep -Fq 'ScaleCart API HPA Load Test' "$reconciler" || fail "task name is not reconciled"
 grep -Fq 'TEAM_K6_DRY_RUN' "$reconciler" || fail "dry-run guard is missing"
