@@ -52,37 +52,44 @@ app_service:
   apps:
     - name: grafana
       uri: http://grafana:3000
+      public_addr: tp-grafana.imcherry5778.xyz
       labels:
         env: mgmt
         owner: observability
     - name: kibana
       uri: http://kibana:5601
+      public_addr: tp-kibana.imcherry5778.xyz
       labels:
         env: mgmt
         owner: observability
     - name: prometheus
       uri: http://prometheus:9090
+      public_addr: tp-prometheus.imcherry5778.xyz
       labels:
         env: mgmt
         owner: observability
     - name: alertmanager
       uri: http://alertmanager:9093
+      public_addr: tp-alertmanager.imcherry5778.xyz
       labels:
         env: mgmt
         owner: observability
     - name: keycloak
       uri: http://keycloak:8080
+      public_addr: tp-keycloak.imcherry5778.xyz
       labels:
         env: mgmt
         owner: security
     - name: vault
       uri: https://vault:8200
+      public_addr: tp-vault.imcherry5778.xyz
       insecure_skip_verify: true
       labels:
         env: mgmt
         owner: security
     - name: netbox
       uri: http://netbox:8080
+      public_addr: tp-netbox.imcherry5778.xyz
       labels:
         env: mgmt
         owner: infra

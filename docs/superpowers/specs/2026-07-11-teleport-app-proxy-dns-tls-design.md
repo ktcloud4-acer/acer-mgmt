@@ -3,7 +3,7 @@
 ## Goal
 
 Make every configured Teleport application proxy URL under
-`*.teleport.imcherry5778.xyz:3080` reachable from team clients without
+`tp-*.imcherry5778.xyz:3080` reachable from team clients without
 redirecting existing Traefik-managed service hostnames.
 
 ## Root Cause
@@ -13,18 +13,19 @@ Teleport advertises seven application proxy addresses such as
 rewrites only `teleport.imcherry5778.xyz` to the management Tailscale IP, so
 the application hostnames do not resolve.  The current certificate contains
 `*.imcherry5778.xyz`, which covers one hostname label only and does not cover
-the additional `*.teleport.imcherry5778.xyz` level.
+the additional nested application hostname level.
 
 ## Chosen Design
 
-1. Add one AdGuard Home DNS rewrite for
-   `*.teleport.imcherry5778.xyz` to the existing management Tailscale IP.
-2. Issue and render a Teleport TLS certificate whose SANs include both
-   `teleport.imcherry5778.xyz` and `*.teleport.imcherry5778.xyz`.
-3. Keep the configured Teleport `public_addr` values unchanged.
+1. Set each Teleport application's explicit `public_addr` to a unique
+   `tp-<app>.imcherry5778.xyz` hostname covered by the existing wildcard
+   certificate.
+2. Add exact AdGuard Home rewrites for those seven hostnames to the existing
+   management Tailscale IP.
+3. Keep the existing Teleport TLS certificate and base proxy address unchanged.
 4. Extend the repository DNS smoke script and shell test to require one
    representative application proxy hostname:
-   `alertmanager.teleport.${BASE_DOMAIN}`.
+  `tp-alertmanager.${BASE_DOMAIN}`.
 5. Verify DNS resolution, the certificate name, Teleport's HTTP response, and
    the registered application proxy resources from a real client path.
 
@@ -41,10 +42,10 @@ the additional `*.teleport.imcherry5778.xyz` level.
 ## Acceptance Criteria
 
 1. AdGuard resolves both `teleport.${BASE_DOMAIN}` and
-   `alertmanager.teleport.${BASE_DOMAIN}` to the configured management
+   `tp-alertmanager.${BASE_DOMAIN}` to the configured management
    Tailscale IP.
-2. The Teleport certificate presented for the representative application
-   hostname contains `DNS:*.teleport.${BASE_DOMAIN}`.
+2. The existing Teleport certificate presented for the representative
+   application hostname matches `*.${BASE_DOMAIN}`.
 3. A TLS request to the representative application URL on port 3080 receives
    a Teleport response rather than a DNS or certificate-name error.
 4. `tctl get app_server` still reports all seven configured applications.
@@ -53,7 +54,7 @@ the additional `*.teleport.imcherry5778.xyz` level.
 
 ## Rollback
 
-Remove only the `*.teleport.${BASE_DOMAIN}` AdGuard rewrite and restore the
-previous Teleport certificate version in the existing Vault render path.  The
-base Teleport endpoint and all existing Traefik service DNS names remain
+Remove only the seven `tp-<app>.${BASE_DOMAIN}` AdGuard rewrites and restore
+the previous Teleport application `public_addr` values.  The base Teleport
+endpoint, certificate, and all existing Traefik service DNS names remain
 unchanged.
