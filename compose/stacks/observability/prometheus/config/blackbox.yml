@@ -16,6 +16,18 @@ modules:
       follow_redirects: false
       valid_status_codes: [301, 302, 303, 307, 308]
       preferred_ip_protocol: ip4
+  http_3xx_gitlab:
+    prober: http
+    timeout: 5s
+    http:
+      method: GET
+      follow_redirects: false
+      valid_status_codes: [301, 302, 303, 307, 308]
+      headers:
+        Host: gitlab.imcherry5778.xyz
+      tls_config:
+        server_name: gitlab.imcherry5778.xyz
+      preferred_ip_protocol: ip4
   http_401:
     prober: http
     timeout: 5s
