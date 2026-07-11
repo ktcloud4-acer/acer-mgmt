@@ -42,5 +42,6 @@ grep -Fq 'kv/data/mgmt/k6/oje' "$agent_config" || fail "Vault Agent lacks the oj
 grep -Fq 'sudo install -d -m 0700' "$bootstrap" || fail "Vault k6 bootstrap must create its protected render directory"
 grep -Fq 'dd if=/dev/urandom' "$bootstrap" || fail "Vault k6 bootstrap must use the Vault image random source"
 grep -Fq 'printf "{\"K6_DEMO_API_KEY\"' "$bootstrap" || fail "Vault k6 bootstrap must write valid JSON"
+grep -Fq 'vault kv put -mount=kv "mgmt/k6/${team}"' "$bootstrap" || fail "Vault k6 bootstrap must create the runner key path"
 
 echo "TEAM_K6_PROJECTS_VALIDATION=PASS"
