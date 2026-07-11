@@ -95,7 +95,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $env.SLACK_WEBHOOK_INFRA }}",
+        "url": "http://n8n-slack-relay:8080/",
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",

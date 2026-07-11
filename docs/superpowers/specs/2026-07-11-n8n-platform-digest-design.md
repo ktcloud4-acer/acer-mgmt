@@ -14,7 +14,8 @@ API, SSH, Docker socket에 접근하지 않는다.
 
 `Schedule Trigger`와 `Manual Trigger`가 하나의 공통 워크플로를 시작한다.
 워크플로는 mgmt-proxy 네트워크의 `prometheus:9090`에 PromQL을 요청하고,
-요약을 만든 뒤 기존 infra Slack webhook으로 메시지를 전송한다.
+요약을 만든 뒤 내부 `n8n-slack-relay`로 메시지를 전송한다. relay만 기존
+infra Slack webhook을 소비한다.
 
 다른 선택지였던 클러스터별 Kubernetes API 직접 조회는 Event와 Velero
 상태를 가져올 수 있지만, n8n에 다섯 개 클러스터의 별도 credential을
@@ -46,9 +47,10 @@ Vault Agent가 `/home/mgmt-data/vault-agent/secrets/n8n.env`를 렌더링한다.
 - `DB_POSTGRESDB_PASSWORD`
 - `SLACK_WEBHOOK_INFRA`
 
-Slack webhook은 기존 Grafana용 값을 참조한다. n8n은 Prometheus API에
-인증 없이 내부 Docker DNS로 접근하며, Kubernetes credential, SSH key,
-Docker socket mount를 받지 않는다.
+Slack webhook은 기존 Grafana용 값을 참조하지만 n8n 컨테이너에는 주입하지
+않는다. `n8n-slack-relay`만 해당 값을 받아 Slack으로 POST한다. n8n은
+Prometheus API에 인증 없이 내부 Docker DNS로 접근하며, Kubernetes
+credential, SSH key, Docker socket mount를 받지 않는다.
 
 ### 다이제스트 워크플로
 

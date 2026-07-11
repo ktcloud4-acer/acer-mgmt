@@ -13,7 +13,10 @@ Vault KV `kv/mgmt/n8n`에 다음 두 값을 저장한다.
 
 Vault Agent는 위 두 값과 기존 `kv/mgmt/grafana`의 infra Slack webhook을
 `/home/mgmt-data/vault-agent/secrets/observability/n8n.env`로 렌더한다.
-이 파일과 데이터 디렉터리는 Git에 커밋하지 않는다.
+Webhook은 `n8n-slack-relay`만 소비한다. workflow는 시크릿 대신
+`http://n8n-slack-relay:8080/`으로 POST하므로 n8n 편집자에게 Slack URL,
+DB 비밀번호, 암호화 키가 노출되지 않는다. 이 파일과 데이터 디렉터리는
+Git에 커밋하지 않는다.
 
 ## 배포
 
