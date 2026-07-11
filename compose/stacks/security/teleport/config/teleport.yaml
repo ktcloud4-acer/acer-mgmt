@@ -83,7 +83,7 @@ app_service:
         env: mgmt
         owner: observability
     - name: keycloak
-      uri: http://keycloak:8080
+      uri: http://keycloak:8080/realms/mgmt/account/
       public_addr: tp-keycloak.imcherry5778.xyz
       rewrite:
         redirect: [keycloak.imcherry5778.xyz]
