@@ -22,6 +22,7 @@ assert_contains "$netbox_extra" '"netbox-editor"'
 assert_contains "$netbox_extra" "def map_keycloak_groups"
 assert_contains "$netbox_extra" "SOCIAL_AUTH_PIPELINE"
 assert_contains "$netbox_extra" "from django.contrib.auth.models import Group"
+assert_contains "$netbox_extra" "netbox.authentication.user_default_groups_handler"
 assert_contains "$bootstrap" 'ensure_group "netbox-admin"'
 assert_contains "$bootstrap" 'ensure_group "netbox-editor"'
 assert_contains "$bootstrap" 'ensure_group "argocd-admin"'
