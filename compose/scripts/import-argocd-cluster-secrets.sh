@@ -31,10 +31,15 @@ for cluster in "${clusters[@]}"; do
   secret_name=${argocd_secret_names[$cluster]}
   secret_json="$(KUBECONFIG="$MGMT_KUBECONFIG" kubectl -n argocd get secret "$secret_name" -o json)"
 
+  secret_type="$(jq -er '.metadata.labels["argocd.argoproj.io/secret-type"]' <<<"$secret_json")"
   name="$(jq -er '.data.name | @base64d' <<<"$secret_json")"
   server="$(jq -er '.data.server | @base64d' <<<"$secret_json")"
   config="$(jq -er '.data.config | @base64d' <<<"$secret_json")"
 
+  [[ "$secret_type" == cluster ]] || {
+    echo "Argo CD Secret is not a cluster credential: $secret_name" >&2
+    exit 1
+  }
   [[ "$name" == "$cluster" || "$cluster" == ggg ]] || {
     echo "unexpected Argo CD cluster name for $cluster" >&2
     exit 1
