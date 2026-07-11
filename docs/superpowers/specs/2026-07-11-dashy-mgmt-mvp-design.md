@@ -122,10 +122,10 @@ only after a service-specific framing and login-flow review.
 2. The Dashy config directory is mounted read-only.  Its container has no
    Docker socket, host root, secrets mount, kubeconfig, or service credentials.
 3. `secure-headers@file` remains attached to Dashy and every normal service
-   router.  A new `grafana-embed-headers@file` policy is attached only to a
-   high-priority Grafana embed route and specifies a CSP `frame-ancestors`
-   allowlist containing `https://dash.${BASE_DOMAIN}`.  It must not use
-   `frameDeny: true`.
+   router.  A new `grafana-embed-headers@docker` policy is defined on the
+   Grafana Compose service and attached only to a high-priority Grafana embed
+   route.  Docker Compose renders its CSP `frame-ancestors` allowlist with
+   `https://dash.${BASE_DOMAIN}`; it must not use `frameDeny: true`.
 4. Grafana's `GF_SECURITY_ALLOW_EMBEDDING=true` is required for the approved
    embed route.  Grafana's existing Keycloak OIDC role mapping continues to
    govern its application permissions.
