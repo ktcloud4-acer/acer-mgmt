@@ -1,0 +1,132 @@
+pageInfo:
+  title: ACER Operations
+  description: Central infrastructure service index
+  navLinks:
+    - title: Runbooks
+      path: https://gitlab.imcherry5778.xyz/acer-group/acer-docs/-/tree/main/acer-mgmt/docs/runbooks
+
+appConfig:
+  startingView: home
+  defaultOpeningMethod: newtab
+  disableConfiguration: true
+  preventWriteToDisk: true
+  preventLocalSave: true
+
+sections:
+  - name: Observability
+    icon: fas fa-chart-line
+    items:
+      - title: Grafana
+        description: Metrics dashboards
+        icon: grafana.png
+        url: https://grafana.imcherry5778.xyz
+      - title: Prometheus
+        description: Metrics collection and queries
+        icon: prometheus.png
+        url: https://prometheus.imcherry5778.xyz
+      - title: Alertmanager
+        description: Alert routing, grouping, and silences
+        icon: alertmanager.png
+        url: https://alertmanager.imcherry5778.xyz
+      - title: Kibana
+        description: Central log search and analysis
+        icon: kibana.png
+        url: https://kibana.imcherry5778.xyz
+      - title: n8n
+        description: Platform operations-digest automation
+        icon: n8n.png
+        url: https://n8n.imcherry5778.xyz
+
+  - name: Backup
+    icon: fas fa-box-archive
+    items:
+      - title: MinIO
+        description: S3-compatible backup storage
+        icon: minio.png
+        url: https://minio.imcherry5778.xyz
+      - title: Restic
+        description: Daily encrypted host-volume backup
+        icon: restic.png
+
+  - name: CI/CD
+    icon: fas fa-code-branch
+    items:
+      - title: Argo CD
+        description: GitOps delivery on the k3d management cluster
+        icon: argo-cd.png
+        url: https://argocd.imcherry5778.xyz
+      - title: GitLab
+        description: Source control and CI/CD
+        icon: gitlab.png
+        url: https://gitlab.imcherry5778.xyz
+      - title: GitLab Runner
+        description: Registered Docker CI executor
+        icon: gitlab.png
+      - title: SonarQube
+        description: Static analysis and quality
+        icon: sonarqube.png
+        url: https://sonar.imcherry5778.xyz
+      - title: Allure
+        description: Test reports (unit/integration/e2e)
+        icon: mdi-test-tube
+        url: https://allure.imcherry5778.xyz/allure-docker-service/projects/web-service/reports/latest/index.html
+      - title: Playwright
+        description: e2e (Playwright) HTML report
+        icon: mdi-drama-masks
+        url: https://playwright.imcherry5778.xyz/
+      - title: Semaphore
+        description: Ansible automation
+        icon: semaphore.png
+        url: https://semaphore.imcherry5778.xyz
+      - title: Harbor
+        description: OCI image registry
+        icon: harbor.png
+        url: https://harbor.imcherry5778.xyz
+
+  - name: Data
+    icon: fas fa-database
+    items:
+      - title: Kafka
+        description: Event streaming and broker UI
+        icon: kafka.png
+        url: https://kafka.imcherry5778.xyz
+      - title: Supabase
+        description: Self-hosted backend platform
+        icon: supabase.png
+        url: https://supabase.imcherry5778.xyz
+
+  - name: Infra
+    icon: fas fa-server
+    items:
+      - title: NetBox
+        description: IPAM / CMDB — infrastructure source of truth
+        icon: netbox.png
+        url: https://netbox.imcherry5778.xyz
+
+  - name: Security
+    icon: fas fa-shield-halved
+    items:
+      - title: Keycloak
+        description: Central SSO identity provider
+        icon: keycloak.png
+        url: https://keycloak.imcherry5778.xyz
+      - title: Teleport
+        description: SSH, Kubernetes, and internal app access plane
+        icon: teleport.png
+        url: https://teleport.imcherry5778.xyz:3080
+      - title: Vault
+        description: Secrets management
+        icon: vault.png
+        url: https://vault.imcherry5778.xyz
+
+  - name: Edge
+    icon: fas fa-network-wired
+    items:
+      - title: Traefik
+        description: Internal ingress dashboard
+        icon: traefik-proxy.png
+        url: https://traefik.imcherry5778.xyz
+      - title: AdGuard Home
+        description: Internal DNS wildcard management
+        icon: adguard-home.png
+        url: https://adguard.imcherry5778.xyz
