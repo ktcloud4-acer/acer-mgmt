@@ -17,7 +17,9 @@ docker exec "$VAULT_CONTAINER" sh -c "test -s '$VAULT_TOKEN_FILE'" || {
 if docker exec -i "$VAULT_CONTAINER" sh -s <<'VAULT_SCRIPT'
 set -eu
 export VAULT_TOKEN="$(cat /tmp/.vt)"
-vault kv get -mount=kv mgmt/wazuh >/dev/null 2>&1
+# A soft-deleted KV v2 version exits successfully with data=null. Require a
+# real field so a prior failed bootstrap/probe cannot block recovery.
+vault kv get -mount=kv -field=indexer_password mgmt/wazuh >/dev/null 2>&1
 VAULT_SCRIPT
 then
   echo 'Wazuh Vault secret already exists; leaving it unchanged.'
