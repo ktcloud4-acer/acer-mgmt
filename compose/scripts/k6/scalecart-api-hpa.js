@@ -3,8 +3,8 @@ import { check } from 'k6'
 
 const baseUrl = String(__ENV.K6_BASE_URL || '').replace(/\/+$/, '')
 const demoApiKey = String(__ENV.K6_DEMO_API_KEY || '')
-const targetRate = Number(__ENV.K6_RATE || 150)
-const holdDuration = __ENV.K6_DURATION || '4m'
+const targetRate = Number(__ENV.SCALECART_K6_RATE || 150)
+const holdDuration = __ENV.SCALECART_K6_HOLD_DURATION || '4m'
 
 export const options = {
   scenarios: {

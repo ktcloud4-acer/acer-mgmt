@@ -15,7 +15,7 @@ require_value K6_DEMO_API_KEY
 
 echo "Starting ScaleCart API HPA load test"
 echo "  target: ${K6_BASE_URL}"
-echo "  rate: ${K6_RATE:-150} requests/second"
-echo "  hold: ${K6_DURATION:-4m}"
+echo "  rate: ${SCALECART_K6_RATE:-150} requests/second"
+echo "  hold: ${SCALECART_K6_HOLD_DURATION:-4m}"
 
 exec k6 run compose/scripts/k6/scalecart-api-hpa.js
