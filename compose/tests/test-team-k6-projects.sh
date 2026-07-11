@@ -30,7 +30,8 @@ jq -e '
 
 grep -Fq 'ScaleCart API HPA Load Test' "$reconciler" || fail "task name is not reconciled"
 grep -Fq 'TEAM_K6_DRY_RUN' "$reconciler" || fail "dry-run guard is missing"
-grep -Fq '/run/vault-k6/${K6_TEAM}.env' "$runner" || fail "runner does not use its Vault-rendered key file"
+grep -Fq 'K6_KEY_FILE_ROOT:-/run/vault-k6' "$runner" || fail "runner does not use the Vault key directory"
+grep -Fq '${K6_TEAM}.env' "$runner" || fail "runner does not select a team-specific Vault key file"
 grep -Fq 'K6_RATE' "$runner" || fail "runner does not permit rate override"
 grep -Fq 'K6_DURATION' "$runner" || fail "runner does not permit duration override"
 grep -Fq '/opt/acer-mgmt:ro' "$compose_file" || fail "Semaphore lacks the read-only automation repository mount"
