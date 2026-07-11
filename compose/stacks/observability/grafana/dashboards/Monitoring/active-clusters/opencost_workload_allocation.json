@@ -863,7 +863,7 @@
   "timepicker": {},
   "timezone": "browser",
   "title": "Active Cluster OpenCost workload allocation",
-  "uid": "active-cluster-opencost-workload_allocation",
+  "uid": "active-cluster-opencost-workload",
   "version": 3,
   "weekStart": ""
 }
