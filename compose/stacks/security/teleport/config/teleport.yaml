@@ -52,7 +52,7 @@ app_service:
   apps:
     - name: kibana
       uri: http://kibana:5601
-      public_addr: kibana.teleport.imcherry5778.xyz:3080
+      public_addr: kibana.teleport.imcherry5778.xyz
       rewrite:
         redirect: [kibana.imcherry5778.xyz]
       labels:
@@ -60,7 +60,7 @@ app_service:
         owner: observability
     - name: prometheus
       uri: http://prometheus:9090
-      public_addr: prometheus.teleport.imcherry5778.xyz:3080
+      public_addr: prometheus.teleport.imcherry5778.xyz
       rewrite:
         redirect: [prometheus.imcherry5778.xyz]
       labels:
@@ -68,7 +68,7 @@ app_service:
         owner: observability
     - name: alertmanager
       uri: http://alertmanager:9093
-      public_addr: alertmanager.teleport.imcherry5778.xyz:3080
+      public_addr: alertmanager.teleport.imcherry5778.xyz
       rewrite:
         redirect: [alertmanager.imcherry5778.xyz]
       labels:
@@ -76,7 +76,7 @@ app_service:
         owner: observability
     - name: vault
       uri: https://vault:8200
-      public_addr: vault.teleport.imcherry5778.xyz:3080
+      public_addr: vault.teleport.imcherry5778.xyz
       rewrite:
         redirect: [vault.imcherry5778.xyz]
       insecure_skip_verify: true
@@ -85,7 +85,7 @@ app_service:
         owner: security
     - name: adguard
       uri: http://adguard:3000
-      public_addr: adguard.teleport.imcherry5778.xyz:3080
+      public_addr: adguard.teleport.imcherry5778.xyz
       rewrite:
         redirect: [adguard.imcherry5778.xyz]
         headers:
@@ -96,7 +96,7 @@ app_service:
         owner: infra
     - name: traefik
       uri: http://traefik:8080
-      public_addr: traefik.teleport.imcherry5778.xyz:3080
+      public_addr: traefik.teleport.imcherry5778.xyz
       rewrite:
         redirect: [traefik.imcherry5778.xyz]
       labels:
@@ -104,7 +104,7 @@ app_service:
         owner: platform
     - name: minio-console
       uri: http://minio:9001
-      public_addr: minio.teleport.imcherry5778.xyz:3080
+      public_addr: minio.teleport.imcherry5778.xyz
       rewrite:
         redirect: [minio.imcherry5778.xyz]
         headers:
@@ -115,7 +115,7 @@ app_service:
         owner: storage
     - name: semaphore
       uri: http://semaphore:3000
-      public_addr: semaphore.teleport.imcherry5778.xyz:3080
+      public_addr: semaphore.teleport.imcherry5778.xyz
       rewrite:
         redirect: [semaphore.imcherry5778.xyz]
         headers:
