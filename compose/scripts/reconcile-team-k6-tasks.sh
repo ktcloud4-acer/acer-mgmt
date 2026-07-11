@@ -56,12 +56,13 @@ jq -c '.[]' "$manifest" | while IFS= read -r entry; do
   fi
 
   view_id="$(api_get "/project/$project_id/views" | jq -r '.[] | select(.title == "All") | .id' | head -n1)"
-  jq -n --arg name "$task_name" --argjson repository "$repository_id" --argjson environment "$environment_id" --argjson view "$view_id" '{name:$name,repository_id:$repository,environment_ids:[$environment],view_id:$view,playbook:"compose/scripts/k6/semaphore-scalecart-api-hpa.sh",arguments:"[]",description:"Vault-backed k6 load test for this team\u0027s ScaleCart API HPA.",app:"bash",type:"",allow_parallel_tasks:false,survey_vars:[{name:"K6_RATE",title:"Request rate (RPS)",description:"Optional positive integer; default 150.",type:"int",required:false},{name:"K6_DURATION",title:"Hold duration",description:"Optional duration such as 4m; default 4m.",type:"",required:false}]}' >"$tmp_dir/template.json"
+  jq -n --arg name "$task_name" --argjson project "$project_id" --argjson repository "$repository_id" --argjson environment "$environment_id" --argjson view "$view_id" '{name:$name,project_id:$project,repository_id:$repository,environment_ids:[$environment],view_id:$view,playbook:"compose/scripts/k6/semaphore-scalecart-api-hpa.sh",arguments:"[]",description:"Vault-backed k6 load test for this team\u0027s ScaleCart API HPA.",app:"bash",type:"",allow_parallel_tasks:false,survey_vars:[{name:"K6_RATE",title:"Request rate (RPS)",description:"Optional positive integer; default 150.",type:"int",required:false},{name:"K6_DURATION",title:"Hold duration",description:"Optional duration such as 4m; default 4m.",type:"",required:false}]}' >"$tmp_dir/template.json"
   template_id="$(api_get "/project/$project_id/templates" | jq -r --arg name "$task_name" '.[] | select(.name == $name) | .id' | head -n1)"
   if [ -z "$template_id" ] || [ "$template_id" = null ]; then
     template_id="$(api_post "/project/$project_id/templates" "$tmp_dir/template.json" | jq -r '.id')"
   else
-    api_put "/project/$project_id/templates/$template_id" "$tmp_dir/template.json" >/dev/null
+    jq --argjson template "$template_id" '. + {id:$template}' "$tmp_dir/template.json" >"$tmp_dir/template-update.json"
+    api_put "/project/$project_id/templates/$template_id" "$tmp_dir/template-update.json" >/dev/null
   fi
   printf 'reconciled project=%s team=%s template=%s\n' "$project_name" "$team" "$template_id"
 done
