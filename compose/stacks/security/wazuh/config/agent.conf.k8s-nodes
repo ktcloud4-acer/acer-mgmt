@@ -1,0 +1,31 @@
+<!-- k8s-nodes 그룹 공유 FIM 설정 (W1). kubeadm master/worker 노드용.
+     노드는 group=k8s-nodes 로만 enroll 하므로 이 파일이 단독(standalone)으로 완결돼야
+     한다 = 일반 자격증명 경로 + Kubernetes 컨트롤플레인 비밀을 모두 FIM 에서 제외한다.
+     제외 목적: 비밀 파일의 내용/변경분이 Wazuh 저장소로 유입되지 않게 한다(security-bp). -->
+<agent_config>
+  <syscheck>
+    <directories check_all="yes">/etc,/usr/local/etc</directories>
+    <directories check_all="yes">/opt</directories>
+
+    <!-- Kubernetes 컨트롤플레인 비밀 (master 에 집중) -->
+    <ignore>/etc/kubernetes/pki</ignore>
+    <ignore type="sregex">^/etc/kubernetes/.*\.conf$</ignore>
+    <ignore>/var/lib/etcd</ignore>
+    <ignore type="sregex">^/var/lib/kubelet/pki</ignore>
+    <ignore type="sregex">/var/lib/kubelet/pods/.*/volumes/kubernetes\.io~secret</ignore>
+    <ignore type="sregex">/var/lib/kubelet/pods/.*/volumes/kubernetes\.io~projected</ignore>
+
+    <!-- 일반 자격증명 / 상태 파일 -->
+    <ignore type="sregex">/etc/ssh/ssh_host_.*_key$</ignore>
+    <ignore>/root/.ssh</ignore>
+    <ignore>/home/*/.ssh</ignore>
+    <ignore>/home/*/.kube</ignore>
+    <ignore type="sregex">\.tfstate(\.backup)?$</ignore>
+    <ignore type="sregex">(^|/)(backup|backups|dump|dumps)(/|$)</ignore>
+
+    <!-- 위 비밀 경로는 내용 diff 도 절대 수집하지 않는다 -->
+    <nodiff>/etc/kubernetes/pki</nodiff>
+    <nodiff type="sregex">^/etc/kubernetes/.*\.conf$</nodiff>
+    <nodiff>/var/lib/etcd</nodiff>
+  </syscheck>
+</agent_config>
