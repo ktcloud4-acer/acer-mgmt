@@ -161,7 +161,7 @@ app_service:
       uri: http://gitlab:80
       public_addr: gitlab.teleport.imcherry5778.xyz
       rewrite:
-        redirect: [gitlab.imcherry5778.xyz]
+        redirect: [gitlab.imcherry5778.xyz, gitlab]
       labels:
         env: mgmt
         owner: cicd
@@ -207,7 +207,7 @@ app_service:
       public_addr: wazuh.teleport.imcherry5778.xyz
       insecure_skip_verify: true
       rewrite:
-        redirect: [wazuh.imcherry5778.xyz]
+        redirect: [wazuh.imcherry5778.xyz, wazuh-dashboard]
       labels:
         env: mgmt
         owner: security
@@ -234,7 +234,7 @@ app_service:
       uri: http://supabase-studio:3000
       public_addr: supabase-studio.teleport.imcherry5778.xyz
       rewrite:
-        redirect: [supabase-admin.imcherry5778.xyz]
+        redirect: [supabase-admin.imcherry5778.xyz, supabase-studio]
       labels:
         env: mgmt
         owner: data
@@ -243,7 +243,7 @@ app_service:
       uri: http://netbox:8080
       public_addr: netbox.teleport.imcherry5778.xyz
       rewrite:
-        redirect: [netbox.imcherry5778.xyz]
+        redirect: [netbox.imcherry5778.xyz, netbox]
         headers:
           - "Host: netbox.imcherry5778.xyz"
       labels:
