@@ -60,11 +60,14 @@ for app in n8n gitlab sonarqube allure playwright harbor wazuh redisinsight kafk
   assert_contains "$dns_script" "$app"
 done
 
-assert_not_contains "$teleport_config" "name: grafana"
+assert_contains "$teleport_config" "name: grafana"
+assert_contains "$teleport_config" "uri: http://grafana:3000"
+assert_contains "$teleport_config" "public_addr: grafana.teleport.imcherry5778.xyz"
+assert_contains "$teleport_config" "Host: grafana.teleport.imcherry5778.xyz"
 assert_not_contains "$teleport_config" "grafana-teleport-proxy"
 assert_not_contains "$teleport_config" "X-Auth-Request-User: {{internal.logins}}"
-assert_not_contains "$dns_script" 'add_rewrite "grafana.teleport.${BASE_DOMAIN}"'
-assert_contains "$dns_script" 'sed -i -E "/^[[:space:]]+- domain: grafana\\.teleport\\.${BASE_DOMAIN//./\\.}$/,+2d" "$CONFIG_FILE"'
+assert_contains "$dns_script" "grafana"
+assert_not_contains "$dns_script" "domain: grafana\\.teleport"
 assert_contains "$teleport_config" "uri: http://n8n:5678"
 assert_contains "$teleport_config" "uri: http://gitlab:80"
 assert_contains "$teleport_config" "redirect: [gitlab.imcherry5778.xyz, gitlab]"
@@ -88,6 +91,8 @@ assert_not_contains "$teleport_stack" 'TELEPORT_GRAFANA_AUTH_IP'
 assert_contains "$teleport_stack" "supabase_default:"
 
 grafana_stack="$ROOT_DIR/compose/stacks/observability/grafana/compose.yaml"
+assert_contains "$grafana_stack" "- mgmt-proxy"
+assert_contains "$grafana_stack" "mgmt-proxy:"
 assert_contains "$grafana_stack" "traefik-grafana-auth:"
 assert_not_contains "$grafana_stack" "grafana-teleport-proxy"
 assert_not_contains "$grafana_stack" "GF_AUTH_PROXY_WHITELIST"

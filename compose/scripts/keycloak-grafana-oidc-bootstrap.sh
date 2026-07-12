@@ -12,8 +12,8 @@ VAULT_CONTAINER=${VAULT_CONTAINER:-vault}
 VAULT_TOKEN_FILE=${VAULT_TOKEN_FILE:-/tmp/.vt}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VAULT_KV_PATCH_HELPER="${SCRIPT_DIR}/vault-kv2-patch-secret.py"
-REDIRECT_URI="https://grafana.${BASE_DOMAIN}/login/generic_oauth"
-WEB_ORIGIN="https://grafana.${BASE_DOMAIN}"
+REDIRECT_URI="https://grafana.teleport.${BASE_DOMAIN}:3080/login/generic_oauth"
+WEB_ORIGIN="https://grafana.teleport.${BASE_DOMAIN}:3080"
 
 docker inspect keycloak >/dev/null 2>&1 || {
   echo 'Required container not found: keycloak' >&2

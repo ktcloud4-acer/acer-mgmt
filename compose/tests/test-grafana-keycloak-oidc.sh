@@ -70,7 +70,7 @@ assert_template_block_contains "$vault_agent_config" \
 assert_not_contains "$vault_agent_config" 'chgrp 472 /vault/secrets/grafana_oidc_client_secret'
 
 assert_contains "$bootstrap" 'CLIENT_ID=${GRAFANA_OIDC_CLIENT_ID:-grafana}'
-assert_contains "$bootstrap" 'REDIRECT_URI="https://grafana.${BASE_DOMAIN}/login/generic_oauth"'
+assert_contains "$bootstrap" 'REDIRECT_URI="https://grafana.teleport.${BASE_DOMAIN}:3080/login/generic_oauth"'
 assert_contains "$bootstrap" 'oidc-group-membership-mapper'
 assert_contains "$bootstrap" '"claim.name": "groups"'
 assert_contains "$bootstrap" '--secret-path mgmt/grafana'
@@ -89,6 +89,9 @@ assert_contains "$bootstrap" 'docker exec "$VAULT_CONTAINER" test -s "$VAULT_TOK
 assert_not_contains "$bootstrap" 'sh -c "test -s'
 
 assert_contains "$grafana_compose" 'GF_AUTH_GENERIC_OAUTH_ENABLED: "true"'
+assert_contains "$grafana_compose" 'GF_SERVER_DOMAIN: grafana.teleport.${BASE_DOMAIN}'
+assert_contains "$grafana_compose" 'GF_SERVER_ROOT_URL: https://grafana.teleport.${BASE_DOMAIN}:3080'
+assert_contains "$grafana_compose" 'GF_SERVER_ENFORCE_DOMAIN: "true"'
 assert_contains "$grafana_compose" 'user: "472:1000"'
 assert_contains "$grafana_compose" 'GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN: "true"'
 assert_contains "$grafana_compose" 'GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"'
@@ -100,6 +103,7 @@ assert_contains "$grafana_compose" 'GF_AUTH_GENERIC_OAUTH_JWK_SET_URL: https://k
 assert_contains "$grafana_compose" 'GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH: groups'
 assert_contains "$grafana_compose" "GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: contains(groups[*], 'grafana-editor') && 'Editor' || 'Viewer'"
 assert_contains "$grafana_compose" 'GF_AUTH_PROXY_ENABLED: "false"'
+assert_contains "$grafana_compose" '- mgmt-proxy'
 assert_contains "$grafana_compose" 'traefik.http.routers.grafana.middlewares=secure-headers@file'
 assert_not_contains "$grafana_compose" 'traefik.http.routers.grafana.middlewares=sso-auth@file'
 assert_contains "$grafana_compose" '${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/grafana_oidc_client_secret:/run/secrets/grafana_oidc_client_secret:ro,z'
