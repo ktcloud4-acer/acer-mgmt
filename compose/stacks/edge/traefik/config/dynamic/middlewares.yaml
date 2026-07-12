@@ -109,7 +109,7 @@ http:
     grafana-teleport-launch:
       redirectRegex:
         regex: "^http://grafana-teleport-launch\\.internal/(.*)"
-        replacement: "https://grafana.${BASE_DOMAIN}/$1"
+        replacement: "https://grafana.imcherry5778.xyz/$1"
         permanent: false
 
   routers:
