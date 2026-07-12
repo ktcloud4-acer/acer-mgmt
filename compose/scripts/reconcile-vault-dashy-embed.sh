@@ -12,7 +12,7 @@ command -v docker >/dev/null 2>&1 || {
   exit 1
 }
 
-docker exec -e DASHY_ORIGIN="$DASHY_ORIGIN" "$VAULT_CONTAINER" sh -ceu '
+docker exec -i -e DASHY_ORIGIN="$DASHY_ORIGIN" "$VAULT_CONTAINER" sh -seu <<'VAULT_SH'
   test -s /tmp/.vt
   export VAULT_ADDR=https://127.0.0.1:8200
   export VAULT_CACERT=/vault/tls/ca.crt
@@ -32,12 +32,8 @@ docker exec -e DASHY_ORIGIN="$DASHY_ORIGIN" "$VAULT_CONTAINER" sh -ceu '
   policy_file=/tmp/dashy-embed-admin-policy.hcl
   trap "rm -f \"$policy_file\"" EXIT
   vault policy read admin >"$policy_file"
-  if ! awk '
-    $0 == "path \"sys/config/ui/headers/Content-Security-Policy\" {" { in_stanza=1; next }
-    in_stanza && /capabilities = \[.*"update".*"sudo"/ { valid=1 }
-    in_stanza && $0 == "}" { in_stanza=0 }
-    END { exit valid ? 0 : 1 }
-  ' "$policy_file"; then
+  if ! grep -Fq "path \"sys/config/ui/headers/Content-Security-Policy\" {" "$policy_file" \
+    || ! grep -Fq "capabilities = [\"read\", \"create\", \"update\", \"delete\", \"sudo\"]" "$policy_file"; then
     cat <<POLICY >>"$policy_file"
 path "sys/config/ui/headers/Content-Security-Policy" {
   capabilities = ["read", "create", "update", "delete", "sudo"]
@@ -50,6 +46,6 @@ POLICY
   vault token capabilities sys/config/ui/headers/Content-Security-Policy | tr "," "\n" | grep -Fxq sudo
   vault write sys/config/ui/headers/Content-Security-Policy \
     values="frame-src '\''self'\''; frame-ancestors ${DASHY_ORIGIN}; object-src '\''none'\''" >/dev/null
-'
+VAULT_SH
 
 echo 'Vault Dashy embed resources reconciled.'

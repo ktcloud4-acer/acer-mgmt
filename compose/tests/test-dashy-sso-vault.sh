@@ -115,5 +115,6 @@ assert_contains "$reconciler" 'tr "," "\n"'
 assert_contains "$reconciler" 'grep -Fxq update'
 assert_contains "$reconciler" 'grep -Fxq sudo'
 sh -n "$reconciler" || fail 'Vault reconciliation script must be POSIX-sh compatible'
+assert_contains "$reconciler" "sh -seu <<'VAULT_SH'"
 
 echo "Dashy SSO and Vault contract tests passed"
