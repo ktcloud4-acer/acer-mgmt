@@ -43,7 +43,7 @@ put() { curl -fsS -b "$tmp/c" -H 'Content-Type: application/json' -X PUT --data 
 jq -n --arg auth "$SEMAPHORE_ADMIN" --arg password "$SEMAPHORE_ADMIN_PASSWORD" '{auth:$auth,password:$password}' >"$tmp/login.json"
 curl -fsS -c "$tmp/c" -H 'Content-Type: application/json' --data @"$tmp/login.json" http://localhost:3000/api/auth/login -o /dev/null
 jq -c --arg teams "$selected_teams" '.[] | select(.team as $team | ($teams | split(",") | index($team)))' "$manifest" | while read -r entry; do
-  team="$(jq -r .team <<<"$entry")"; project_name="$(jq -r .project <<<"$entry")"
+  team="$(printf '%s' "$entry" | jq -r .team)"; project_name="$(printf '%s' "$entry" | jq -r .project)"
   role_id="$(jq -r --arg team "$team" 'select(.team==$team)|.role_id' "$credentials")"
   secret_id="$(jq -r --arg team "$team" 'select(.team==$team)|.secret_id' "$credentials")"
   project="$(get /projects | jq -r --arg n "$project_name" '.[]|select(.name==$n)|.id'|head -1)"; test -n "$project"; test "$project" != null
