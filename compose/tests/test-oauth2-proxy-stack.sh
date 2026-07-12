@@ -45,19 +45,14 @@ assert_contains "$compose_file" "--provider=keycloak-oidc"
 assert_contains "$compose_file" '--oidc-issuer-url=https://keycloak.${BASE_DOMAIN}/realms/mgmt'
 assert_contains "$compose_file" "--client-secret-file=/run/secrets/oauth2_proxy_client_secret"
 assert_contains "$compose_file" "--cookie-secret-file=/run/secrets/oauth2_proxy_cookie_secret"
-assert_not_contains "$compose_file" '--allowed-group='
+assert_contains "$compose_file" '--allowed-group=${OAUTH2_PROXY_ALLOWED_GROUP:-platform-admin}'
 assert_contains "$compose_file" 'traefik.http.routers.oauth2-proxy.rule=Host(`auth.${BASE_DOMAIN}`)'
-assert_contains "$compose_file" 'traefik.http.routers.oauth2-root.rule=Host(`auth.${BASE_DOMAIN}`) && Path(`/`)'
-assert_contains "$compose_file" 'traefik.http.routers.oauth2-root.priority=100'
-assert_contains "$compose_file" 'traefik.http.routers.oauth2-root.middlewares=auth-root-redirect@file'
+assert_not_contains "$compose_file" 'traefik.http.routers.oauth2-root.'
 assert_contains "$compose_file" "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"
 
 assert_contains "$traefik_middlewares" "address: http://oauth2-proxy:4180/oauth2/auth"
 assert_contains "$traefik_middlewares" "service: oauth2-proxy@docker"
-assert_contains "$traefik_middlewares" 'auth-root-redirect:'
-assert_contains "$traefik_middlewares" 'regex: "^https://auth\\.imcherry5778\\.xyz/?$"'
-assert_contains "$traefik_middlewares" 'replacement: "https://dash.imcherry5778.xyz/"'
-assert_contains "$traefik_middlewares" 'permanent: false'
+assert_not_contains "$traefik_middlewares" 'auth-root-redirect:'
 
 assert_contains "$vault_agent_config" 'kv/data/mgmt/oauth2-proxy'
 assert_contains "$vault_agent_config" 'destination = "/vault/secrets/oauth2_proxy_client_secret"'

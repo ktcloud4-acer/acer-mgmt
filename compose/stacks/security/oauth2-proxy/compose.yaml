@@ -18,6 +18,7 @@ services:
       - --cookie-domain=.${BASE_DOMAIN}
       - --whitelist-domain=.${BASE_DOMAIN}
       - --email-domain=*
+      - --allowed-group=${OAUTH2_PROXY_ALLOWED_GROUP:-platform-admin}
       - --redirect-url=https://auth.${BASE_DOMAIN}/oauth2/callback
       - --reverse-proxy=true
       - --trusted-proxy-ip=${OAUTH2_PROXY_TRUSTED_PROXY_IP:-172.18.0.0/16}
@@ -39,13 +40,6 @@ services:
       - "traefik.http.routers.oauth2-proxy.rule=Host(`auth.${BASE_DOMAIN}`)"
       - "traefik.http.routers.oauth2-proxy.entrypoints=websecure"
       - "traefik.http.routers.oauth2-proxy.middlewares=secure-headers@file"
-      # The auth host is callback-only. Sending its root to Dashy prevents
-      # oauth2-proxy's otherwise visible static \"Authenticated\" response.
-      - "traefik.http.routers.oauth2-root.rule=Host(`auth.${BASE_DOMAIN}`) && Path(`/`)"
-      - "traefik.http.routers.oauth2-root.entrypoints=websecure"
-      - "traefik.http.routers.oauth2-root.priority=100"
-      - "traefik.http.routers.oauth2-root.middlewares=auth-root-redirect@file"
-      - "traefik.http.routers.oauth2-root.service=oauth2-proxy"
       - "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"
 
 networks:

@@ -14,11 +14,10 @@ Semaphore, Kafka UI, AdGuard Home, Traefik, Vault, Homepage, and Dashy.
 Vault `/v1/*`, MinIO S3, Supabase APIs, Teleport, and service APIs used by
 automation retain their native authentication flows.
 
-For the current demo/simple-access profile, any successfully authenticated
-`mgmt` Keycloak user can pass this shared browser gateway. The `auth` host is
-callback-only: its root redirects to Dashy, while `/oauth2/*` keeps the signed
-return URL and sends a successful login back to the requested service.
-Application-native permissions still apply after the gateway.
+The shared browser gateway requires the Keycloak group
+`${OAUTH2_PROXY_ALLOWED_GROUP:-platform-admin}`. The `/oauth2/*` callback
+keeps the signed return URL and sends a successful login back to the requested
+service. Application-native permissions still apply after the gateway.
 
 Grafana additionally uses Auth Proxy and accepts the user header only from
 Traefik's fixed `/32` address on the isolated `traefik-grafana-auth` Docker
@@ -61,7 +60,7 @@ curl -sS -o /dev/null -w '%{http_code}\n' https://home.imcherry5778.xyz
 Unauthenticated Dashy access must use the existing SSO flow. Homepage must
 remain reachable.
 
-After signing in with any `mgmt` Keycloak user, verify the seven service groups and that
+After signing in as `platform-admin`, verify the seven service groups and that
 a normal left-click opens a service in a new tab. Dashy's built-in right-click
 context menu remains enabled so operators can choose another supported opening
 method, including modal or Workspace. Grafana must render in both iframe modes.
