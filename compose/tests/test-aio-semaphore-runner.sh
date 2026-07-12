@@ -14,6 +14,7 @@ absent() { ! grep -Fq -- "$2" "$1" || fail "unexpected '$2' in $1"; }
 contains "$compose" 'SEMAPHORE_USE_REMOTE_RUNNER: "true"'
 contains "$agent" 'SEMAPHORE_RUNNER_REGISTRATION_TOKEN='
 contains "$agent" 'kv/data/mgmt/cicd/semaphore-runner/aio'
+[[ "$(grep -Fc 'SEMAPHORE_RUNNER_REGISTRATION_TOKEN=' "$agent")" -eq 2 ]] || fail 'Runner token must render to both Semaphore env files'
 contains "$task" 'vault_addr=https://vault.imcherry5778.xyz'
 absent "$task" '/run/secrets/acer.pem'
 absent "$task" 'ssh -i'
