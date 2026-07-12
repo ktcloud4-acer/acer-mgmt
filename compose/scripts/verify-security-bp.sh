@@ -4,6 +4,15 @@ set -euo pipefail
 
 BASE_DOMAIN="${BASE_DOMAIN:-imcherry5778.xyz}"
 DATA_ROOT="${DATA_ROOT:-/home/mgmt-data}"
+SECRETS_ROOT="${SECRETS_ROOT:-}"
+if [[ -z "$SECRETS_ROOT" ]]; then
+  for candidate in /run/acer-mgmt/secrets "$DATA_ROOT/vault-agent/secrets"; do
+    if [[ -d "$candidate" ]]; then
+      SECRETS_ROOT="$candidate"
+      break
+    fi
+  done
+fi
 SECRETS_ROOT="${SECRETS_ROOT:-/run/acer-mgmt/secrets}"
 failed=0
 
@@ -52,7 +61,7 @@ fi
 
 echo '== Native audit sources =='
 require_container vault
-if docker exec vault sh -lc 'VAULT_TOKEN=$(cat /tmp/.vt 2>/dev/null || true); test -n "$VAULT_TOKEN" && vault audit list >/dev/null' 2>/dev/null; then
+if docker exec vault sh -lc 'VAULT_ADDR=https://127.0.0.1:8200 VAULT_SKIP_VERIFY=true VAULT_TOKEN=$(cat /tmp/.vt 2>/dev/null || true); test -n "$VAULT_TOKEN" && vault audit list >/dev/null' 2>/dev/null; then
   pass 'vault audit list succeeds with the mounted verifier token'
 else
   warn 'vault audit list requires an audit-read token; checking durable log files instead'
