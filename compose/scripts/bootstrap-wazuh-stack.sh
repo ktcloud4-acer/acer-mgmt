@@ -59,4 +59,9 @@ docker run --rm \
   -e CERT_TOOL_VERSION=4.14 \
   wazuh/wazuh-certs-generator:0.0.4
 
+# The indexer image runs as UID/GID 1000. A root-created bind directory makes
+# OpenSearch fail late with AccessDeniedException on /var/lib/wazuh-indexer.
+install -d -m 0750 "$WAZUH_ROOT/indexer"
+chown -R 1000:1000 "$WAZUH_ROOT/indexer"
+
 echo "Wazuh assets prepared. Start with: docker compose --env-file <Vault wazuh.env> -f $STACK_DIR/compose.yaml up -d"
