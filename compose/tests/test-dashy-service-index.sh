@@ -27,6 +27,7 @@ dashy_config="${DASHY_ROOT}/config/conf.yml"
 status_config="${DASHY_ROOT}/config/status.yml"
 middlewares_config="${REPO_ROOT}/compose/stacks/edge/traefik/config/dynamic/middlewares.yaml"
 grafana_compose="${REPO_ROOT}/compose/stacks/observability/grafana/compose.yaml"
+prometheus_compose="${REPO_ROOT}/compose/stacks/observability/prometheus/compose.yaml"
 
 for file in "$dashy_compose" "$dashy_config"; do
   assert_file "$file"
@@ -34,6 +35,7 @@ done
 
 assert_file "$middlewares_config"
 assert_file "$grafana_compose"
+assert_file "$prometheus_compose"
 
 assert_contains "$dashy_compose" "image: ghcr.io/lissy93/dashy:4.1.5"
 assert_contains "$dashy_compose" "./config:/app/user-data:ro,Z"
@@ -62,8 +64,13 @@ done
 
 assert_contains "$dashy_config" "url: https://allure.imcherry5778.xyz/allure-docker-service/projects/acer-web/reports/latest/index.html"
 assert_not_contains "$dashy_config" "allure-docker-service/projects/web-service/reports/latest/index.html"
-assert_contains "$dashy_config" "statusCheckUrl: http://prometheus:9090/-/ready"
+assert_contains "$dashy_config" "statusCheckUrl: https://prometheus.imcherry5778.xyz/-/ready"
 assert_contains "$dashy_config" "statusCheckAcceptCodes: '200'"
+assert_not_contains "$dashy_config" "statusCheckUrl: http://prometheus:9090/-/ready"
+assert_contains "$prometheus_compose" 'traefik.http.routers.prometheus-health.rule=Host(`prometheus.${BASE_DOMAIN}`) && (Path(`/-/ready`) || Path(`/-/healthy`))'
+assert_contains "$prometheus_compose" "traefik.http.routers.prometheus-health.entrypoints=websecure"
+assert_contains "$prometheus_compose" "traefik.http.routers.prometheus-health.middlewares=secure-headers@file"
+assert_contains "$prometheus_compose" "traefik.http.routers.prometheus-health.priority=100"
 
 for page in Monitor Containers; do
   assert_contains "$dashy_config" "name: ${page}"

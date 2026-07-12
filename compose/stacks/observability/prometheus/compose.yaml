@@ -37,6 +37,13 @@ services:
       - "traefik.http.routers.prometheus.rule=Host(`prometheus.${BASE_DOMAIN}`)"
       - "traefik.http.routers.prometheus.entrypoints=websecure"
       - "traefik.http.routers.prometheus.middlewares=sso-auth@file,secure-headers@file"
+      # Dashy and Blackbox need an unauthenticated liveness signal; only the
+      # two read-only Prometheus health endpoints bypass browser SSO.
+      - "traefik.http.routers.prometheus-health.rule=Host(`prometheus.${BASE_DOMAIN}`) && (Path(`/-/ready`) || Path(`/-/healthy`))"
+      - "traefik.http.routers.prometheus-health.entrypoints=websecure"
+      - "traefik.http.routers.prometheus-health.middlewares=secure-headers@file"
+      - "traefik.http.routers.prometheus-health.priority=100"
+      - "traefik.http.routers.prometheus-health.service=prometheus"
       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
 
   node-exporter:

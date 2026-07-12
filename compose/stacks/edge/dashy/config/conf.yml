@@ -110,7 +110,7 @@ sections:
         description: Metrics collection and queries
         icon: https://cdn.simpleicons.org/prometheus
         url: https://prometheus.imcherry5778.xyz
-        statusCheckUrl: http://prometheus:9090/-/ready
+        statusCheckUrl: https://prometheus.imcherry5778.xyz/-/ready
         statusCheckAcceptCodes: '200'
       - title: Alertmanager
         description: Alert routing, grouping, and silences
