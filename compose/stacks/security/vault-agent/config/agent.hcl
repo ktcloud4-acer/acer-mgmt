@@ -38,11 +38,19 @@ template {
   perms       = "0640"
 }
 
-# grafana compose env 파일. OAuth 클라이언트 시크릿은 더 이상 렌더하지 않고,
-# oauth2-proxy identity header로 Grafana Auth Proxy 로그인을 통일한다.
+# grafana compose env 파일. OAuth 클라이언트 시크릿은 이 env 파일이 아닌
+# 전용 파일로 렌더하여 Grafana의 __FILE 설정으로만 소비한다.
 template {
   contents    = "{{ with secret \"kv/data/mgmt/common\" }}ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/grafana\" }}SLACK_WEBHOOK_INFRA={{ .Data.data.slack_webhook_infra }}\n{{ end }}"
   destination = "/vault/secrets/observability/grafana.env"
+  perms       = "0640"
+}
+
+# Grafana's Keycloak OIDC client secret. Keep this separate from the Compose
+# environment file so Docker inspect cannot expose it.
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/grafana\" }}{{ .Data.data.oidc_client_secret }}{{ end }}"
+  destination = "/vault/secrets/grafana_oidc_client_secret"
   perms       = "0640"
 }
 

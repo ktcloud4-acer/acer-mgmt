@@ -138,19 +138,6 @@ app_service:
       labels:
         env: mgmt
         owner: cicd
-    - name: grafana
-      description: Metrics dashboards through Teleport
-      uri: http://grafana-teleport-proxy:8080
-      public_addr: grafana.teleport.imcherry5778.xyz
-      rewrite:
-        redirect: [grafana.imcherry5778.xyz]
-        # Teleport only forwards its signed JWT by default. Pass the
-        # authenticated login trait through the isolated Grafana bridge.
-        headers:
-          - "X-Auth-Request-User: {{internal.logins}}"
-      labels:
-        env: mgmt
-        owner: observability
     - name: n8n
       description: Operations automation through Teleport
       uri: http://n8n:5678

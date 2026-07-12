@@ -55,13 +55,16 @@ assert_contains "$teleport_config" "public_addr: keycloak-admin.teleport.imcherr
 assert_contains "$teleport_config" "redirect: [keycloak.imcherry5778.xyz]"
 assert_contains "$teleport_config" "owner: security"
 
-for app in grafana n8n gitlab sonarqube allure playwright harbor wazuh redisinsight kafka-ui supabase-studio netbox dashy platform-monitor docker-runtime; do
+for app in n8n gitlab sonarqube allure playwright harbor wazuh redisinsight kafka-ui supabase-studio netbox dashy platform-monitor docker-runtime; do
   assert_contains "$teleport_config" "name: $app"
   assert_contains "$dns_script" "$app"
 done
 
-assert_contains "$teleport_config" "uri: http://grafana-teleport-proxy:8080"
-assert_contains "$teleport_config" 'X-Auth-Request-User: {{internal.logins}}'
+assert_not_contains "$teleport_config" "name: grafana"
+assert_not_contains "$teleport_config" "grafana-teleport-proxy"
+assert_not_contains "$teleport_config" "X-Auth-Request-User: {{internal.logins}}"
+assert_not_contains "$dns_script" 'add_rewrite "grafana.teleport.${BASE_DOMAIN}"'
+assert_contains "$dns_script" 'sed -i -E "/^[[:space:]]+- domain: grafana\\.teleport\\.${BASE_DOMAIN//./\\.}$/,+2d" "$CONFIG_FILE"'
 assert_contains "$teleport_config" "uri: http://n8n:5678"
 assert_contains "$teleport_config" "uri: http://gitlab:80"
 assert_contains "$teleport_config" "redirect: [gitlab.imcherry5778.xyz, gitlab]"
@@ -80,17 +83,15 @@ assert_contains "$teleport_config" "redirect: [netbox.imcherry5778.xyz, netbox]"
 assert_contains "$teleport_config" "uri: http://dashy:8080"
 assert_contains "$teleport_config" "uri: http://platform-monitor:8080"
 assert_contains "$teleport_config" "uri: http://docker-runtime-viewer:8080"
-assert_contains "$teleport_stack" "traefik-grafana-auth:"
-assert_contains "$teleport_stack" 'ipv4_address: ${TELEPORT_GRAFANA_AUTH_IP:-10.254.254.4}'
+assert_not_contains "$teleport_stack" "traefik-grafana-auth:"
+assert_not_contains "$teleport_stack" 'TELEPORT_GRAFANA_AUTH_IP'
 assert_contains "$teleport_stack" "supabase_default:"
 
 grafana_stack="$ROOT_DIR/compose/stacks/observability/grafana/compose.yaml"
-grafana_proxy_config="$ROOT_DIR/compose/stacks/observability/grafana/teleport-proxy/nginx.conf"
-assert_contains "$grafana_stack" "grafana-teleport-proxy"
-assert_contains "$grafana_stack" 'GF_AUTH_PROXY_WHITELIST: ${TRAEFIK_GRAFANA_AUTH_IP:-10.254.254.2}/32,${GRAFANA_TELEPORT_PROXY_IP:-10.254.254.5}/32'
-assert_contains "$grafana_stack" 'ipv4_address: ${GRAFANA_TELEPORT_PROXY_IP:-10.254.254.5}'
-assert_contains "$grafana_proxy_config" "allow 10.254.254.4;"
-assert_contains "$grafana_proxy_config" 'proxy_set_header X-Auth-Request-User $http_x_auth_request_user;'
+assert_contains "$grafana_stack" "traefik-grafana-auth:"
+assert_not_contains "$grafana_stack" "grafana-teleport-proxy"
+assert_not_contains "$grafana_stack" "GF_AUTH_PROXY_WHITELIST"
+assert_not_contains "$grafana_stack" "GRAFANA_TELEPORT_PROXY_IP"
 assert_not_contains "$middlewares" "redirect-to-teleport"
 assert_contains "$dns_script" "for app in kibana prometheus alertmanager vault adguard traefik minio semaphore keycloak-admin"
 assert_contains "$tls_script" "*.teleport."

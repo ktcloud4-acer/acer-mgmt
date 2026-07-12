@@ -70,7 +70,7 @@ assert_contains "$demo_rules" 'cluster=~"ggg|khb|ljw|nmg|oje"'
 assert_contains "$demo_rules" 'deployment="scalecart-worker"'
 assert_contains "$demo_rules" "for: 5s"
 assert_contains "$demo_rules" 'demo: "true"'
-assert_contains "$demo_rules" "https://grafana.teleport.imcherry5778.xyz:3080"
+assert_contains "$demo_rules" 'https://grafana.${BASE_DOMAIN}'
 
 assert_contains "$vault_agent_config" 'kv/data/mgmt/alertmanager'
 assert_contains "$vault_agent_config" 'destination = "/vault/secrets/alertmanager/slack_webhook_infra"'

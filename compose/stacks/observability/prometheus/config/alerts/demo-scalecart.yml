@@ -28,4 +28,4 @@ groups:
             ScaleCart Worker의 가용 replica가 {{ $value }}개입니다.
             Chaos Mesh 장애 여부, Kubernetes Pod 재생성 상태,
             Kafka consumer lag를 확인하세요.
-          dashboard_url: "https://grafana.teleport.imcherry5778.xyz:3080"
+          dashboard_url: "https://grafana.${BASE_DOMAIN}"
