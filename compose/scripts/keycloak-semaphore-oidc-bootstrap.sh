@@ -11,6 +11,8 @@ KEYCLOAK_ADMIN_USER=${KEYCLOAK_ADMIN_USER:-admin}
 CLIENT_ID=${SEMAPHORE_OIDC_CLIENT_ID:-semaphore}
 VAULT_CONTAINER=${VAULT_CONTAINER:-vault}
 VAULT_TOKEN_FILE=${VAULT_TOKEN_FILE:-/tmp/.vt}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VAULT_KV_PATCH_HELPER="${SCRIPT_DIR}/vault-kv2-patch-secret.py"
 REDIRECT_URI="https://semaphore.${BASE_DOMAIN}/api/auth/oidc/keycloak/redirect"
 WEB_ORIGIN="https://semaphore.${BASE_DOMAIN}"
 
@@ -24,6 +26,14 @@ docker inspect "$VAULT_CONTAINER" >/dev/null 2>&1 || {
 }
 docker exec "$VAULT_CONTAINER" sh -c "test -s '$VAULT_TOKEN_FILE'" || {
   echo "Missing readable Vault token file in $VAULT_CONTAINER: $VAULT_TOKEN_FILE" >&2
+  exit 1
+}
+command -v python3 >/dev/null 2>&1 || {
+  echo 'python3 is required for the direct Vault KV v2 patch helper' >&2
+  exit 1
+}
+[[ -r "$VAULT_KV_PATCH_HELPER" ]] || {
+  echo "Missing Vault KV v2 patch helper: $VAULT_KV_PATCH_HELPER" >&2
   exit 1
 }
 
@@ -101,12 +111,11 @@ CLIENT_SECRET="$({
   exit 1
 }
 
-printf '%s' "$CLIENT_SECRET" | docker exec -i \
-  -e "VAULT_TOKEN_FILE=${VAULT_TOKEN_FILE}" \
-  "$VAULT_CONTAINER" sh -ceu '
-    secret="$(cat)"
-    VAULT_TOKEN="$(cat "$VAULT_TOKEN_FILE")"
-    vault kv patch -mount=kv mgmt/semaphore oidc_client_secret="$secret" >/dev/null
-  '
+printf '%s' "$CLIENT_SECRET" | python3 "$VAULT_KV_PATCH_HELPER" \
+  --vault-container "$VAULT_CONTAINER" \
+  --token-file "$VAULT_TOKEN_FILE" \
+  --mount kv \
+  --secret-path mgmt/semaphore \
+  --field oidc_client_secret
 
 echo "Keycloak Semaphore OIDC bootstrap completed for realm $REALM"
