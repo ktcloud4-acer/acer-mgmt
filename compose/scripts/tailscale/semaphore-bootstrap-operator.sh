@@ -30,6 +30,16 @@ oauth_secret="$(jq -er '.data.data.oauth_client_secret' <<<"$operator_json")"
 kubeconfig="$work_dir/recovery.kubeconfig"
 jq -er '.data.data.kubeconfig_b64' <<<"$bootstrap_json" | base64 -d >"$kubeconfig"
 chmod 600 "$kubeconfig"
+api_server="$(kubectl --kubeconfig "$kubeconfig" config view --raw -o json | jq -er '.clusters[0].cluster.server')"
+api_host="${api_server#https://}"; api_host="${api_host%%:*}"
+ssh -i /run/secrets/acer.pem -o BatchMode=yes -o StrictHostKeyChecking=accept-new -N -L 16443:"$api_host":6443 ubuntu@172.16.1.10 &
+tunnel_pid=$!
+cleanup() { kill "$tunnel_pid" 2>/dev/null || true; rm -rf "$work_dir"; }
+trap cleanup EXIT
+sleep 1
+kill -0 "$tunnel_pid" 2>/dev/null || { echo 'AIO API tunnel did not start.' >&2; exit 1; }
+jq --arg server 'https://127.0.0.1:16443' --arg tls "$api_host" '(.clusters[0].cluster.server=$server) | (.clusters[0].cluster["tls-server-name"]=$tls)' "$kubeconfig" >"$work_dir/tunneled.kubeconfig"
+mv "$work_dir/tunneled.kubeconfig" "$kubeconfig"
 kubectl_recovery() { kubectl --kubeconfig "$kubeconfig" "$@"; }
 helm repo add tailscale https://pkgs.tailscale.com/helmcharts >/dev/null
 helm upgrade --install tailscale-operator tailscale/tailscale-operator \
