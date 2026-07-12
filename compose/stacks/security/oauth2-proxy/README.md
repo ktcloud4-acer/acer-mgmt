@@ -20,3 +20,15 @@ The shared browser gateway requires membership in
 authorization remains responsible for sensitive operations after this shared
 gate. The `/oauth2/*` paths are oauth2-proxy callback endpoints, so a login
 initiated for Vault, Grafana, or another service returns to that service.
+
+Before enabling the group gate in a new or rebuilt realm, reconcile the
+oauth2-proxy client and its `groups` mapper. The script reads the client secret
+only from the Vault Agent render file:
+
+```bash
+set -a
+. /home/mgmt-data/vault-agent/secrets/security/keycloak.env
+set +a
+BASE_DOMAIN=imcherry5778.xyz \
+  bash compose/scripts/keycloak-oauth2-proxy-bootstrap.sh
+```

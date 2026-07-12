@@ -19,6 +19,12 @@ The shared browser gateway requires the Keycloak group
 keeps the signed return URL and sends a successful login back to the requested
 service. Application-native permissions still apply after the gateway.
 
+After a Keycloak realm rebuild, run
+`compose/scripts/keycloak-oauth2-proxy-bootstrap.sh` with the Vault
+Agent-rendered Keycloak administrator environment. It idempotently restores
+the confidential `oauth2-proxy` client and the `groups` claim mapper required
+by the group gate.
+
 Grafana additionally uses Auth Proxy and accepts the user header only from
 Traefik's fixed `/32` address on the isolated `traefik-grafana-auth` Docker
 network. Create the two required isolated networks before starting Traefik,
