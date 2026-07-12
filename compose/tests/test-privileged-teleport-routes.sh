@@ -63,7 +63,7 @@ done
 assert_contains "$teleport_config" "name: grafana"
 assert_contains "$teleport_config" "uri: http://grafana:3000"
 assert_contains "$teleport_config" "public_addr: grafana.teleport.imcherry5778.xyz"
-assert_contains "$teleport_config" "Host: grafana.teleport.imcherry5778.xyz"
+assert_contains "$teleport_config" 'Host: grafana.teleport.imcherry5778.xyz"'
 assert_not_contains "$teleport_config" "grafana-teleport-proxy"
 assert_not_contains "$teleport_config" "X-Auth-Request-User: {{internal.logins}}"
 assert_contains "$dns_script" "grafana"
