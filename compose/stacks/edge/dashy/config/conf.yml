@@ -2,8 +2,8 @@ pageInfo:
   title: ACER Operations
   description: Central infrastructure service index
   navLinks:
-    - title: Runbooks
-      path: https://gitlab.imcherry5778.xyz/acer-group/acer-docs/-/tree/main/acer-mgmt/docs/runbooks
+    - title: Home
+      path: /
 
 pages:
   - name: Monitor

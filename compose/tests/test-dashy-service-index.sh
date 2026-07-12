@@ -82,6 +82,9 @@ for page in Monitor Containers; do
   assert_contains "$dashy_config" "name: ${page}"
 done
 
+assert_contains "$dashy_config" "title: Home"
+assert_contains "$dashy_config" "path: /"
+
 [[ ! -e "$status_config" ]] || fail "service-index-only scope must not contain status.yml"
 assert_not_contains "$dashy_config" "hideFromWorkspace:"
 assert_not_contains "$dashy_config" "Grafana Operations Summary"
@@ -89,6 +92,8 @@ assert_not_contains "$dashy_config" "disableContextMenu: true"
 assert_not_contains "$dashy_config" ".png"
 assert_not_contains "$dashy_config" "Status-Uptime"
 assert_not_contains "$dashy_config" "Status-Container"
+assert_not_contains "$dashy_config" "title: Runbooks"
+assert_not_contains "$dashy_config" "docs/runbooks"
 assert_not_contains "$dashy_config" "name: Operations"
 assert_not_contains "$dashy_config" "title: Restic"
 assert_not_contains "$dashy_config" "title: GitLab Runner"
