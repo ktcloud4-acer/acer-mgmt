@@ -9,12 +9,16 @@ STACK_DIR="$REPO_ROOT/stacks/security/wazuh"
 DATA_ROOT="${DATA_ROOT:-/home/mgmt-data}"
 WAZUH_ROOT="${DATA_ROOT}/wazuh"
 SECRETS_FILE="${WAZUH_SECRETS_FILE:-/run/acer-mgmt/secrets/security/wazuh.env}"
+AGENT_SECRETS_FILE="${WAZUH_AGENT_SECRETS_FILE:-/run/acer-mgmt/secrets/security/wazuh-agent.env}"
 UPSTREAM_TAG="v4.14.6"
 
 [[ -r "$SECRETS_FILE" ]] || { echo "Missing Vault-rendered Wazuh secrets: $SECRETS_FILE" >&2; exit 1; }
+[[ -r "$AGENT_SECRETS_FILE" ]] || { echo "Missing Vault-rendered Wazuh agent secret: $AGENT_SECRETS_FILE" >&2; exit 1; }
 set -a
 # shellcheck disable=SC1090
 . "$SECRETS_FILE"
+# shellcheck disable=SC1090
+. "$AGENT_SECRETS_FILE"
 set +a
 : "${WAZUH_INDEXER_PASSWORD:?missing WAZUH_INDEXER_PASSWORD}"
 : "${WAZUH_DASHBOARD_PASSWORD:?missing WAZUH_DASHBOARD_PASSWORD}"
