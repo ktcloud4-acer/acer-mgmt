@@ -17,7 +17,7 @@ services:
     volumes:
       - ./config/teleport.yaml:/etc/teleport/teleport.yaml:ro,Z
       - ${DATA_ROOT:-/home/mgmt-data}/teleport:/var/lib/teleport:Z
-      - /run/acer-mgmt/secrets/security/teleport:/run/teleport/tls:ro,z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/security/teleport:/run/teleport/tls:ro,Z
     networks:
       - mgmt-proxy
     healthcheck:

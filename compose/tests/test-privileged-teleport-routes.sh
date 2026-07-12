@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 teleport_config="$ROOT_DIR/compose/stacks/security/teleport/config/teleport.yaml"
+teleport_stack="$ROOT_DIR/compose/stacks/security/teleport/compose.yaml"
+oidc_script="$ROOT_DIR/compose/stacks/security/teleport/scripts/apply-keycloak-oidc.sh"
 middlewares="$ROOT_DIR/compose/stacks/edge/traefik/config/dynamic/middlewares.yaml"
 dns_script="$ROOT_DIR/compose/scripts/configure-teleport-app-dns.sh"
 tls_script="$ROOT_DIR/compose/scripts/renew-teleport-app-tls.sh"
@@ -27,6 +29,9 @@ assert_not_contains() {
 }
 
 assert_contains "$teleport_config" "name: adguard"
+assert_contains "$teleport_stack" '${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/security/teleport:/run/teleport/tls'
+assert_not_contains "$teleport_stack" '/run/acer-mgmt/secrets/security/teleport:/run/teleport/tls'
+assert_contains "$oidc_script" 'vault-agent/secrets/security/teleport.env'
 assert_contains "$teleport_config" "public_addr: adguard.teleport.imcherry5778.xyz"
 if sed -n '/^  apps:/,$p' "$teleport_config" | grep -Eq '^[[:space:]]+public_addr: .*:3080'; then
   fail "Teleport application public_addr must not contain a proxy port"

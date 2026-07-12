@@ -2,12 +2,14 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
-ENV_FILE="${TELEPORT_ENV_FILE:-/run/acer-mgmt/secrets/security/teleport.env}"
 
 if [[ -f "${ROOT_DIR}/../.env" ]]; then
   # shellcheck disable=SC1091
   set -a && . "${ROOT_DIR}/../.env" && set +a
 fi
+
+DATA_ROOT="${DATA_ROOT:-/home/mgmt-data}"
+ENV_FILE="${TELEPORT_ENV_FILE:-${DATA_ROOT}/vault-agent/secrets/security/teleport.env}"
 
 if [[ -f "${ENV_FILE}" ]]; then
   # shellcheck disable=SC1090
