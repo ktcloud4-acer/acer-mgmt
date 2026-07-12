@@ -66,7 +66,8 @@ assert_template_block_contains "$vault_agent_config" \
   '/vault/secrets/grafana_oidc_client_secret' \
   'kv/data/mgmt/grafana' \
   '.Data.data.oidc_client_secret' \
-  'perms       = "0640"'
+  'perms       = "0640"' \
+  'command = "chgrp 472 /vault/secrets/grafana_oidc_client_secret && chmod 0640 /vault/secrets/grafana_oidc_client_secret"'
 
 assert_contains "$bootstrap" 'CLIENT_ID=${GRAFANA_OIDC_CLIENT_ID:-grafana}'
 assert_contains "$bootstrap" 'REDIRECT_URI="https://grafana.${BASE_DOMAIN}/login/generic_oauth"'
