@@ -1,0 +1,70 @@
+# Docker Runtime Viewer — the viewer has read-only access only through the
+# deny-by-default socket proxy; the Docker socket never enters the viewer.
+services:
+  docker-socket-proxy:
+    image: tecnativa/docker-socket-proxy:0.4.2
+    container_name: docker-socket-proxy
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
+      - /run
+    environment:
+      POST: "0"
+      AUTH: "0"
+      SECRETS: "0"
+      EXEC: "0"
+      IMAGES: "0"
+      NETWORKS: "0"
+      VOLUMES: "0"
+      EVENTS: "0"
+      CONTAINERS: "1"
+      INFO: "1"
+      VERSION: "1"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      docker-runtime-socket: {}
+
+  docker-runtime-viewer:
+    build: .
+    container_name: docker-runtime-viewer
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
+    environment:
+      DOCKER_PROXY_URL: http://docker-socket-proxy:2375
+    depends_on:
+      - docker-socket-proxy
+    networks:
+      docker-runtime-socket: {}
+      mgmt-proxy: {}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.docker-runtime.rule=Host(`runtime.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.docker-runtime.entrypoints=websecure"
+      - "traefik.http.routers.docker-runtime.middlewares=sso-auth@file,docker-runtime-iframe@file"
+      - "traefik.http.services.docker-runtime.loadbalancer.server.port=8080"
+
+networks:
+  docker-runtime-socket:
+    internal: true
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true
