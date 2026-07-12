@@ -52,6 +52,10 @@ for group in Observability Backup CI/CD Data Infra Security Edge; do
   assert_contains "$dashy_config" "name: ${group}"
 done
 
+mapfile -t section_names < <(awk '$0 == "sections:" { in_sections=1; next } in_sections && /^  - name:/ { sub(/^  - name: /, ""); print }' "$dashy_config")
+expected_section_order=("CI/CD" Security Observability Edge Data Infra Backup "Chaos Mesh")
+[[ "${section_names[*]}" == "${expected_section_order[*]}" ]] || fail "unexpected Dashy section order: ${section_names[*]}"
+
 for item in Grafana Prometheus Alertmanager Kibana n8n MinIO "Argo CD" GitLab SonarQube Allure Playwright Semaphore Harbor Kafka Supabase NetBox Keycloak Teleport Vault Wazuh "RedisInsight" Traefik "AdGuard Home"; do
   assert_contains "$dashy_config" "title: ${item}"
 done
