@@ -9,18 +9,11 @@ http:
         - secure-headers
       service: k3d-ingress
     k3d-chaos-dashboard:
-      rule: "Host(`mgmt-chaos.imcherry5778.xyz`)"
-      entryPoints:
-        - websecure
-      middlewares:
-        - secure-headers
-      service: k3d-ingress
-    legacy-chaos-dashboard:
       rule: "Host(`chaos.imcherry5778.xyz`)"
       entryPoints:
         - websecure
       middlewares:
-        - redirect-mgmt-chaos
+        - secure-headers
       service: k3d-ingress
     nmg-chaos-dashboard:
       rule: "Host(`nmg-chaos.imcherry5778.xyz`)"
@@ -89,10 +82,3 @@ http:
         passHostHeader: false
         servers:
           - url: "https://oje-chaos.tailc0244b.ts.net"
-
-  middlewares:
-    redirect-mgmt-chaos:
-      redirectRegex:
-        regex: '^https://chaos\.imcherry5778\.xyz/(.*)'
-        replacement: 'https://mgmt-chaos.imcherry5778.xyz/$1'
-        permanent: true
