@@ -60,6 +60,15 @@ template {
   perms       = "0640"
 }
 
+# --- elk (감사 저장소 보안 — W0) ---
+# ES security/kibana_system/logstash_ingest 패스워드 + Kibana 암호화 키 2종을
+# kv/mgmt/elk 에서 렌더한다. observability/elk 스택이 이 env 를 소비한다.
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/elk\" }}ELK_ELASTIC_PASSWORD={{ .Data.data.elastic_password }}\nELK_KIBANA_PASSWORD={{ .Data.data.kibana_password }}\nELK_LOGSTASH_PASSWORD={{ .Data.data.logstash_password }}\nELK_KIBANA_ENCRYPTION_KEY={{ .Data.data.kibana_encryption_key }}\nELK_KIBANA_SO_ENCRYPTION_KEY={{ .Data.data.kibana_so_encryption_key }}\n{{ end }}"
+  destination = "/vault/secrets/observability/elk.env"
+  perms       = "0640"
+}
+
 # --- traefik (Cloudflare DNS-01 token) ---
 template {
   contents    = "{{ with secret \"kv/data/mgmt/traefik\" }}CF_DNS_API_TOKEN={{ .Data.data.cf_dns_api_token }}\n{{ end }}"
