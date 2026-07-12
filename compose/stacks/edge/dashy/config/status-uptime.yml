@@ -1,0 +1,29 @@
+pageInfo:
+  title: ACER Status — Uptime
+  description: Direct HTTP availability checks from Dashy
+
+sections:
+  - name: Core Platform
+    icon: fas fa-heart-pulse
+    displayData:
+      itemCountX: 3
+    items:
+      - title: Grafana
+        icon: si-grafana
+        url: https://grafana.imcherry5778.xyz/api/health
+      - title: Prometheus
+        icon: si-prometheus
+        url: https://prometheus.imcherry5778.xyz/-/healthy
+      - title: Keycloak
+        icon: si-keycloak
+        url: https://keycloak.imcherry5778.xyz/realms/mgmt/.well-known/openid-configuration
+      - title: Vault
+        icon: si-vault
+        url: https://vault.imcherry5778.xyz/v1/sys/health
+        statusCheckAcceptCodes: '200,429,472,473,501,503'
+      - title: GitLab
+        icon: si-gitlab
+        url: https://gitlab.imcherry5778.xyz/-/health
+      - title: Harbor
+        icon: si-goharbor
+        url: https://harbor.imcherry5778.xyz/api/v2.0/health
