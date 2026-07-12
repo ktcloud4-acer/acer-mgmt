@@ -1,0 +1,310 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "links": [
+    {
+      "icon": "external link",
+      "includeTimeRange": true,
+      "keepTime": false,
+      "targetBlank": false,
+      "title": "Argo CD",
+      "type": "link",
+      "url": "https://argocd.imcherry5778.xyz/applications/argocd/scalecart-ggg"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 50 }, { "color": "red", "value": 500 } ] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "textMode": "auto", "wideLayout": true },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        { "expr": "scalecart:worker_kafka_lag:max{cluster=~\"$cluster\"}", "legendFormat": "{{cluster}}", "refId": "A" }
+      ],
+      "title": "Kafka Lag",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] }, "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "textMode": "value_and_name", "wideLayout": true },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        { "expr": "kube_deployment_status_replicas_available{namespace=\"scalecart\",deployment=\"scalecart-worker\",cluster=~\"$cluster\"}", "legendFormat": "ready {{cluster}}", "refId": "A" },
+        { "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"scalecart\",horizontalpodautoscaler=\"keda-hpa-scalecart-worker\",cluster=~\"$cluster\"}", "legendFormat": "desired {{cluster}}", "refId": "B" }
+      ],
+      "title": "Worker Ready / Desired",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Derived from KEDA HPA desired replicas. The exact ScaledObject Active condition is shown by the ScaleCart Dashboard or kubectl.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [ { "options": { "0": { "color": "green", "index": 0, "text": "Idle" }, "1": { "color": "blue", "index": 1, "text": "Requested" } }, "type": "value" } ],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "blue", "value": 1 } ] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "textMode": "auto", "wideLayout": true },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        { "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"scalecart\",horizontalpodautoscaler=\"keda-hpa-scalecart-worker\",cluster=~\"$cluster\"} > bool 2", "legendFormat": "{{cluster}}", "refId": "A" }
+      ],
+      "title": "KEDA Scale-out Requested",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 1 } ] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "textMode": "auto", "wideLayout": true },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        { "expr": "sum by(cluster) (kube_pod_status_phase{namespace=\"scalecart\",pod=~\"scalecart-worker-.*\",phase=\"Pending\",cluster=~\"$cluster\"}) or on(cluster) (kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"scalecart\",horizontalpodautoscaler=\"keda-hpa-scalecart-worker\",cluster=~\"$cluster\"} * 0)", "legendFormat": "{{cluster}}", "refId": "A" }
+      ],
+      "title": "Pending Worker Pods",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 12, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 4, "showPoints": "auto", "spanNulls": false, "thresholdsStyle": { "mode": "line" } },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 50 } ] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
+      "id": 5,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "expr": "scalecart:worker_kafka_lag:max{cluster=~\"$cluster\"}", "legendFormat": "lag {{cluster}}", "refId": "A" }
+      ],
+      "title": "Kafka Lag and Threshold",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 4, "showPoints": "auto", "spanNulls": false }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] }, "unit": "ops" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
+      "id": 6,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "expr": "sum by(cluster) (rate(scalecart_orders_produced_total{namespace=\"scalecart\",cluster=~\"$cluster\"}[1m]))", "legendFormat": "produce {{cluster}}", "refId": "A" },
+        { "expr": "sum by(cluster) (rate(scalecart_orders_consumed_total{namespace=\"scalecart\",cluster=~\"$cluster\"}[1m]))", "legendFormat": "consume {{cluster}}", "refId": "B" }
+      ],
+      "title": "Order Produce / Consume Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "fillOpacity": 8, "lineInterpolation": "stepAfter", "lineWidth": 2, "pointSize": 4, "showPoints": "auto", "spanNulls": false }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] }, "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 13 },
+      "id": 7,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "expr": "kube_horizontalpodautoscaler_status_current_replicas{namespace=\"scalecart\",horizontalpodautoscaler=\"keda-hpa-scalecart-worker\",cluster=~\"$cluster\"}", "legendFormat": "current {{cluster}}", "refId": "A" },
+        { "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"scalecart\",horizontalpodautoscaler=\"keda-hpa-scalecart-worker\",cluster=~\"$cluster\"}", "legendFormat": "desired {{cluster}}", "refId": "B" },
+        { "expr": "kube_deployment_status_replicas_available{namespace=\"scalecart\",deployment=\"scalecart-worker\",cluster=~\"$cluster\"}", "legendFormat": "ready {{cluster}}", "refId": "C" }
+      ],
+      "title": "Worker Replica Timeline",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 4, "showPoints": "auto", "spanNulls": false }, "mappings": [], "max": 1, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.7 }, { "color": "red", "value": 0.9 } ] }, "unit": "percentunit" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 21 },
+      "id": 8,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "expr": "1 - avg by(cluster, instance) (rate(node_cpu_seconds_total{cluster=~\"$cluster\",instance=~\"worker[0-9]+\",mode=\"idle\"}[1m]))", "legendFormat": "{{cluster}}/{{instance}}", "refId": "A" }
+      ],
+      "title": "Worker Node Actual CPU",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "stepAfter", "lineWidth": 2, "pointSize": 4, "showPoints": "auto", "spanNulls": false }, "mappings": [], "max": 1, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.7 }, { "color": "red", "value": 0.9 } ] }, "unit": "percentunit" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 21 },
+      "id": 9,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "expr": "sum by(cluster, node) (kube_pod_container_resource_requests{cluster=~\"$cluster\",node=~\"worker[0-9]+\",resource=\"cpu\",unit=\"core\"}) / sum by(cluster, node) (kube_node_status_allocatable{cluster=~\"$cluster\",node=~\"worker[0-9]+\",resource=\"cpu\",unit=\"core\"})", "legendFormat": "{{cluster}}/{{node}}", "refId": "A" }
+      ],
+      "title": "Worker Node CPU Request Reservation",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 4, "showPoints": "auto", "spanNulls": false }, "mappings": [], "max": 1, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.7 }, { "color": "red", "value": 0.9 } ] }, "unit": "percentunit" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 21 },
+      "id": 10,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "expr": "1 - (node_memory_MemAvailable_bytes{cluster=~\"$cluster\",instance=~\"worker[0-9]+\"} / node_memory_MemTotal_bytes{cluster=~\"$cluster\",instance=~\"worker[0-9]+\"})", "legendFormat": "{{cluster}}/{{instance}}", "refId": "A" }
+      ],
+      "title": "Worker Node Actual Memory",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "stepAfter", "lineWidth": 2, "pointSize": 4, "showPoints": "auto", "spanNulls": false }, "mappings": [], "max": 1, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.7 }, { "color": "red", "value": 0.9 } ] }, "unit": "percentunit" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 21 },
+      "id": 11,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "expr": "sum by(cluster, node) (kube_pod_container_resource_requests{cluster=~\"$cluster\",node=~\"worker[0-9]+\",resource=\"memory\",unit=\"byte\"}) / sum by(cluster, node) (kube_node_status_allocatable{cluster=~\"$cluster\",node=~\"worker[0-9]+\",resource=\"memory\",unit=\"byte\"})", "legendFormat": "{{cluster}}/{{node}}", "refId": "A" }
+      ],
+      "title": "Worker Node Memory Request Reservation",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "orange", "value": 1 }, { "color": "green", "value": 2 } ] }, "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 29 },
+      "id": 12,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "textMode": "value_and_name", "wideLayout": true },
+      "targets": [
+        { "expr": "clamp_min(floor((sum by(cluster, node) (kube_node_status_allocatable{cluster=~\"$cluster\",node=~\"worker[0-9]+\",resource=\"cpu\",unit=\"core\"}) - sum by(cluster, node) (kube_pod_container_resource_requests{cluster=~\"$cluster\",node=~\"worker[0-9]+\",resource=\"cpu\",unit=\"core\"})) / 0.25), 0)", "legendFormat": "{{cluster}}/{{node}}", "refId": "A" }
+      ],
+      "title": "Additional Worker Slots by CPU",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "orange", "value": 1 }, { "color": "green", "value": 2 } ] }, "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 29 },
+      "id": 13,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "textMode": "value_and_name", "wideLayout": true },
+      "targets": [
+        { "expr": "clamp_min(floor((sum by(cluster, node) (kube_node_status_allocatable{cluster=~\"$cluster\",node=~\"worker[0-9]+\",resource=\"memory\",unit=\"byte\"}) - sum by(cluster, node) (kube_pod_container_resource_requests{cluster=~\"$cluster\",node=~\"worker[0-9]+\",resource=\"memory\",unit=\"byte\"})) / 536870912), 0)", "legendFormat": "{{cluster}}/{{node}}", "refId": "A" }
+      ],
+      "title": "Additional Worker Slots by Memory",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] }, "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 29 },
+      "id": 14,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "textMode": "value_and_name", "wideLayout": true },
+      "targets": [
+        { "expr": "sum by(cluster) (kube_node_status_condition{cluster=~\"$cluster\",node=~\"worker[0-9]+\",condition=\"Ready\",status=\"true\"})", "legendFormat": "Ready worker nodes {{cluster}}", "refId": "A" },
+        { "expr": "sum by(cluster) (kube_node_spec_taint{cluster=~\"$cluster\",effect=\"NoSchedule\"})", "legendFormat": "NoSchedule taints {{cluster}}", "refId": "B" }
+      ],
+      "title": "Node Placement Status",
+      "type": "stat"
+    },
+    {
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 35 },
+      "id": 15,
+      "options": {
+        "content": "<h3>How to read this demo</h3><p><b>Actual node CPU</b> shows current VM work. <b>Request reservation</b> shows what Kubernetes can guarantee to a new Pod. A Worker needs <code>250m CPU + 512Mi memory</code> on one Ready worker node, so it can remain Pending even while actual node CPU is low.</p><p><b>KEDA Scale-out Requested</b> is derived from desired Worker replicas above the minimum of two. Use the ScaleCart Dashboard or <code>kubectl get scaledobject</code> for the exact KEDA Active condition.</p>",
+        "mode": "markdown"
+      },
+      "pluginVersion": "12.1.0",
+      "title": "Demo Reading Guide",
+      "transparent": true,
+      "type": "text"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 41,
+  "tags": [ "scalecart", "keda", "kafka", "demo", "capacity" ],
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"scalecart\",horizontalpodautoscaler=\"keda-hpa-scalecart-worker\"}, cluster)",
+        "includeAll": true,
+        "label": "Cluster",
+        "multi": true,
+        "name": "cluster",
+        "options": [],
+        "query": { "query": "label_values(kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"scalecart\",horizontalpodautoscaler=\"keda-hpa-scalecart-worker\"}, cluster)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 1,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-15m", "to": "now" },
+  "timezone": "browser",
+  "title": "ScaleCart Worker KEDA Demo",
+  "uid": "scalecart-worker-keda-demo",
+  "version": 1
+}
