@@ -28,8 +28,8 @@ MinIO|si-minio
 Argo CD|si-argo
 GitLab|si-gitlab
 SonarQube|hl-sonarqube
-Allure|favicon
-Playwright|favicon
+Allure|https://raw.githubusercontent.com/allure-framework/allure2/main/allure-generator/src/main/javascript/features/shell/allure_logo.svg
+Playwright|https://playwright.dev/img/playwright-logo.svg
 Semaphore|si-semaphoreci
 Harbor|hl-harbor
 Kafka|si-apachekafka
