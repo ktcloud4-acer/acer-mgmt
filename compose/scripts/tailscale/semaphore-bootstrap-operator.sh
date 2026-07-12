@@ -16,13 +16,12 @@ operator_path="$(jq -er '.operator_vault_path' <<<"$entry")"
 bootstrap_path="$(jq -er '.bootstrap_vault_path' <<<"$entry")"
 argocd_path="$(jq -er '.argocd_vault_path' <<<"$entry")"
 proxy_hostname="$(jq -er '.proxy_hostname' <<<"$entry")"
-vault_addr=${VAULT_ADDR:-https://vault:8200}
-vault_cacert=/run/vault-ca/ca.crt
-vault_token="$(curl -fsS --cacert "$vault_cacert" -H 'Content-Type: application/json' \
+vault_addr=https://vault.imcherry5778.xyz
+vault_token="$(curl -fsS -H 'Content-Type: application/json' \
   --data "$(jq -cn --arg role "$VAULT_ROLE_ID" --arg secret "$VAULT_SECRET_ID" '{role_id:$role,secret_id:$secret}')" \
   "$vault_addr/v1/auth/approle/login" | jq -er '.auth.client_token')"
 unset VAULT_ROLE_ID VAULT_SECRET_ID
-vault_get() { curl -fsS --cacert "$vault_cacert" -H "X-Vault-Token: $vault_token" "$vault_addr/v1/kv/data/$1"; }
+vault_get() { curl -fsS -H "X-Vault-Token: $vault_token" "$vault_addr/v1/kv/data/$1"; }
 operator_json="$(vault_get "$operator_path")"
 bootstrap_json="$(vault_get "$bootstrap_path")"
 oauth_id="$(jq -er '.data.data.oauth_client_id' <<<"$operator_json")"
@@ -32,14 +31,6 @@ jq -er '.data.data.kubeconfig_b64' <<<"$bootstrap_json" | base64 -d >"$kubeconfi
 chmod 600 "$kubeconfig"
 api_server="$(kubectl --kubeconfig "$kubeconfig" config view --raw -o json | jq -er '.clusters[0].cluster.server')"
 api_host="${api_server#https://}"; api_host="${api_host%%:*}"
-ssh -i /run/secrets/acer.pem -o BatchMode=yes -o StrictHostKeyChecking=accept-new -N -L 16443:"$api_host":6443 ubuntu@172.16.1.10 &
-tunnel_pid=$!
-cleanup() { kill "$tunnel_pid" 2>/dev/null || true; rm -rf "$work_dir"; }
-trap cleanup EXIT
-sleep 1
-kill -0 "$tunnel_pid" 2>/dev/null || { echo 'AIO API tunnel did not start.' >&2; exit 1; }
-jq --arg server 'https://127.0.0.1:16443' --arg tls "$api_host" '(.clusters[0].cluster.server=$server) | (.clusters[0].cluster["tls-server-name"]=$tls)' "$kubeconfig" >"$work_dir/tunneled.kubeconfig"
-mv "$work_dir/tunneled.kubeconfig" "$kubeconfig"
 kubectl_recovery() { kubectl --kubeconfig "$kubeconfig" "$@"; }
 helm repo add tailscale https://pkgs.tailscale.com/helmcharts >/dev/null
 helm upgrade --install tailscale-operator tailscale/tailscale-operator \
@@ -87,7 +78,7 @@ ca_data="$(kubectl --kubeconfig "$kubeconfig" config view --raw -o json | jq -er
 server="https://$proxy_hostname.tailc0244b.ts.net"
 config="$(jq -cn --arg token "$argocd_token" --arg ca "$ca_data" '{bearerToken:$token,tlsClientConfig:{caData:$ca}}')"
 payload="$(jq -cn --arg name "$team" --arg server "$server" --arg config "$config" '{data:{name:$name,server:$server,config:$config}}')"
-curl -fsS --cacert "$vault_cacert" -H "X-Vault-Token: $vault_token" -H 'Content-Type: application/json' \
+curl -fsS -H "X-Vault-Token: $vault_token" -H 'Content-Type: application/json' \
   --data "$payload" "$vault_addr/v1/kv/data/$argocd_path" >/dev/null
 unset argocd_token ca_data config payload vault_token
 echo "Tailscale API proxy ready: $proxy_hostname"

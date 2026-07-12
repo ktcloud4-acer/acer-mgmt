@@ -31,6 +31,7 @@ services:
       SEMAPHORE_ADMIN_EMAIL: admin@${BASE_DOMAIN:-imcherry5778.xyz}
       SEMAPHORE_SCHEDULE_TIMEZONE: ${TZ:-Asia/Seoul}
       SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore
+      SEMAPHORE_USE_REMOTE_RUNNER: "true"
       # Semaphore owns the user session through Keycloak OIDC. The client
       # secret stays in the mounted file, never in the container environment.
       SEMAPHORE_PASSWORD_LOGIN_DISABLED: "true"

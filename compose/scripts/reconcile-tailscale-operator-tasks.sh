@@ -31,12 +31,20 @@ for team in "${teams[@]}"; do
   ' sh "mgmt/tailscale/task-credentials/$team" | jq -cer --arg team "$team" '{team:$team,role_id:(.data.data.role_id // ""),secret_id:(.data.data.secret_id // "")}' >>"$credential_file"
 done
 credentials_b64="$(base64 -w0 "$credential_file")"
-docker exec -e "TAILSCALE_CREDENTIALS_B64=$credentials_b64" -i semaphore sh -s -- "$container_manifest" "$task_name" "$selected_teams" <<'CONTAINER_SCRIPT'
+runner_deploy_key="$(docker exec vault sh -ceu '
+  export VAULT_ADDR=https://127.0.0.1:8200 VAULT_CACERT=/vault/tls/ca.crt VAULT_TOKEN="$(cat /tmp/.vt)"
+  vault kv get -field=gitlab_deploy_key_private -mount=kv mgmt/cicd/semaphore-runner/aio
+')"
+runner_deploy_key_b64="$(printf '%s' "$runner_deploy_key" | base64 -w0)"
+unset runner_deploy_key
+docker exec -e "TAILSCALE_CREDENTIALS_B64=$credentials_b64" -e "AIO_RUNNER_GITLAB_DEPLOY_KEY_B64=$runner_deploy_key_b64" -i semaphore sh -s -- "$container_manifest" "$task_name" "$selected_teams" <<'CONTAINER_SCRIPT'
 set -eu
-manifest="$1"; task_name="$2"; selected_teams="$3"; tmp="$(mktemp -d)"; credentials="$tmp/credentials.jsonl"
+manifest="$1"; task_name="$2"; selected_teams="$3"; tmp="$(mktemp -d)"; credentials="$tmp/credentials.jsonl"; runner_deploy_key="$tmp/aio-runner-gitlab-deploy-key"
 trap 'rm -rf "$tmp"' EXIT
 printf '%s' "$TAILSCALE_CREDENTIALS_B64" | base64 -d >"$credentials"
+printf '%s' "$AIO_RUNNER_GITLAB_DEPLOY_KEY_B64" | base64 -d >"$runner_deploy_key"
 unset TAILSCALE_CREDENTIALS_B64
+unset AIO_RUNNER_GITLAB_DEPLOY_KEY_B64
 get() { curl -fsS -b "$tmp/c" "http://localhost:3000/api$1"; }
 post() { curl -fsS -b "$tmp/c" -H 'Content-Type: application/json' -X POST --data @"$2" "http://localhost:3000/api$1"; }
 put() { curl -fsS -b "$tmp/c" -H 'Content-Type: application/json' -X PUT --data @"$2" "http://localhost:3000/api$1"; }
@@ -47,9 +55,19 @@ jq -c --arg teams "$selected_teams" '.[] | select(.team as $team | ($teams | spl
   role_id="$(jq -r --arg team "$team" 'select(.team==$team)|.role_id' "$credentials")"
   secret_id="$(jq -r --arg team "$team" 'select(.team==$team)|.secret_id' "$credentials")"
   project="$(get /projects | jq -r --arg n "$project_name" '.[]|select(.name==$n)|.id'|head -1)"; test -n "$project"; test "$project" != null
-  key="$(get "/project/$project/keys" | jq -r '.[]|select(.type=="none")|.id'|head -1)"
   repo="$(get "/project/$project/repositories" | jq -r '.[]|select(.name=="Tailscale bootstrap")|.id'|head -1)"
-  if test -z "$repo" || test "$repo" = null; then jq -n --argjson p "$project" --argjson k "$key" '{name:"Tailscale bootstrap",project_id:$p,git_url:"/opt/acer-mgmt",git_branch:"main",ssh_key_id:$k}' >"$tmp/repo.json"; repo="$(post "/project/$project/repositories" "$tmp/repo.json"|jq -r .id)"; fi
+  if [ "$team" = nmg ]; then
+    key="$(get "/project/$project/keys" | jq -r '.[]|select(.name=="AIO Runner GitLab deploy key" and .type=="ssh")|.id'|head -1)"
+    if test -z "$key" || test "$key" = null; then
+      jq -n --argjson p "$project" --rawfile private "$runner_deploy_key" '{name:"AIO Runner GitLab deploy key",project_id:$p,type:"ssh",ssh:{login:"git",passphrase:"",private_key:$private}}' >"$tmp/key.json"
+      key="$(post "/project/$project/keys" "$tmp/key.json" | jq -r .id)"
+    fi
+    jq -n --argjson p "$project" --argjson k "$key" '{name:"Tailscale bootstrap",project_id:$p,git_url:"git@gitlab.imcherry5778.xyz:acer-group/acer-mgmt.git",git_branch:"main",ssh_key_id:$k}' >"$tmp/repo.json"
+  else
+    key="$(get "/project/$project/keys" | jq -r '.[]|select(.type=="none")|.id'|head -1)"
+    jq -n --argjson p "$project" --argjson k "$key" '{name:"Tailscale bootstrap",project_id:$p,git_url:"/opt/acer-mgmt",git_branch:"main",ssh_key_id:$k}' >"$tmp/repo.json"
+  fi
+  if test -z "$repo" || test "$repo" = null; then repo="$(post "/project/$project/repositories" "$tmp/repo.json"|jq -r .id)"; else jq --argjson id "$repo" '.+{id:$id}' "$tmp/repo.json" >"$tmp/repo2.json"; put "/project/$project/repositories/$repo" "$tmp/repo2.json" >/dev/null; fi
   env="$(get "/project/$project/environment"|jq -r '.[]|select(.name=="Tailscale bootstrap")|.id'|head -1)"
   if test -n "$role_id" && test -n "$secret_id"; then
     jq -n --arg team "$team" --arg role "$role_id" --arg secret "$secret_id" --argjson p "$project" '{name:"Tailscale bootstrap",project_id:$p,json:"{}",env:{TAILSCALE_BOOTSTRAP_TEAM:$team,VAULT_ROLE_ID:$role,VAULT_SECRET_ID:$secret}|tojson}' >"$tmp/env.json"
