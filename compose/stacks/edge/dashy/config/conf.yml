@@ -14,7 +14,7 @@ pages:
 appConfig:
   startingView: home
   defaultOpeningMethod: newtab
-  layout: masonry
+  layout: auto
   iconSize: medium
   theme: acer-ops
   cssThemes: [acer-ops]
@@ -36,7 +36,7 @@ appConfig:
       danger: '#ef6c73'
   statusCheck: true
   statusCheckInterval: 60
-  statusCheckAccessibility: true
+  statusCheckAccessibility: false
   disableConfiguration: true
   preventWriteToDisk: true
   preventLocalSave: true
