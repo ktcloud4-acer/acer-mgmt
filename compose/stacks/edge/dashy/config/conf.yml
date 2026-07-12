@@ -86,6 +86,8 @@ sections:
         description: Source control and CI/CD
         icon: https://cdn.simpleicons.org/gitlab
         url: https://gitlab.imcherry5778.xyz
+        statusCheckUrl: http://gitlab/
+        statusCheckAllowInsecure: true
         statusCheckAcceptCodes: '302'
       - title: SonarQube
         description: Static analysis and quality

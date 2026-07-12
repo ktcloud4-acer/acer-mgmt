@@ -31,6 +31,8 @@ dashboard_keycloak="$(sed -n '/name: dashboard-keycloak/,/^  - name:/p' "$kong")
 
 gitlab_item="$(item_block GitLab "$dashy")"
 supabase_item="$(item_block Supabase "$dashy")"
+[[ "$gitlab_item" == *'statusCheckUrl: http://gitlab/'* ]] || fail 'GitLab status must use the Docker-internal HTTP endpoint'
+[[ "$gitlab_item" == *'statusCheckAllowInsecure: true'* ]] || fail 'GitLab internal HTTP status check must explicitly allow insecure transport'
 [[ "$gitlab_item" == *"statusCheckAcceptCodes: '302'"* ]] || fail 'GitLab status must accept the Keycloak redirect'
 [[ "$supabase_item" == *'url: https://supabase-admin.imcherry5778.xyz'* ]] || fail 'Supabase card must use the Keycloak-protected admin host'
 [[ "$supabase_item" == *"statusCheckAcceptCodes: '302'"* ]] || fail 'Supabase status must accept the Keycloak redirect'
