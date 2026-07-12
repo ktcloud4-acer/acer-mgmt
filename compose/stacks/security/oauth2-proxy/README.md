@@ -13,6 +13,14 @@ Runtime secrets are rendered by Vault Agent from `kv/mgmt/oauth2-proxy`:
 The proxy is intentionally attached only to the internal `mgmt-proxy` network.
 The public entrypoint is `https://auth.${BASE_DOMAIN}` through Traefik.
 
+## Session lifetime
+
+Keycloak's SSO idle timeout is reconciled to one hour by the bootstrap script.
+oauth2-proxy refreshes an active browser session every 30 minutes and retains
+its browser cookie for up to eight hours. An inactive session therefore needs
+to sign in again after one hour, while an actively used dashboard refreshes
+before Keycloak expires its refresh token.
+
 ## Browser access model
 
 The shared browser gateway requires membership in
@@ -23,7 +31,8 @@ initiated for Vault, Grafana, or another service returns to that service.
 
 Before enabling the group gate in a new or rebuilt realm, reconcile the
 oauth2-proxy client and its `groups` mapper. The script reads the client secret
-only from the Vault Agent render file:
+only from the Vault Agent render file. Run the same command after deploying a
+change to this gateway; it also applies the one-hour SSO idle timeout:
 
 ```bash
 set -a

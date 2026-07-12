@@ -27,7 +27,9 @@ services:
       - --cookie-secure=true
       - --cookie-samesite=lax
       - --cookie-expire=8h
-      - --cookie-refresh=1h
+      # Refresh before Keycloak's one-hour SSO idle timeout so an active
+      # browser session never tries to refresh an already-expired token.
+      - --cookie-refresh=30m
       - --upstream=static://202
     volumes:
       - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/oauth2_proxy_client_secret:/run/secrets/oauth2_proxy_client_secret:ro,z

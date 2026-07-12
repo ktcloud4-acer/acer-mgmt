@@ -10,6 +10,12 @@ KEYCLOAK_ADMIN_USER=${KEYCLOAK_ADMIN_USER:-admin}
 : "${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD must be set}"
 CLIENT_ID=${OAUTH2_PROXY_CLIENT_ID:-oauth2-proxy}
 CLIENT_SECRET_FILE=${OAUTH2_PROXY_CLIENT_SECRET_FILE:-/home/mgmt-data/vault-agent/secrets/oauth2_proxy_client_secret}
+KEYCLOAK_SSO_SESSION_IDLE_TIMEOUT=${KEYCLOAK_SSO_SESSION_IDLE_TIMEOUT:-3600}
+
+[[ "$KEYCLOAK_SSO_SESSION_IDLE_TIMEOUT" =~ ^[1-9][0-9]*$ ]] || {
+  echo 'KEYCLOAK_SSO_SESSION_IDLE_TIMEOUT must be a positive number of seconds' >&2
+  exit 1
+}
 
 [[ -r "$CLIENT_SECRET_FILE" ]] || {
   echo "Missing readable oauth2-proxy client secret: $CLIENT_SECRET_FILE" >&2
@@ -51,6 +57,10 @@ kc get "realms/${REALM}" >/dev/null 2>&1 || {
   echo "Keycloak realm does not exist: $REALM" >&2
   exit 1
 }
+
+# Keep the Keycloak SSO idle window longer than oauth2-proxy's 30-minute
+# refresh cadence. This avoids invalid_grant errors for an active dashboard.
+kc update "realms/${REALM}" -s "ssoSessionIdleTimeout=${KEYCLOAK_SSO_SESSION_IDLE_TIMEOUT}" >/dev/null
 
 client_uuid() {
   kc get clients -r "$REALM" -q clientId="$CLIENT_ID" --fields id,clientId |
@@ -131,4 +141,4 @@ else
     -f /tmp/oauth2-proxy-groups-mapper.json >/dev/null
 fi
 
-echo "Keycloak oauth2-proxy bootstrap completed for realm $REALM"
+echo "Keycloak oauth2-proxy bootstrap completed for realm $REALM (SSO idle ${KEYCLOAK_SSO_SESSION_IDLE_TIMEOUT}s)"
