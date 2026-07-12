@@ -62,7 +62,7 @@ http:
         # its Keycloak login inside Dashy's Workspace iframe.
         customResponseHeaders:
           X-Frame-Options: ""
-          Content-Security-Policy: "frame-src 'self'; frame-ancestors https://dash.imcherry5778.xyz; object-src 'none';"
+          Content-Security-Policy: "frame-src 'self'; frame-ancestors 'self' https://dash.imcherry5778.xyz; object-src 'none';"
         contentTypeNosniff: true
         browserXssFilter: true
         stsSeconds: 31536000
