@@ -60,6 +60,15 @@ template {
   perms       = "0640"
 }
 
+# --- elk (감사 저장소 보안 — W0) ---
+# ES security/kibana_system/logstash_ingest 패스워드 + Kibana 암호화 키 2종을
+# kv/mgmt/elk 에서 렌더한다. observability/elk 스택이 이 env 를 소비한다.
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/elk\" }}ELK_ELASTIC_PASSWORD={{ .Data.data.elastic_password }}\nELK_KIBANA_PASSWORD={{ .Data.data.kibana_password }}\nELK_LOGSTASH_PASSWORD={{ .Data.data.logstash_password }}\nELK_KIBANA_ENCRYPTION_KEY={{ .Data.data.kibana_encryption_key }}\nELK_KIBANA_SO_ENCRYPTION_KEY={{ .Data.data.kibana_so_encryption_key }}\n{{ end }}"
+  destination = "/vault/secrets/observability/elk.env"
+  perms       = "0640"
+}
+
 # --- traefik (Cloudflare DNS-01 token) ---
 template {
   contents    = "{{ with secret \"kv/data/mgmt/traefik\" }}CF_DNS_API_TOKEN={{ .Data.data.cf_dns_api_token }}\n{{ end }}"
@@ -130,15 +139,23 @@ template {
 
 # --- semaphore (semaphore + common(admin) 두 경로) ---
 template {
-  contents    = "{{ with secret \"kv/data/mgmt/semaphore\" }}SEMAPHORE_DB_PASS={{ .Data.data.db_password }}\nSEMAPHORE_ACCESS_KEY_ENCRYPTION={{ .Data.data.access_key_encryption }}\nSEMAPHORE_COOKIE_HASH={{ .Data.data.cookie_hash }}\nSEMAPHORE_COOKIE_ENCRYPTION={{ .Data.data.cookie_encryption }}\nPOSTGRES_PASSWORD={{ .Data.data.db_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}SEMAPHORE_ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}"
+  contents    = "{{ with secret \"kv/data/mgmt/semaphore\" }}SEMAPHORE_DB_PASS={{ .Data.data.db_password }}\nSEMAPHORE_ACCESS_KEY_ENCRYPTION={{ .Data.data.access_key_encryption }}\nSEMAPHORE_COOKIE_HASH={{ .Data.data.cookie_hash }}\nSEMAPHORE_COOKIE_ENCRYPTION={{ .Data.data.cookie_encryption }}\nPOSTGRES_PASSWORD={{ .Data.data.db_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}SEMAPHORE_ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/cicd/semaphore-runner/aio\" }}SEMAPHORE_RUNNER_REGISTRATION_TOKEN={{ .Data.data.runner_registration_token }}\n{{ end }}"
   destination = "/vault/secrets/semaphore.env"
   perms       = "0640"
 }
 
 # semaphore compose env 파일. compose.yaml 이 기대하는 변수명으로 렌더한다.
 template {
-  contents    = "{{ with secret \"kv/data/mgmt/semaphore\" }}SEMAPHORE_DB_PASS={{ .Data.data.db_password }}\nSEMAPHORE_ACCESS_KEY_ENCRYPTION={{ .Data.data.access_key_encryption }}\nSEMAPHORE_COOKIE_HASH={{ .Data.data.cookie_hash }}\nSEMAPHORE_COOKIE_ENCRYPTION={{ .Data.data.cookie_encryption }}\nPOSTGRES_PASSWORD={{ .Data.data.db_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}SEMAPHORE_ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}"
+  contents    = "{{ with secret \"kv/data/mgmt/semaphore\" }}SEMAPHORE_DB_PASS={{ .Data.data.db_password }}\nSEMAPHORE_ACCESS_KEY_ENCRYPTION={{ .Data.data.access_key_encryption }}\nSEMAPHORE_COOKIE_HASH={{ .Data.data.cookie_hash }}\nSEMAPHORE_COOKIE_ENCRYPTION={{ .Data.data.cookie_encryption }}\nPOSTGRES_PASSWORD={{ .Data.data.db_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}SEMAPHORE_ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/cicd/semaphore-runner/aio\" }}SEMAPHORE_RUNNER_REGISTRATION_TOKEN={{ .Data.data.runner_registration_token }}\n{{ end }}"
   destination = "/vault/secrets/cicd/semaphore.env"
+  perms       = "0640"
+}
+
+# Semaphore reads its Keycloak OIDC client secret from this file. Keep it out
+# of the Compose env file so Docker inspect and task environments cannot expose it.
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/semaphore\" }}{{ .Data.data.oidc_client_secret }}{{ end }}"
+  destination = "/vault/secrets/semaphore_oidc_client_secret"
   perms       = "0640"
 }
 

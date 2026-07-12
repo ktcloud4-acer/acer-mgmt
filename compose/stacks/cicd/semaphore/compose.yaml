@@ -12,6 +12,8 @@ services:
       dockerfile: Dockerfile
     image: acer/semaphore-k6-kubectl:v2.18.25-k6.1.0.0-rc2-kubectl.1.35.6
     container_name: semaphore
+    # Vault Agent renders OIDC secrets as group 1000 with mode 0640.
+    user: "1001:1000"
     restart: unless-stopped
     depends_on:
       semaphore-db:
@@ -26,12 +28,21 @@ services:
       SEMAPHORE_DB_USER: semaphore
       SEMAPHORE_ADMIN: ${SEMAPHORE_ADMIN_USER:-admin}
       SEMAPHORE_ADMIN_NAME: Administrator
-      SEMAPHORE_ADMIN_EMAIL: admin@${BASE_DOMAIN}
+      SEMAPHORE_ADMIN_EMAIL: admin@${BASE_DOMAIN:-imcherry5778.xyz}
       SEMAPHORE_SCHEDULE_TIMEZONE: ${TZ:-Asia/Seoul}
       SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore
+      SEMAPHORE_USE_REMOTE_RUNNER: "true"
+      # Semaphore owns the user session through Keycloak OIDC. The client
+      # secret stays in the mounted file, never in the container environment.
+      SEMAPHORE_PASSWORD_LOGIN_DISABLED: "true"
+      SEMAPHORE_OIDC_PROVIDERS: >-
+        {"keycloak":{"display_name":"Keycloak","provider_url":"https://keycloak.${BASE_DOMAIN:-imcherry5778.xyz}/realms/${KEYCLOAK_REALM:-mgmt}","client_id":"${SEMAPHORE_OIDC_CLIENT_ID:-semaphore}","client_secret_file":"/run/secrets/semaphore_oidc_client_secret","redirect_url":"https://semaphore.${BASE_DOMAIN:-imcherry5778.xyz}/api/auth/oidc/keycloak/redirect","scopes":["openid","profile","email"],"username_claim":"preferred_username","email_claim":"email","name_claim":"name"}}
     volumes:
       - ${MGMT_REPO_ROOT:-/home/user1/acer-mgmt}:/opt/acer-mgmt:ro
       - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/cicd/k6:/run/vault-k6:ro
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/semaphore_oidc_client_secret:/run/secrets/semaphore_oidc_client_secret:ro,z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-tls/ca.crt:/run/vault-ca/ca.crt:ro,z
+      - ${DATA_ROOT:-/home/mgmt-data}/semaphore-secrets/acer.pem:/run/secrets/acer.pem:ro,z
     networks:
       - default
       - mgmt-proxy
@@ -44,9 +55,24 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
-      - "traefik.http.routers.semaphore.rule=Host(`semaphore.${BASE_DOMAIN}`)"
+      # First navigation must start platform SSO. Keep Semaphore's own API
+      # (including its native OIDC callback) on the non-redirecting router
+      # below, so an application 401 is never rewritten into a login loop.
+      - "traefik.http.routers.semaphore.rule=Host(`semaphore.${BASE_DOMAIN:-imcherry5778.xyz}`) && !PathPrefix(`/api`)"
       - "traefik.http.routers.semaphore.entrypoints=websecure"
-      - "traefik.http.routers.semaphore.middlewares=sso-auth@file,secure-headers@file"
+      - "traefik.http.routers.semaphore.middlewares=sso-auth@file,semaphore-iframe@file"
+      - "traefik.http.routers.semaphore.service=semaphore"
+      # Runners authenticate this narrow endpoint with the Semaphore-issued
+      # registration/runner token. Do not put oauth2-proxy in that path.
+      - "traefik.http.routers.semaphore-runner.rule=Host(`semaphore.${BASE_DOMAIN:-imcherry5778.xyz}`) && PathPrefix(`/api/internal/runners`)"
+      - "traefik.http.routers.semaphore-runner.entrypoints=websecure"
+      - "traefik.http.routers.semaphore-runner.priority=200"
+      - "traefik.http.routers.semaphore-runner.service=semaphore"
+      - "traefik.http.routers.semaphore-api.rule=Host(`semaphore.${BASE_DOMAIN:-imcherry5778.xyz}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.semaphore-api.entrypoints=websecure"
+      - "traefik.http.routers.semaphore-api.priority=100"
+      - "traefik.http.routers.semaphore-api.middlewares=oauth2-auth@file,semaphore-iframe@file"
+      - "traefik.http.routers.semaphore-api.service=semaphore"
       - "traefik.http.services.semaphore.loadbalancer.server.port=3000"
 
   semaphore-db:

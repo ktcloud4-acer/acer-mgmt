@@ -53,9 +53,14 @@ fi
 for stack in \
   "$ROOT_DIR/compose/stacks/edge/adguard/compose.yaml" \
   "$ROOT_DIR/compose/stacks/edge/traefik/compose.yaml" \
-  "$ROOT_DIR/compose/stacks/backup/minio/compose.yaml" \
-  "$ROOT_DIR/compose/stacks/cicd/semaphore/compose.yaml"; do
+  "$ROOT_DIR/compose/stacks/backup/minio/compose.yaml"; do
   assert_contains "$stack" "sso-auth@file,secure-headers@file"
 done
+
+# Semaphore keeps the same initial SSO boundary, but has a dedicated iframe
+# policy and a non-redirecting API route for its native OIDC callback.
+semaphore_stack="$ROOT_DIR/compose/stacks/cicd/semaphore/compose.yaml"
+assert_contains "$semaphore_stack" "sso-auth@file,semaphore-iframe@file"
+assert_contains "$semaphore_stack" "oauth2-auth@file,semaphore-iframe@file"
 
 echo "privileged Teleport route tests passed"

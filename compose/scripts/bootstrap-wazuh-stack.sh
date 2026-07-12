@@ -54,7 +54,9 @@ dashboard_hash="$(hash_password "$WAZUH_DASHBOARD_PASSWORD")"
 users_file="$WAZUH_ROOT/config/wazuh_indexer/internal_users.yml"
 sed -i "/^admin:$/,/^kibanaserver:$/ s#^  hash: .*#  hash: \"${indexer_hash}\"#" "$users_file"
 sed -i "/^kibanaserver:$/,/^kibanaro:$/ s#^  hash: .*#  hash: \"${dashboard_hash}\"#" "$users_file"
-sed -i "s#password: \"MyS3cr37P450r\.\*-\"#password: \"${WAZUH_API_PASSWORD}\"#" \
+# Reconcile the API service account on every bootstrap, not just while the
+# upstream demonstration password is still present.
+sed -i "/^[[:space:]]*username: wazuh-wui$/,/^[[:space:]]*run_as:/ s#^[[:space:]]*password:.*#      password: \"${WAZUH_API_PASSWORD}\"#" \
   "$WAZUH_ROOT/config/wazuh_dashboard/wazuh.yml"
 
 # The agent installer uses the Vault-rendered registration password. Require the

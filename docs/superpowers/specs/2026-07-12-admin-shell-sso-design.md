@@ -69,7 +69,8 @@ unauthenticated browser gate에만 사용한다. 앱 API의 401을 Keycloak 리�
 ### 2. native OIDC 모델
 
 다음 서비스는 앱 안에 사용자, role 또는 고유 token이 있으므로 Keycloak native
-OIDC를 사용한다. 이 라우터에는 `sso-auth`를 적용하지 않는다.
+OIDC를 사용한다. 기본적으로 이 라우터에는 `sso-auth`를 적용하지 않는다. 단,
+Semaphore는 첫 UI 진입과 API/OIDC callback을 분리하는 예외 모델을 사용한다.
 
 | 서비스 | 목표 방식 | 비고 |
 |---|---|---|
@@ -84,11 +85,11 @@ OIDC를 사용한다. 이 라우터에는 `sso-auth`를 적용하지 않는다.
 | Teleport | Keycloak OIDC | OIDC connector를 실제 등록하고 local+OTP는 break-glass 전용으로 둔다. |
 
 Semaphore Community는 OIDC group claim으로 로그인 자체를 제한하거나 project role을
-자동 할당하지 않는다. 따라서 Semaphore router는 `oauth2-auth` forward-auth만 적용해
-`platform-admin`을 먼저 검증한다. `oauth2-signin` error middleware는 적용하지 않아
-Semaphore의 자체 API 401을 Keycloak 리다이렉트로 바꾸지 않는다. 이 서비스는 Dashy
-parent에서 시작하는 browser session을 지원 경로로 삼고, direct unauthenticated URL은
-401을 반환한다.
+자동 할당하지 않는다. 따라서 Semaphore는 두 router를 사용해 `platform-admin`을
+먼저 검증한다. UI route(`/api` 이외)는 `sso-auth`를 사용해 첫 방문을 oauth2-proxy와
+Keycloak 로그인으로 보낸다. API route(`/api/*`, OIDC callback 포함)는 redirect 없는
+`oauth2-auth`만 사용한다. 이로써 Semaphore의 자체 API 401은 Keycloak 리다이렉트로
+바뀌지 않으면서, direct UI URL과 Dashy iframe 모두 정상적으로 로그인 흐름을 시작한다.
 
 Supabase Studio, Wazuh, Kibana, n8n, Kafka UI, SonarQube는 해당 버전/라이선스의
 native OIDC 또는 remote-user 지원 여부를 검증한 뒤 native OIDC 또는 auth-proxy
@@ -123,7 +124,8 @@ admin UI에 영향을 줄 수 있으므로 Dashy config write, local save, 임�
 ## 서비스 라우팅 정책
 
 - **native OIDC UI**: Traefik `secure-headers` + per-service iframe header policy. Semaphore는
-  `platform-admin` admission을 위해 redirect 없는 `oauth2-auth`만 추가한다.
+  `platform-admin` admission과 첫 방문 redirect를 위해 UI에 `sso-auth`, API/OIDC callback에
+  redirect 없는 `oauth2-auth`를 각각 적용한다.
 - **auth-proxy UI**: Traefik `sso-auth` + per-service iframe header policy. oauth2-proxy
   cookie domain은 `.imcherry5778.xyz`로 유지한다.
 - **machine API**: browser `sso-auth` 없음. 서비스 API 인증으로 보호한다.
@@ -137,7 +139,7 @@ admin UI에 영향을 줄 수 있으므로 Dashy config write, local save, 임�
    해소한다.
 2. Keycloak client와 Vault secrets를 서비스별로 관리한다. client secret을 Compose env에
    직접 넣지 않는다.
-3. Semaphore native OIDC를 먼저 완성한다. `sso-auth`를 제거하고 iframe 안에서 fresh
+3. Semaphore native OIDC를 먼저 완성한다. UI/API router를 분리하고 iframe 안에서 fresh
    private-browser login, `/api/user`, logout을 검증한다.
 4. Vault UI, Grafana, Teleport, MinIO/Harbor, NetBox/GitLab/Argo CD 순서로 native OIDC를
    정리한다.

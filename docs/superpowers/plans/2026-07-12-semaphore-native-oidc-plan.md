@@ -4,7 +4,7 @@
 
 **Goal:** Eliminate Semaphore's Dashy iframe login loop while retaining the existing `platform-admin` admission boundary.
 
-**Architecture:** Dashy owns the interactive oauth2-proxy login. Semaphore receives a non-redirecting `oauth2-auth@file` group gate and owns its user session through Keycloak OIDC. Vault Agent renders the confidential OIDC secret into a dedicated file that Semaphore mounts read-only; it never enters Compose or an environment variable.
+**Architecture:** Dashy and a direct Semaphore UI visit use a `sso-auth@file` UI route to begin the interactive oauth2-proxy login. Semaphore's `/api/*` route uses a non-redirecting `oauth2-auth@file` group gate and owns its user session through Keycloak OIDC. Vault Agent renders the confidential OIDC secret into a dedicated file that Semaphore mounts read-only; it never enters Compose or an environment variable.
 
 **Tech Stack:** Docker Compose, Traefik, oauth2-proxy 7.15.3, Keycloak 26.5.2, Vault Agent, Semaphore UI 2.18.25, Bash contract tests.
 
@@ -13,7 +13,7 @@
 - `platform-admin` remains mandatory; Semaphore Community cannot enforce this OIDC claim itself.
 - `SEMAPHORE_OIDC_PROVIDERS` uses `client_secret_file`, never `client_secret`.
 - Semaphore's own API 401 must not be rewritten to `/oauth2/sign_in`.
-- Dashy is the supported browser entry point; direct unauthenticated Semaphore access returns 401.
+- Dashy is the primary browser entry point, but a direct unauthenticated Semaphore UI visit must begin oauth2-proxy login; `/api/*` remains a raw 401 when unauthenticated.
 - Only `https://dash.imcherry5778.xyz` is allowed as an iframe ancestor.
 - Preserve Semaphore PostgreSQL data, API tokens, Vault API routing, and a documented break-glass path.
 - Do not trust the pre-existing `semaphore_oidc_client_secret` render file: current Vault data has no `oidc_client_secret` field and the current Vault Agent source has no template for it. Replace it only by the managed render in Task 2.
@@ -52,8 +52,8 @@ assert_contains "$compose" 'SEMAPHORE_OIDC_PROVIDERS:'
 assert_contains "$compose" 'client_secret_file'
 assert_contains "$compose" '/run/secrets/semaphore_oidc_client_secret:ro,z'
 assert_contains "$compose" 'SEMAPHORE_PASSWORD_LOGIN_DISABLED: "true"'
-assert_contains "$compose" 'traefik.http.routers.semaphore.middlewares=oauth2-auth@file,semaphore-iframe@file'
-assert_not_contains "$compose" 'traefik.http.routers.semaphore.middlewares=sso-auth@file'
+assert_contains "$compose" 'traefik.http.routers.semaphore.middlewares=sso-auth@file,semaphore-iframe@file'
+assert_contains "$compose" 'traefik.http.routers.semaphore-api.middlewares=oauth2-auth@file,semaphore-iframe@file'
 assert_contains "$agent" 'destination = "/vault/secrets/semaphore_oidc_client_secret"'
 assert_contains "$middlewares" 'semaphore-iframe:'
 assert_contains "$middlewares" 'frame-ancestors https://dash.imcherry5778.xyz'
@@ -183,12 +183,15 @@ SEMAPHORE_OIDC_PROVIDERS: >-
   {"keycloak":{"display_name":"Keycloak","provider_url":"https://keycloak.${BASE_DOMAIN}/realms/${KEYCLOAK_REALM:-mgmt}","client_id":"${SEMAPHORE_OIDC_CLIENT_ID:-semaphore}","client_secret_file":"/run/secrets/semaphore_oidc_client_secret","redirect_url":"https://semaphore.${BASE_DOMAIN}/api/auth/oidc/keycloak/redirect","scopes":["openid","profile","email"],"username_claim":"preferred_username","email_claim":"email","name_claim":"name"}}
 ```
 
-- [ ] **Step 3: Replace only Semaphore's middleware**
+- [ ] **Step 3: Split Semaphore UI and API middleware**
 
-Set the exact router middleware label:
+Set the UI and API router labels:
 
 ```yaml
-- "traefik.http.routers.semaphore.middlewares=oauth2-auth@file,semaphore-iframe@file"
+- "traefik.http.routers.semaphore.rule=Host(`semaphore.${BASE_DOMAIN}`) && !PathPrefix(`/api`)"
+- "traefik.http.routers.semaphore.middlewares=sso-auth@file,semaphore-iframe@file"
+- "traefik.http.routers.semaphore-api.rule=Host(`semaphore.${BASE_DOMAIN}`) && PathPrefix(`/api`)"
+- "traefik.http.routers.semaphore-api.middlewares=oauth2-auth@file,semaphore-iframe@file"
 ```
 
 Add this Traefik middleware:
@@ -250,7 +253,7 @@ curl -ksS -o /dev/null -w '%{http_code}\n' https://semaphore.imcherry5778.xyz/
 curl -ksSI https://semaphore.imcherry5778.xyz/api/user | grep -vi '^location:.*oauth2/sign_in'
 ```
 
-Expected: render file exists at `640`, direct unauthenticated request is `401`, and no API response redirects to oauth2-proxy.
+Expected: render file exists at `640`; a direct unauthenticated UI request starts oauth2-proxy login; and an unauthenticated API response does not redirect to oauth2-proxy.
 
 - [ ] **Step 3: Verify a fresh private browser**
 

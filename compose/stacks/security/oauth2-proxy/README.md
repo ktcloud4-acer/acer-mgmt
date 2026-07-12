@@ -17,9 +17,21 @@ The public entrypoint is `https://auth.${BASE_DOMAIN}` through Traefik.
 
 Keycloak's SSO idle timeout is reconciled to one hour by the bootstrap script.
 oauth2-proxy refreshes an active browser session every 30 minutes and retains
-its browser cookie for up to eight hours. An inactive session therefore needs
-to sign in again after one hour, while an actively used dashboard refreshes
+its browser cookie for up to eight hours. Session tokens are stored in the
+private `oauth2-proxy-redis` container, so the browser receives only a small
+session key instead of a multi-part token cookie. An inactive session therefore
+needs to sign in again after one hour, while an actively used dashboard refreshes
 before Keycloak expires its refresh token.
+
+## RedisInsight administration
+
+`https://redis.${BASE_DOMAIN}` routes to RedisInsight, not to Redis TCP. It is
+protected by the existing Keycloak-backed `sso-auth@file` middleware, so only
+the configured `platform-admin` group can reach it. Redis itself has no
+published port and is reachable only through the internal
+`oauth2-proxy-session` Docker network. In RedisInsight, add
+`oauth2-proxy-redis:6379`; do not expose that port or reuse an
+application-specific Redis/Valkey instance.
 
 ## Browser access model
 

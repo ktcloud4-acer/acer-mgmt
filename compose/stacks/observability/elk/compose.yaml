@@ -9,8 +9,12 @@ services:
     mem_limit: 4g
     environment:
       discovery.type: single-node
-      xpack.security.enabled: "false"
+      # W0: 감사 저장소 무결성 — 인증/인가 활성. elastic 초기 패스워드는 최초 부트스트랩
+      # 시에만 사용되고 이후 무시된다(값은 Vault 렌더 env). enrollment 는 수동 부트스트랩
+      # 절차를 쓰므로 계속 비활성.
+      xpack.security.enabled: "true"
       xpack.security.enrollment.enabled: "false"
+      ELASTIC_PASSWORD: ${ELK_ELASTIC_PASSWORD:?ELK_ELASTIC_PASSWORD must be set}
       ES_JAVA_OPTS: -Xms2g -Xmx2g
     volumes:
       - ${DATA_ROOT:-/home/mgmt-data}/elk/elasticsearch:/usr/share/elasticsearch/data:Z
@@ -19,7 +23,9 @@ services:
     networks:
       - default
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health?wait_for_status=yellow >/dev/null"]
+      # 보안 활성 시 상태조회도 인증 필요. ELASTIC_PASSWORD 는 컨테이너 내부 env 라
+      # compose 파일 노출면이 추가되지 않는다.
+      test: ["CMD-SHELL", "curl -fsS -u \"elastic:${ELASTIC_PASSWORD}\" http://localhost:9200/_cluster/health?wait_for_status=yellow >/dev/null"]
       interval: 20s
       timeout: 10s
       retries: 30
@@ -35,6 +41,13 @@ services:
         condition: service_healthy
     environment:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      # W0: 보안 활성 시 Kibana 는 kibana_system 서비스계정으로 ES 에 접속한다.
+      # 사람 접근은 앞단 oauth2-proxy(sso-auth@file)로 게이트하고, Kibana 자체는
+      # 네이티브 로그인을 쓴다(관리자=elastic break-glass). 패스워드/암호화키는 Vault.
+      ELASTICSEARCH_USERNAME: kibana_system
+      ELASTICSEARCH_PASSWORD: ${ELK_KIBANA_PASSWORD:?ELK_KIBANA_PASSWORD must be set}
+      XPACK_SECURITY_ENCRYPTIONKEY: ${ELK_KIBANA_ENCRYPTION_KEY:?ELK_KIBANA_ENCRYPTION_KEY must be set (32+ chars)}
+      XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: ${ELK_KIBANA_SO_ENCRYPTION_KEY:?ELK_KIBANA_SO_ENCRYPTION_KEY must be set (32+ chars)}
       SERVER_PUBLICBASEURL: https://kibana.${BASE_DOMAIN}
       TELEMETRY_ENABLED: "false"
     ports:
@@ -43,7 +56,9 @@ services:
       - default
       - mgmt-proxy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:5601/api/status >/dev/null"]
+      # 보안 활성 시 /api/status 가 인증을 요구할 수 있으므로 "응답 여부"로 판정한다
+      # (200 정상 / 401·302 = 살아있으나 인증 요구). 서버 미기동이면 000 → unhealthy.
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:5601/api/status | grep -qE '200|302|401'"]
       interval: 20s
       timeout: 10s
       retries: 30
@@ -104,6 +119,10 @@ services:
       LS_JAVA_OPTS: -Xms1g -Xmx1g
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:19092}
       LOGS_KAFKA_TOPIC: ${LOGS_KAFKA_TOPIC:-logs.buffered}
+      # W0: ES 보안 활성 → 최소권한 쓰기 계정으로 색인. 이 계정은 delete_index 권한이
+      # 없어 침해된 인그레스가 감사 이력을 지울 수 없다(부트스트랩에서 role 생성).
+      ES_USER: ${ELK_LOGSTASH_USER:-logstash_ingest}
+      ES_PASSWORD: ${ELK_LOGSTASH_PASSWORD:?ELK_LOGSTASH_PASSWORD must be set}
     volumes:
       - ./config/pipeline-consumer:/usr/share/logstash/pipeline:ro,Z
       - ./config/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
