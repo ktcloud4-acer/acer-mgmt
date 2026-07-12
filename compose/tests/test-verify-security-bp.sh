@@ -18,6 +18,8 @@ assert_contains() {
 
 assert_contains "$verify_script" "tctl apps ls"
 assert_contains "$verify_script" "vault audit list"
+assert_contains "$verify_script" '$DATA_ROOT/vault-agent/secrets'
+assert_contains "$verify_script" 'VAULT_ADDR=https://127.0.0.1:8200'
 assert_contains "$verify_script" "Keycloak event configuration"
 assert_contains "$verify_script" "wazuh-manager"
 assert_contains "$verify_script" "Teleport application certificate coverage"
