@@ -8,10 +8,8 @@ pageInfo:
 pages:
   - name: Monitor
     path: monitor.yml
-  - name: Status-Uptime
-    path: status-uptime.yml
-  - name: Status-Container
-    path: status-container.yml
+  - name: Containers
+    path: containers.yml
 
 appConfig:
   startingView: home

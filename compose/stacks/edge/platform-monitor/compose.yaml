@@ -1,0 +1,34 @@
+services:
+  platform-monitor:
+    build: .
+    container_name: platform-monitor
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
+    environment:
+      PROMETHEUS_URL: http://prometheus:9090
+      ALERTMANAGER_URL: http://alertmanager:9093
+    networks:
+      mgmt-proxy: {}
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; assert urlopen('http://127.0.0.1:8080/healthz').status == 200"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.platform-monitor.rule=Host(`monitor.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.platform-monitor.entrypoints=websecure"
+      - "traefik.http.routers.platform-monitor.middlewares=sso-auth@file,platform-monitor-iframe@file"
+      - "traefik.http.services.platform-monitor.loadbalancer.server.port=8080"
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true
