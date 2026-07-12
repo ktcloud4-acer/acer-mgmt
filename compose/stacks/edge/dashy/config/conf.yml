@@ -49,7 +49,6 @@ sections:
         description: Metrics dashboards
         icon: https://cdn.simpleicons.org/grafana
         url: https://grafana.imcherry5778.xyz
-        target: workspace
       - title: Prometheus
         description: Metrics collection and queries
         icon: https://cdn.simpleicons.org/prometheus
@@ -58,7 +57,6 @@ sections:
         description: Alert routing, grouping, and silences
         icon: hl-alertmanager
         url: https://alertmanager.imcherry5778.xyz
-        target: workspace
       - title: Kibana
         description: Central log search and analysis
         icon: https://cdn.simpleicons.org/kibana
@@ -103,7 +101,6 @@ sections:
         description: Ansible automation
         icon: https://cdn.simpleicons.org/semaphoreci
         url: https://semaphore.imcherry5778.xyz
-        target: workspace
       - title: Harbor
         description: OCI image registry
         icon: hl-harbor
@@ -145,7 +142,6 @@ sections:
         description: Secrets management
         icon: https://cdn.simpleicons.org/vault
         url: https://vault.imcherry5778.xyz
-        target: workspace
       - title: Wazuh
         description: Endpoint security alerts and agent health
         icon: hl-wazuh
