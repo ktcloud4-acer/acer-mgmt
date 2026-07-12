@@ -1,0 +1,55 @@
+---
+- name: Issue a team-local Chaos Mesh Dashboard token from mgmt
+  hosts: "aio_{{ chaos_dashboard_team }}"
+  gather_facts: false
+  vars:
+    ansible_ssh_private_key_file: /run/secrets/acer.pem
+    ansible_ssh_common_args: >-
+      -o StrictHostKeyChecking=accept-new
+      -o UserKnownHostsFile=/tmp/semaphore/aio_known_hosts
+    chaos_dashboard_kubeconfig: /home/ubuntu/.kube/config
+  pre_tasks:
+    - name: Validate the selected team
+      ansible.builtin.assert:
+        that:
+          - chaos_dashboard_team is defined
+          - chaos_dashboard_team in ['ggg', 'khb', 'ljw', 'nmg', 'oje']
+          - ('aio_' ~ chaos_dashboard_team) in group_names
+        fail_msg: The task must target one matching aio_<team> inventory group.
+
+  tasks:
+    - name: Verify the restricted Dashboard service account exists
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ chaos_dashboard_kubeconfig }}"
+          - -n
+          - chaos-mesh
+          - auth
+          - can-i
+          - create
+          - serviceaccounts/chaos-dashboard-manager
+          - --subresource=token
+          - --quiet
+      changed_when: false
+
+    - name: Issue a ten-minute Dashboard token
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ chaos_dashboard_kubeconfig }}"
+          - -n
+          - chaos-mesh
+          - create
+          - token
+          - chaos-dashboard-manager
+          - --duration=10m
+      register: chaos_dashboard_token
+      changed_when: false
+      no_log: true
+
+    - name: Show the one-time Dashboard token
+      ansible.builtin.debug:
+        msg: "Paste the following one-time token into the {{ chaos_dashboard_team }} Chaos Mesh Dashboard within 10 minutes: {{ chaos_dashboard_token.stdout }}"
