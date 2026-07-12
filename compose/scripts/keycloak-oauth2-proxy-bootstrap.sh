@@ -107,6 +107,7 @@ cat >"$mapper_file" <<'JSON'
 JSON
 
 docker cp "$mapper_file" keycloak:/tmp/oauth2-proxy-groups-mapper.json >/dev/null
+docker exec --user 0 keycloak chmod 0644 /tmp/oauth2-proxy-groups-mapper.json
 mapper_id="$(
   kc get "clients/${CLIENT_UUID}/protocol-mappers/models" -r "$REALM" |
     awk '

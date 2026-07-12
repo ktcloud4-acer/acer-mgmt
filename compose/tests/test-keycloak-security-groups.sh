@@ -46,5 +46,6 @@ assert_contains "$oauth_bootstrap" '"access.token.claim": "true"'
 assert_contains "$oauth_bootstrap" '"userinfo.token.claim": "true"'
 assert_not_contains "$oauth_bootstrap" 'head -n1'
 assert_contains "$oauth_bootstrap" '--fields id,clientId'
+assert_contains "$oauth_bootstrap" 'docker exec --user 0 keycloak chmod 0644 /tmp/oauth2-proxy-groups-mapper.json'
 
 echo "keycloak security-group tests passed"
