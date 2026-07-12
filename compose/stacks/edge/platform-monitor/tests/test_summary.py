@@ -1,6 +1,7 @@
 import importlib.util
 import pathlib
 import unittest
+from unittest.mock import patch
 
 
 SERVER_PATH = pathlib.Path(__file__).parents[1] / "app" / "server.py"
@@ -46,6 +47,18 @@ class ProbeSummaryTests(unittest.TestCase):
         self.assertEqual(summary["clusters"]["ggg"], {"healthy": True, "healthy_count": 2, "total": 2})
         self.assertEqual(summary["clusters"]["khb"], {"healthy": False, "healthy_count": 0, "total": 2})
         self.assertEqual(summary["cluster_endpoint_totals"], {"healthy": 2, "total": 4})
+
+    def test_chaos_health_requires_a_successful_upstream_response(self):
+        server = load_server_module()
+
+        with patch.object(server, "probe_chaos_upstream", return_value=200):
+            self.assertTrue(server.chaos_endpoint_healthy("ggg"))
+
+        with patch.object(server, "probe_chaos_upstream", return_value=502):
+            self.assertFalse(server.chaos_endpoint_healthy("khb"))
+
+        with patch.object(server, "probe_chaos_upstream", side_effect=TimeoutError):
+            self.assertFalse(server.chaos_endpoint_healthy("nmg"))
 
 
 if __name__ == "__main__":

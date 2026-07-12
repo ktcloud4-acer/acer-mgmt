@@ -1,11 +1,19 @@
 import json, os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlencode
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 PROM = os.getenv("PROMETHEUS_URL", "http://prometheus:9090").rstrip("/")
 ALERT = os.getenv("ALERTMANAGER_URL", "http://alertmanager:9093").rstrip("/")
 CLUSTERS = ["ggg", "khb", "ljw", "nmg", "oje"]
+CHAOS_UPSTREAMS = {
+    "mgmt": ("http://k3d-mgmt-serverlb:80/", {"Host": "chaos.imcherry5778.xyz"}),
+    "ggg": ("https://ggg-chaos.tailc0244b.ts.net", {}),
+    "khb": ("https://khb-chaos.tailc0244b.ts.net", {}),
+    "ljw": ("https://ljw-chaos.tailc0244b.ts.net", {}),
+    "nmg": ("https://nmg-chaos.tailc0244b.ts.net", {}),
+    "oje": ("https://oje-chaos.tailc0244b.ts.net", {}),
+}
 
 def get_json(url):
     with urlopen(url, timeout=5) as response:
@@ -19,6 +27,17 @@ def query(expr):
 def scalar(expr, fallback=None):
     rows = query(expr)
     return float(rows[0]["value"][1]) if rows else fallback
+
+def probe_chaos_upstream(cluster):
+    url, headers = CHAOS_UPSTREAMS[cluster]
+    with urlopen(Request(url, headers=headers), timeout=8) as response:
+        return response.status
+
+def chaos_endpoint_healthy(cluster):
+    try:
+        return probe_chaos_upstream(cluster) == 200
+    except Exception:
+        return False
 
 def summarize_probes(probes):
     platform_services = {}
@@ -75,6 +94,12 @@ async function load(){try{const d=await (await fetch('/api/summary',{cache:'no-s
 class Handler(BaseHTTPRequestHandler):
  def do_GET(self):
   if self.path=="/healthz": self.send_response(200);self.end_headers();return
+  if self.path.startswith("/api/status/chaos/"):
+   cluster=self.path.rsplit("/",1)[-1]
+   if cluster not in CHAOS_UPSTREAMS: self.send_response(404);self.end_headers();return
+   healthy=chaos_endpoint_healthy(cluster)
+   body=json.dumps({"cluster":cluster,"healthy":healthy}).encode()
+   self.send_response(200 if healthy else 503);self.send_header("Content-Type","application/json");self.send_header("Cache-Control","no-store");self.end_headers();self.wfile.write(body);return
   if self.path=="/api/summary":
    try: body=json.dumps(dashboard()).encode(); code=200
    except Exception: body=b'{"error":"monitor data unavailable"}';code=503

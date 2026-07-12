@@ -13,6 +13,7 @@ http:
       entryPoints:
         - websecure
       middlewares:
+        - sso-auth
         - secure-headers
       service: k3d-ingress
     nmg-chaos-dashboard:
@@ -20,6 +21,7 @@ http:
       entryPoints:
         - websecure
       middlewares:
+        - sso-auth
         - secure-headers
       service: nmg-chaos-dashboard
     ggg-chaos-dashboard:
@@ -27,6 +29,7 @@ http:
       entryPoints:
         - websecure
       middlewares:
+        - sso-auth
         - secure-headers
       service: ggg-chaos-dashboard
     khb-chaos-dashboard:
@@ -34,6 +37,7 @@ http:
       entryPoints:
         - websecure
       middlewares:
+        - sso-auth
         - secure-headers
       service: khb-chaos-dashboard
     ljw-chaos-dashboard:
@@ -41,6 +45,7 @@ http:
       entryPoints:
         - websecure
       middlewares:
+        - sso-auth
         - secure-headers
       service: ljw-chaos-dashboard
     oje-chaos-dashboard:
@@ -48,6 +53,7 @@ http:
       entryPoints:
         - websecure
       middlewares:
+        - sso-auth
         - secure-headers
       service: oje-chaos-dashboard
 

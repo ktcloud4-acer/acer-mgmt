@@ -127,6 +127,46 @@ sections:
         icon: hl-netbox
         url: https://netbox.imcherry5778.xyz
 
+  - name: Chaos Mesh
+    icon: fas fa-biohazard
+    items:
+      - title: Mgmt Chaos
+        description: Chaos Mesh dashboard for the management k3d cluster
+        icon: https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/static/logo.svg
+        url: https://chaos.imcherry5778.xyz
+        statusCheckUrl: http://platform-monitor:8080/api/status/chaos/mgmt
+        statusCheckAcceptCodes: '200'
+      - title: ggg Chaos
+        description: Chaos Mesh dashboard for the ggg cluster
+        icon: https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/static/logo.svg
+        url: https://ggg-chaos.imcherry5778.xyz
+        statusCheckUrl: http://platform-monitor:8080/api/status/chaos/ggg
+        statusCheckAcceptCodes: '200'
+      - title: khb Chaos
+        description: Chaos Mesh dashboard for the khb cluster
+        icon: https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/static/logo.svg
+        url: https://khb-chaos.imcherry5778.xyz
+        statusCheckUrl: http://platform-monitor:8080/api/status/chaos/khb
+        statusCheckAcceptCodes: '200'
+      - title: ljw Chaos
+        description: Chaos Mesh dashboard for the ljw cluster
+        icon: https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/static/logo.svg
+        url: https://ljw-chaos.imcherry5778.xyz
+        statusCheckUrl: http://platform-monitor:8080/api/status/chaos/ljw
+        statusCheckAcceptCodes: '200'
+      - title: nmg Chaos
+        description: Chaos Mesh dashboard for the nmg cluster
+        icon: https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/static/logo.svg
+        url: https://nmg-chaos.imcherry5778.xyz
+        statusCheckUrl: http://platform-monitor:8080/api/status/chaos/nmg
+        statusCheckAcceptCodes: '200'
+      - title: oje Chaos
+        description: Chaos Mesh dashboard for the oje cluster
+        icon: https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/static/logo.svg
+        url: https://oje-chaos.imcherry5778.xyz
+        statusCheckUrl: http://platform-monitor:8080/api/status/chaos/oje
+        statusCheckAcceptCodes: '200'
+
   - name: Security
     icon: fas fa-shield-alt
     items:
