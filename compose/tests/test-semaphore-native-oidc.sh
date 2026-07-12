@@ -33,8 +33,15 @@ assert_contains "$compose_file" 'client_secret_file'
 assert_contains "$compose_file" '/run/secrets/semaphore_oidc_client_secret:ro,z'
 assert_contains "$compose_file" 'user: "1001:1000"'
 assert_contains "$compose_file" 'SEMAPHORE_PASSWORD_LOGIN_DISABLED: "true"'
-assert_contains "$compose_file" 'traefik.http.routers.semaphore.middlewares=oauth2-auth@file,semaphore-iframe@file'
-assert_not_contains "$compose_file" 'traefik.http.routers.semaphore.middlewares=sso-auth@file'
+# The UI route starts the platform SSO journey for a first-time visitor. API
+# requests must not use the redirecting middleware: that would turn
+# Semaphore's own OIDC/API 401 responses into an oauth2-proxy redirect loop.
+assert_contains "$compose_file" 'traefik.http.routers.semaphore.rule=Host(`semaphore.${BASE_DOMAIN}`) && !PathPrefix(`/api`)'
+assert_contains "$compose_file" 'traefik.http.routers.semaphore.middlewares=sso-auth@file,semaphore-iframe@file'
+assert_contains "$compose_file" 'traefik.http.routers.semaphore-api.rule=Host(`semaphore.${BASE_DOMAIN}`) && PathPrefix(`/api`)'
+assert_contains "$compose_file" 'traefik.http.routers.semaphore-api.priority=100'
+assert_contains "$compose_file" 'traefik.http.routers.semaphore-api.middlewares=oauth2-auth@file,semaphore-iframe@file'
+assert_contains "$compose_file" 'traefik.http.routers.semaphore-api.service=semaphore'
 
 assert_contains "$vault_agent" 'destination = "/vault/secrets/semaphore_oidc_client_secret"'
 assert_contains "$middlewares" 'semaphore-iframe:'

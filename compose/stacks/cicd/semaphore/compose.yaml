@@ -52,11 +52,18 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
-      - "traefik.http.routers.semaphore.rule=Host(`semaphore.${BASE_DOMAIN}`)"
+      # First navigation must start platform SSO. Keep Semaphore's own API
+      # (including its native OIDC callback) on the non-redirecting router
+      # below, so an application 401 is never rewritten into a login loop.
+      - "traefik.http.routers.semaphore.rule=Host(`semaphore.${BASE_DOMAIN}`) && !PathPrefix(`/api`)"
       - "traefik.http.routers.semaphore.entrypoints=websecure"
-      # oauth2-auth enforces platform-admin without converting Semaphore's own
-      # API 401 responses into the oauth2-proxy sign-in loop.
-      - "traefik.http.routers.semaphore.middlewares=oauth2-auth@file,semaphore-iframe@file"
+      - "traefik.http.routers.semaphore.middlewares=sso-auth@file,semaphore-iframe@file"
+      - "traefik.http.routers.semaphore.service=semaphore"
+      - "traefik.http.routers.semaphore-api.rule=Host(`semaphore.${BASE_DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.semaphore-api.entrypoints=websecure"
+      - "traefik.http.routers.semaphore-api.priority=100"
+      - "traefik.http.routers.semaphore-api.middlewares=oauth2-auth@file,semaphore-iframe@file"
+      - "traefik.http.routers.semaphore-api.service=semaphore"
       - "traefik.http.services.semaphore.loadbalancer.server.port=3000"
 
   semaphore-db:
