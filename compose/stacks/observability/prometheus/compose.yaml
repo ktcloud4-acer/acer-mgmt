@@ -57,6 +57,12 @@ services:
       - default
     security_opt:
       - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:9100/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   blackbox-exporter:
     image: quay.io/prometheus/blackbox-exporter:v0.28.0
@@ -71,6 +77,12 @@ services:
       - mgmt-proxy
     security_opt:
       - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:9115/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 networks:
   mgmt-proxy:

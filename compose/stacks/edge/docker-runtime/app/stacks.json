@@ -1,8 +1,27 @@
 {
-  "Observability": ["alertmanager", "elk", "grafana", "n8n", "prometheus", "tempo"],
-  "Security": ["keycloak", "oauth2-proxy", "teleport", "vault", "vault-agent", "wazuh"],
-  "Data": ["kafka", "netbox", "supabase"],
-  "CI/CD": ["allure", "gitlab", "gitlab-runner", "playwright", "semaphore", "sonarqube"],
-  "Edge": ["adguard", "dashy", "traefik"],
-  "Backup": ["minio", "restic"]
+  "Observability": {
+    "projects": ["alertmanager", "elk", "grafana", "n8n", "prometheus", "tempo"]
+  },
+  "Security": {
+    "projects": ["keycloak", "oauth2-proxy", "teleport", "vault", "vault-agent", "wazuh"]
+  },
+  "Data": {
+    "projects": ["kafka", "netbox", "supabase"],
+    "names": ["pg-tailnet-proxy"]
+  },
+  "CI/CD": {
+    "projects": ["allure", "gitlab", "gitlab-runner", "harbor", "playwright", "semaphore", "sonarqube"]
+  },
+  "Edge": {
+    "projects": ["adguard", "dashy", "traefik"]
+  },
+  "Backup": {
+    "projects": ["minio", "restic"]
+  },
+  "Infra": {
+    "prefixes": ["k3d-mgmt-server-"]
+  },
+  "Operations": {
+    "projects": ["docker-runtime", "platform-monitor"]
+  }
 }

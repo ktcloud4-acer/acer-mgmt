@@ -29,6 +29,12 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       docker-runtime-socket: {}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:2375/version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   docker-runtime-viewer:
     build: .

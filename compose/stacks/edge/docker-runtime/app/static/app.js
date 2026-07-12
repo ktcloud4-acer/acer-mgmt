@@ -1,16 +1,17 @@
 const openedGroups = new Set();
 const stateLabels = {
   healthy: "healthy",
-  running: "running (no healthcheck)",
+  unchecked: "unchecked (no healthcheck)",
   starting: "starting",
   unhealthy: "unhealthy",
   completed: "completed",
-  stopped: "stopped",
+  failed: "failed",
 };
 
 function summaryText(group) {
   const parts = [`${group.healthy_count}/${group.total} verified healthy`];
-  if (group.running_count) parts.push(`${group.running_count} running`);
+  if (group.unchecked_count) parts.push(`${group.unchecked_count} unchecked`);
+  if (group.completed_count) parts.push(`${group.completed_count} completed`);
   if (group.attention_count) parts.push(`${group.attention_count} attention`);
   return parts.join(" · ");
 }
@@ -34,7 +35,7 @@ function render(snapshot) {
 
   const groups = [...snapshot.groups];
   if (snapshot.other.length) {
-    groups.push({ name: "Other", total: snapshot.other.length, healthy_count: snapshot.other.filter((item) => item.status === "healthy").length, running_count: snapshot.other.filter((item) => item.status === "running").length, attention_count: snapshot.other.filter((item) => ["starting", "unhealthy", "stopped"].includes(item.status)).length, containers: snapshot.other });
+    groups.push({ name: "Unclassified", total: snapshot.other.length, healthy_count: snapshot.other.filter((item) => item.status === "healthy").length, unchecked_count: snapshot.other.filter((item) => item.status === "unchecked").length, completed_count: snapshot.other.filter((item) => item.status === "completed").length, attention_count: snapshot.other.filter((item) => ["starting", "unhealthy", "failed"].includes(item.status)).length, containers: snapshot.other });
   }
 
   const summary = document.getElementById("summary");

@@ -27,15 +27,71 @@ GROUPS = {
     "Empty": ["not-deployed"],
 }
 
+GROUP_RULES = {
+    "CI/CD": {"projects": ["harbor"]},
+    "Data": {"names": ["pg-tailnet-proxy"]},
+    "Infra": {"prefixes": ["k3d-mgmt-server-"]},
+    "Operations": {"projects": ["docker-runtime", "platform-monitor"]},
+}
+
 
 class RuntimeModelTests(unittest.TestCase):
+    def test_runtime_group_config_assigns_current_unmanaged_and_harbor_containers(self):
+        groups = json.loads((APP_DIR / "stacks.json").read_text(encoding="utf-8"))
+
+        self.assertIn("harbor", groups["CI/CD"]["projects"])
+        self.assertEqual(groups["Data"]["names"], ["pg-tailnet-proxy"])
+        self.assertEqual(groups["Infra"]["prefixes"], ["k3d-mgmt-server-"])
+        self.assertEqual(
+            groups["Operations"]["projects"],
+            ["docker-runtime", "platform-monitor"],
+        )
+
+    def test_build_snapshot_maps_projects_names_and_prefixes_to_groups(self):
+        rows = [
+            {"Id": "harbor", "Names": ["/harbor-core"], "Labels": {"com.docker.compose.project": "harbor"}},
+            {"Id": "pg", "Names": ["/pg-tailnet-proxy"], "Labels": {}},
+            {"Id": "k3d", "Names": ["/k3d-mgmt-server-0"], "Labels": {}},
+            {"Id": "runtime", "Names": ["/docker-runtime-viewer"], "Labels": {"com.docker.compose.project": "docker-runtime"}},
+        ]
+        inspections = {row["Id"]: {"State": {"Running": True}} for row in rows}
+
+        snapshot = build_snapshot(rows, inspections, GROUP_RULES, "2026-07-12T00:00:00Z")
+
+        self.assertEqual([group["total"] for group in snapshot["groups"]], [1, 1, 1, 1])
+        self.assertEqual(snapshot["other"], [])
+
+    def test_normalize_status_exposes_unchecked_and_failed_lifecycle_states(self):
+        self.assertEqual(normalize_status({"Running": True}), "unchecked")
+        self.assertEqual(normalize_status({"Running": False, "ExitCode": 2}), "failed")
+
+    def test_build_snapshot_counts_unchecked_and_completed_without_attention(self):
+        rows = [
+            {"Id": "unchecked", "Names": ["/sidecar"], "Labels": {"com.docker.compose.project": "grafana"}},
+            {"Id": "completed", "Names": ["/init"], "Labels": {"com.docker.compose.project": "grafana"}},
+        ]
+        snapshot = build_snapshot(
+            rows,
+            {
+                "unchecked": {"State": {"Running": True}},
+                "completed": {"State": {"Running": False, "ExitCode": 0}},
+            },
+            GROUPS,
+            "2026-07-12T00:00:00Z",
+        )
+
+        group = snapshot["groups"][0]
+        self.assertEqual(group["unchecked_count"], 1)
+        self.assertEqual(group["completed_count"], 1)
+        self.assertEqual(group["attention_count"], 0)
+
     def test_normalize_status_distinguishes_runtime_states(self):
         self.assertEqual(normalize_status({"Running": True, "Health": {"Status": "healthy"}}), "healthy")
-        self.assertEqual(normalize_status({"Running": True}), "running")
+        self.assertEqual(normalize_status({"Running": True}), "unchecked")
         self.assertEqual(normalize_status({"Running": True, "Health": {"Status": "starting"}}), "starting")
         self.assertEqual(normalize_status({"Running": True, "Health": {"Status": "unhealthy"}}), "unhealthy")
         self.assertEqual(normalize_status({"Running": False, "ExitCode": 0}), "completed")
-        self.assertEqual(normalize_status({"Running": False, "ExitCode": 1}), "stopped")
+        self.assertEqual(normalize_status({"Running": False, "ExitCode": 1}), "failed")
 
     def test_container_record_uses_compose_labels_and_other_defaults(self):
         managed = container_record(
@@ -60,7 +116,7 @@ class RuntimeModelTests(unittest.TestCase):
         )
         self.assertEqual(
             unmanaged,
-            {"name": "unmanaged-id", "project": "Other", "role": "unmanaged", "status": "stopped"},
+            {"name": "unmanaged-id", "project": "Other", "role": "unmanaged", "status": "failed"},
         )
 
     def test_build_snapshot_groups_records_and_counts_health(self):
@@ -94,7 +150,8 @@ class RuntimeModelTests(unittest.TestCase):
                     "name": "Observability",
                     "total": 3,
                     "healthy_count": 1,
-                    "running_count": 0,
+                    "unchecked_count": 0,
+                    "completed_count": 1,
                     "attention_count": 1,
                     "containers": [
                         {"name": "grafana", "project": "grafana", "role": "server", "status": "healthy"},
@@ -106,19 +163,21 @@ class RuntimeModelTests(unittest.TestCase):
                     "name": "Security",
                     "total": 3,
                     "healthy_count": 0,
-                    "running_count": 1,
+                    "unchecked_count": 1,
+                    "completed_count": 0,
                     "attention_count": 2,
                     "containers": [
-                        {"name": "keycloak", "project": "keycloak", "role": "web", "status": "running"},
+                        {"name": "keycloak", "project": "keycloak", "role": "web", "status": "unchecked"},
                         {"name": "keycloak-db", "project": "keycloak", "role": "db", "status": "unhealthy"},
-                        {"name": "keycloak-job", "project": "keycloak", "role": "job", "status": "stopped"},
+                        {"name": "keycloak-job", "project": "keycloak", "role": "job", "status": "failed"},
                     ],
                 },
                 {
                     "name": "Empty",
                     "total": 0,
                     "healthy_count": 0,
-                    "running_count": 0,
+                    "unchecked_count": 0,
+                    "completed_count": 0,
                     "attention_count": 0,
                     "containers": [],
                 },
@@ -126,7 +185,7 @@ class RuntimeModelTests(unittest.TestCase):
         )
         self.assertEqual(
             snapshot["other"],
-            [{"name": "manual", "project": "Other", "role": "unmanaged", "status": "stopped"}],
+            [{"name": "manual", "project": "Other", "role": "unmanaged", "status": "failed"}],
         )
 
     def test_snapshot_cache_marks_the_last_snapshot_stale_after_failure(self):
@@ -210,7 +269,7 @@ class RuntimeServiceTests(unittest.TestCase):
         self.assertEqual(client.list_calls, 1)
         self.assertEqual(client.inspect_calls, ["grafana/id", "manual-id"])
         self.assertEqual(snapshot["groups"][0]["containers"], [{"name": "grafana", "project": "grafana", "role": "server", "status": "healthy"}])
-        self.assertEqual(snapshot["other"], [{"name": "manual", "project": "Other", "role": "unmanaged", "status": "running"}])
+        self.assertEqual(snapshot["other"], [{"name": "manual", "project": "Other", "role": "unmanaged", "status": "unchecked"}])
         self.assertNotIn("Env", repr(snapshot))
         self.assertNotIn("Mounts", repr(snapshot))
         self.assertNotIn("Image", repr(snapshot))
@@ -350,7 +409,7 @@ class ViewerAssetTests(unittest.TestCase):
         self.assertIn("textContent", javascript)
         self.assertIn("stale", javascript)
         self.assertIn('healthy_count: snapshot.other.filter((item) => item.status === "healthy").length', javascript)
-        for status in ("healthy", "running (no healthcheck)", "starting", "unhealthy", "completed", "stopped"):
+        for status in ("healthy", "unchecked (no healthcheck)", "starting", "unhealthy", "completed", "failed"):
             self.assertIn(status, javascript)
         self.assertNotIn(".status { font-weight: 700; text-transform: capitalize; }", stylesheet)
 

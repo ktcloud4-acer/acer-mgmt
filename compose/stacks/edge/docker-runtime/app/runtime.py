@@ -3,14 +3,14 @@
 from copy import deepcopy
 
 
-ATTENTION_STATUSES = {"starting", "unhealthy", "stopped"}
+ATTENTION_STATUSES = {"starting", "unhealthy", "failed"}
 
 
 def normalize_status(state: dict) -> str:
     if state.get("Running"):
         health = state.get("Health", {}).get("Status")
-        return health if health in {"healthy", "starting", "unhealthy"} else "running"
-    return "completed" if state.get("ExitCode") == 0 else "stopped"
+        return health if health in {"healthy", "starting", "unhealthy"} else "unchecked"
+    return "completed" if state.get("ExitCode") == 0 else "failed"
 
 
 def container_record(summary: dict, inspect: dict) -> dict:
@@ -23,28 +23,50 @@ def container_record(summary: dict, inspect: dict) -> dict:
     }
 
 
+def normalize_group_rules(groups: dict) -> dict:
+    """Accept legacy project lists and explicit project/name/prefix rules."""
+    normalized = {}
+    for group_name, rule in groups.items():
+        if isinstance(rule, list):
+            rule = {"projects": rule}
+        normalized[group_name] = {
+            "projects": set(rule.get("projects", [])),
+            "names": set(rule.get("names", [])),
+            "prefixes": tuple(rule.get("prefixes", [])),
+        }
+    return normalized
+
+
+def group_for_record(record: dict, rules: dict) -> str | None:
+    for group_name, rule in rules.items():
+        if record["project"] in rule["projects"]:
+            return group_name
+        if record["name"] in rule["names"]:
+            return group_name
+        if any(record["name"].startswith(prefix) for prefix in rule["prefixes"]):
+            return group_name
+    return None
+
+
 def build_snapshot(rows, inspect_by_id, groups, captured_at) -> dict:
     group_records = {
         name: {
             "name": name,
             "total": 0,
             "healthy_count": 0,
-            "running_count": 0,
+            "unchecked_count": 0,
+            "completed_count": 0,
             "attention_count": 0,
             "containers": [],
         }
         for name in groups
     }
-    project_groups = {
-        project: name
-        for name, projects in groups.items()
-        for project in projects
-    }
+    rules = normalize_group_rules(groups)
     other = []
 
     for summary in rows:
         record = container_record(summary, inspect_by_id.get(summary["Id"], {}))
-        group_name = project_groups.get(record["project"])
+        group_name = group_for_record(record, rules)
         if group_name is None:
             other.append(record)
             continue
@@ -54,8 +76,10 @@ def build_snapshot(rows, inspect_by_id, groups, captured_at) -> dict:
         group["containers"].append(record)
         if record["status"] == "healthy":
             group["healthy_count"] += 1
-        elif record["status"] == "running":
-            group["running_count"] += 1
+        elif record["status"] == "unchecked":
+            group["unchecked_count"] += 1
+        elif record["status"] == "completed":
+            group["completed_count"] += 1
         elif record["status"] in ATTENTION_STATUSES:
             group["attention_count"] += 1
 
