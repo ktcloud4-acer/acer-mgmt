@@ -105,7 +105,7 @@ sections:
       - title: Grafana
         description: Metrics dashboards
         icon: https://cdn.simpleicons.org/grafana
-        url: https://grafana.imcherry5778.xyz
+        url: https://grafana.teleport.imcherry5778.xyz:3080
       - title: Prometheus
         description: Metrics collection and queries
         icon: https://cdn.simpleicons.org/prometheus

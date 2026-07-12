@@ -59,7 +59,7 @@ assert_contains "$blackbox_config" "preferred_ip_protocol: ip4"
 
 assert_contains "$prometheus_config" "job_name: blackbox-http"
 assert_contains "$prometheus_config" "blackbox-exporter:9115"
-assert_contains "$prometheus_config" "https://grafana.imcherry5778.xyz/api/health"
+assert_contains "$prometheus_config" "http://grafana:3000/api/health"
 assert_contains "$prometheus_config" "https://alertmanager.imcherry5778.xyz/"
 assert_contains "$prometheus_config" "https://argocd.imcherry5778.xyz/healthz"
 

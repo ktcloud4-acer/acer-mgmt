@@ -5,29 +5,39 @@ services:
     image: grafana/grafana:13.0.2
     container_name: grafana
     restart: unless-stopped
+    # Vault Agent renders secrets as UID 100 / GID 1000 with mode 0640.
+    # Keep Grafana's non-root UID and join only that mounted-secret group.
+    user: "472:1000"
     environment:
       TZ: ${TZ:-Asia/Seoul}
-      GF_SERVER_DOMAIN: grafana.${BASE_DOMAIN}
-      GF_SERVER_ROOT_URL: https://grafana.${BASE_DOMAIN}
+      GF_SERVER_DOMAIN: grafana.teleport.${BASE_DOMAIN}
+      GF_SERVER_ROOT_URL: https://grafana.teleport.${BASE_DOMAIN}:3080
+      GF_SERVER_ENFORCE_DOMAIN: "true"
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER must be set}
       GF_SECURITY_ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD must be set}
       # DEMO MODE: Dashy opens Grafana in an iframe for modal/Workspace views.
       GF_SECURITY_ALLOW_EMBEDDING: "true"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
-      # oauth2-proxy owns the browser login. Grafana trusts its identity
-      # header only when the request originated on the Traefik Docker network.
       GF_AUTH_DISABLE_LOGIN_FORM: "true"
-      GF_AUTH_OAUTH_AUTO_LOGIN: "false"
-      GF_AUTH_GENERIC_OAUTH_ENABLED: "false"
-      GF_AUTH_PROXY_ENABLED: "true"
-      GF_AUTH_PROXY_HEADER_NAME: X-Auth-Request-User
-      GF_AUTH_PROXY_HEADER_PROPERTY: username
-      GF_AUTH_PROXY_AUTO_SIGN_UP: "true"
-      GF_AUTH_PROXY_ENABLE_LOGIN_TOKEN: "true"
-      # The public OAuth2-Proxy path arrives from Traefik (.2); Teleport
-      # identity headers arrive only through the dedicated bridge (.5).
-      GF_AUTH_PROXY_WHITELIST: ${TRAEFIK_GRAFANA_AUTH_IP:-10.254.254.2}/32,${GRAFANA_TELEPORT_PROXY_IP:-10.254.254.5}/32
+      GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
+      GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN: "true"
+      GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: ${GRAFANA_OIDC_CLIENT_ID:-grafana}
+      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: $$__file{/run/secrets/grafana_oidc_client_secret}
+      GF_AUTH_GENERIC_OAUTH_SCOPES: openid profile email
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: https://keycloak.${BASE_DOMAIN}/realms/${KEYCLOAK_REALM:-mgmt}/protocol/openid-connect/auth
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: https://keycloak.${BASE_DOMAIN}/realms/${KEYCLOAK_REALM:-mgmt}/protocol/openid-connect/token
+      GF_AUTH_GENERIC_OAUTH_API_URL: https://keycloak.${BASE_DOMAIN}/realms/${KEYCLOAK_REALM:-mgmt}/protocol/openid-connect/userinfo
+      GF_AUTH_GENERIC_OAUTH_VALIDATE_ID_TOKEN: "true"
+      GF_AUTH_GENERIC_OAUTH_JWK_SET_URL: https://keycloak.${BASE_DOMAIN}/realms/${KEYCLOAK_REALM:-mgmt}/protocol/openid-connect/certs
+      GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH: preferred_username
+      GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH: name
+      GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_PATH: email
+      GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH: groups
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: contains(groups[*], 'grafana-editor') && 'Editor' || 'Viewer'
+      GF_AUTH_GENERIC_OAUTH_ALLOW_ASSIGN_GRAFANA_ADMIN: "false"
+      GF_AUTH_PROXY_ENABLED: "false"
       GF_PLUGINS_PREINSTALL_DISABLED: "true"
       SLACK_WEBHOOK_INFRA: ${SLACK_WEBHOOK_INFRA:?SLACK_WEBHOOK_INFRA must be set}
     volumes:
@@ -37,8 +47,10 @@ services:
       - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro,Z
       - ./provisioning/alerting:/etc/grafana/provisioning/alerting:ro,Z
       - ./dashboards:/var/lib/grafana/dashboards:ro,Z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/grafana_oidc_client_secret:/run/secrets/grafana_oidc_client_secret:ro,z
     networks:
       - traefik-grafana-auth
+      - mgmt-proxy
       - grafana-observability
       - elk_default
     healthcheck:
@@ -52,24 +64,15 @@ services:
       - "traefik.docker.network=${TRAEFIK_GRAFANA_AUTH_NET:-traefik-grafana-auth}"
       - "traefik.http.routers.grafana.rule=Host(`grafana.${BASE_DOMAIN}`)"
       - "traefik.http.routers.grafana.entrypoints=websecure"
-      - "traefik.http.routers.grafana.middlewares=sso-auth@file,secure-headers@file"
+      - "traefik.http.routers.grafana.middlewares=secure-headers@file"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
-
-  # Adapts Teleport's protected X-Teleport-User header to Grafana's existing
-  # trusted auth-proxy header. It is not on mgmt-proxy or any host port.
-  grafana-teleport-proxy:
-    image: nginx:1.27-alpine
-    container_name: grafana-teleport-proxy
-    restart: unless-stopped
-    volumes:
-      - ./teleport-proxy/nginx.conf:/etc/nginx/nginx.conf:ro,Z
-    networks:
-      traefik-grafana-auth:
-        ipv4_address: ${GRAFANA_TELEPORT_PROXY_IP:-10.254.254.5}
 
 networks:
   traefik-grafana-auth:
     name: ${TRAEFIK_GRAFANA_AUTH_NET:-traefik-grafana-auth}
+    external: true
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
     external: true
   grafana-observability:
     name: ${GRAFANA_OBSERVABILITY_NET:-grafana-observability}

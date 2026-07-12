@@ -54,7 +54,6 @@ assert_contains "$vault_compose" 'traefik.http.routers.vault-api.middlewares=sec
 assert_contains "$vault_compose" 'exit_code=$$?; [ "$$exit_code" -eq 0 ] || [ "$$exit_code" -eq 2 ]'
 
 declare -A ui_router_contract=(
-  ["compose/stacks/observability/grafana/compose.yaml"]='traefik.http.routers.grafana.middlewares=sso-auth@file,secure-headers@file'
   ["compose/stacks/observability/prometheus/compose.yaml"]='traefik.http.routers.prometheus.middlewares=sso-auth@file,secure-headers@file'
   ["compose/stacks/observability/alertmanager/compose.yaml"]='traefik.http.routers.alertmanager.middlewares=sso-auth@file,secure-headers@file'
   ["compose/stacks/observability/elk/compose.yaml"]='traefik.http.routers.kibana.middlewares=sso-auth@file,secure-headers@file'
@@ -74,16 +73,14 @@ done
 assert_contains "$middlewares" 'Content-Security-Policy: "frame-src '\''self'\''; frame-ancestors https://dash.imcherry5778.xyz; object-src '\''none'\'';"'
 assert_contains "$middlewares" 'X-Frame-Options: ""'
 
-# Grafana must consume the identity headers produced by oauth2-proxy, not
-# start a second Keycloak browser login inside the Dashy frame.
+# Grafana owns its Keycloak authorization-code flow. Dashy remains the shared
+# browser entry point, but Grafana must not consume oauth2-proxy identity
+# headers or route its API/OIDC callback through the shared sign-in middleware.
 assert_contains "$grafana_compose" 'GF_AUTH_DISABLE_LOGIN_FORM: "true"'
-assert_contains "$grafana_compose" 'GF_AUTH_GENERIC_OAUTH_ENABLED: "false"'
-assert_contains "$grafana_compose" 'GF_AUTH_PROXY_ENABLED: "true"'
-assert_contains "$grafana_compose" 'GF_AUTH_PROXY_HEADER_NAME: X-Auth-Request-User'
-assert_contains "$grafana_compose" 'GF_AUTH_PROXY_AUTO_SIGN_UP: "true"'
-assert_contains "$grafana_compose" 'GF_AUTH_PROXY_ENABLE_LOGIN_TOKEN: "true"'
-assert_contains "$grafana_compose" 'GF_AUTH_PROXY_WHITELIST: ${TRAEFIK_GRAFANA_AUTH_IP:-10.254.254.2}/32'
-assert_contains "$grafana_compose" 'traefik.http.routers.grafana.middlewares=sso-auth@file,secure-headers@file'
+assert_contains "$grafana_compose" 'GF_AUTH_GENERIC_OAUTH_ENABLED: "true"'
+assert_contains "$grafana_compose" 'GF_AUTH_PROXY_ENABLED: "false"'
+assert_contains "$grafana_compose" 'traefik.http.routers.grafana.middlewares=secure-headers@file'
+assert_not_contains "$grafana_compose" 'traefik.http.routers.grafana.middlewares=sso-auth@file'
 assert_contains "$grafana_compose" 'traefik.http.services.grafana.loadbalancer.server.port=3000'
 assert_contains "$grafana_compose" 'traefik-grafana-auth:'
 assert_contains "$grafana_compose" 'grafana-observability:'
