@@ -49,10 +49,21 @@ assert_contains "$compose_file" "--client-secret-file=/run/secrets/oauth2_proxy_
 assert_contains "$compose_file" "--cookie-secret-file=/run/secrets/oauth2_proxy_cookie_secret"
 assert_contains "$compose_file" "--cookie-expire=8h"
 assert_contains "$compose_file" "--cookie-refresh=30m"
+assert_contains "$compose_file" "--session-store-type=redis"
+assert_contains "$compose_file" "--redis-connection-url=redis://oauth2-proxy-redis:6379/0"
 assert_contains "$compose_file" '--allowed-group=${OAUTH2_PROXY_ALLOWED_GROUP:-platform-admin}'
 assert_contains "$compose_file" 'traefik.http.routers.oauth2-proxy.rule=Host(`auth.${BASE_DOMAIN}`)'
 assert_not_contains "$compose_file" 'traefik.http.routers.oauth2-root.'
 assert_contains "$compose_file" "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"
+assert_contains "$compose_file" "oauth2-proxy-redis:"
+assert_contains "$compose_file" "oauth2-proxy-session:"
+assert_contains "$compose_file" "internal: true"
+assert_contains "$compose_file" "oauth2-proxy-redis-data:"
+assert_contains "$compose_file" "redisinsight:"
+assert_contains "$compose_file" 'traefik.http.routers.redisinsight.rule=Host(`redis.${BASE_DOMAIN}`)'
+assert_contains "$compose_file" "traefik.http.routers.redisinsight.middlewares=sso-auth@file,secure-headers@file"
+assert_not_contains "$compose_file" 'published: 6379'
+assert_not_contains "$compose_file" '"6379:6379"'
 
 assert_contains "$traefik_middlewares" "address: http://oauth2-proxy:4180/oauth2/auth"
 assert_contains "$traefik_middlewares" "addAuthCookiesToResponse:"
