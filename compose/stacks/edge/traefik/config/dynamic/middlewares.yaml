@@ -13,6 +13,18 @@ http:
         stsSeconds: 31536000
         stsIncludeSubdomains: true
 
+    # Replace restrictive application frame policies only on services intended
+    # for Dashy's Workspace view. Keep the ancestor allow-list to Dashy.
+    dashy-iframe:
+      headers:
+        customResponseHeaders:
+          X-Frame-Options: ""
+          Content-Security-Policy: "frame-ancestors https://dash.imcherry5778.xyz; object-src 'none'; base-uri 'self';"
+        contentTypeNosniff: true
+        browserXssFilter: true
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+
     sso-auth:
       chain:
         middlewares:

@@ -22,7 +22,7 @@ item_block() {
 contains "$gitlab" "gitlab_rails['omniauth_auto_sign_in_with_provider'] = 'openid_connect'"
 contains "$supabase" 'SUPABASE_ADMIN_HOST: ${SUPABASE_ADMIN_HOST:-supabase-admin.${BASE_DOMAIN}}'
 contains "$supabase" 'traefik.http.routers.supabase-admin.rule=Host(`supabase-admin.${BASE_DOMAIN}`)'
-contains "$supabase" 'traefik.http.routers.supabase-admin.middlewares=sso-auth@file,secure-headers@file'
+contains "$supabase" 'traefik.http.routers.supabase-admin.middlewares=sso-auth@file,dashy-iframe@file'
 contains "$kong" 'name: dashboard-keycloak'
 contains "$kong" 'hosts:'
 contains "$kong" '$SUPABASE_ADMIN_HOST'

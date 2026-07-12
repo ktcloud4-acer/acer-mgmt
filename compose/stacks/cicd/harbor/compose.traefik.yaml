@@ -9,7 +9,7 @@ services:
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
       - "traefik.http.routers.harbor.rule=Host(`harbor.${BASE_DOMAIN}`)"
       - "traefik.http.routers.harbor.entrypoints=websecure"
-      - "traefik.http.routers.harbor.middlewares=secure-headers@file"
+      - "traefik.http.routers.harbor.middlewares=dashy-iframe@file"
       - "traefik.http.services.harbor.loadbalancer.server.port=8080"
 
 networks:

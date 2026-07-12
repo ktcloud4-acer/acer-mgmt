@@ -118,7 +118,7 @@ services:
       - "traefik.http.services.supabase.loadbalancer.server.port=8000"
       - "traefik.http.routers.supabase-admin.rule=Host(`supabase-admin.${BASE_DOMAIN}`)"
       - "traefik.http.routers.supabase-admin.entrypoints=websecure"
-      - "traefik.http.routers.supabase-admin.middlewares=sso-auth@file,secure-headers@file"
+      - "traefik.http.routers.supabase-admin.middlewares=sso-auth@file,dashy-iframe@file"
       - "traefik.http.routers.supabase-admin.service=supabase"
 
   auth:
