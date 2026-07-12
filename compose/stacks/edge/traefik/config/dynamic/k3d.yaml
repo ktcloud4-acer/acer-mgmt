@@ -72,21 +72,21 @@ http:
           - url: "https://nmg-ingress.tailc0244b.ts.net"
     ggg-chaos-dashboard:
       loadBalancer:
-        passHostHeader: false
+        passHostHeader: true
         servers:
-          - url: "https://ggg-chaos.tailc0244b.ts.net"
+          - url: "https://ggg-ingress.tailc0244b.ts.net"
     khb-chaos-dashboard:
       loadBalancer:
-        passHostHeader: false
+        passHostHeader: true
         servers:
-          - url: "https://khb-chaos.tailc0244b.ts.net"
+          - url: "https://khb-ingress.tailc0244b.ts.net"
     ljw-chaos-dashboard:
       loadBalancer:
-        passHostHeader: false
+        passHostHeader: true
         servers:
-          - url: "https://ljw-chaos.tailc0244b.ts.net"
+          - url: "https://ljw-ingress.tailc0244b.ts.net"
     oje-chaos-dashboard:
       loadBalancer:
-        passHostHeader: false
+        passHostHeader: true
         servers:
-          - url: "https://oje-chaos.tailc0244b.ts.net"
+          - url: "https://oje-ingress.tailc0244b.ts.net"
