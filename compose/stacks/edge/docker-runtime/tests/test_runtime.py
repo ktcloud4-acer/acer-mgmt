@@ -341,6 +341,7 @@ class ViewerAssetTests(unittest.TestCase):
         static_dir = APP_DIR / "static"
         html = (static_dir / "index.html").read_text(encoding="utf-8")
         javascript = (static_dir / "app.js").read_text(encoding="utf-8")
+        stylesheet = (static_dir / "style.css").read_text(encoding="utf-8")
 
         self.assertIn('id="summary"', html)
         self.assertIn('setInterval(refresh, 15000)', javascript)
@@ -351,6 +352,7 @@ class ViewerAssetTests(unittest.TestCase):
         self.assertIn('healthy_count: snapshot.other.filter((item) => item.status === "healthy").length', javascript)
         for status in ("healthy", "running (no healthcheck)", "starting", "unhealthy", "completed", "stopped"):
             self.assertIn(status, javascript)
+        self.assertNotIn(".status { font-weight: 700; text-transform: capitalize; }", stylesheet)
 
 
 if __name__ == "__main__":
