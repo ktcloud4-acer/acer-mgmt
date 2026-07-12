@@ -151,14 +151,15 @@ if groups_mappers:
 
 MAPPER_ID="$(groups_mapper_id)"
 if [[ -n "$MAPPER_ID" ]]; then
-  kc update "clients/${CLIENT_UUID}/protocol-mappers/models/${MAPPER_ID}" \
-    -r "$REALM" \
-    -f /tmp/grafana-groups-mapper.json >/dev/null
-else
-  kc create "clients/${CLIENT_UUID}/protocol-mappers/models" \
-    -r "$REALM" \
-    -f /tmp/grafana-groups-mapper.json >/dev/null
+  # Keycloak 26 rejects an update payload without the mapper's immutable ID.
+  # Recreate the uniquely named client mapper instead, avoiding an ID-bearing
+  # payload that would need to be copied through a temporary secret-like file.
+  kc delete "clients/${CLIENT_UUID}/protocol-mappers/models/${MAPPER_ID}" -r "$REALM" >/dev/null
 fi
+
+kc create "clients/${CLIENT_UUID}/protocol-mappers/models" \
+  -r "$REALM" \
+  -f /tmp/grafana-groups-mapper.json >/dev/null
 
 CLIENT_SECRET="$({
   kc get "clients/${CLIENT_UUID}/client-secret" -r "$REALM" |
