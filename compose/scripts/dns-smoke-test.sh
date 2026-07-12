@@ -58,6 +58,7 @@ if has_direct_dns_tool; then
   assert_adguard_answer "keycloak.${BASE_DOMAIN}"
   assert_adguard_answer "dash.${BASE_DOMAIN}"
   assert_adguard_answer "wazuh.${BASE_DOMAIN}"
+  assert_adguard_answer "redis.${BASE_DOMAIN}"
   assert_adguard_answer "n8n.${BASE_DOMAIN}"
   assert_adguard_answer "teleport.${BASE_DOMAIN}"
   assert_adguard_answer "tp-alertmanager.${BASE_DOMAIN}"

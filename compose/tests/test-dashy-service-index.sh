@@ -63,7 +63,7 @@ for group in Observability Backup CI/CD Data Infra Security Edge; do
   assert_contains "$dashy_config" "name: ${group}"
 done
 
-for item in Grafana Prometheus Alertmanager Kibana n8n MinIO Restic "Argo CD" GitLab "GitLab Runner" SonarQube Allure Playwright Semaphore Harbor Kafka Supabase NetBox Keycloak Teleport Vault Traefik "AdGuard Home"; do
+for item in Grafana Prometheus Alertmanager Kibana n8n MinIO Restic "Argo CD" GitLab "GitLab Runner" SonarQube Allure Playwright Semaphore Harbor Kafka Supabase NetBox Keycloak Teleport Vault Wazuh RedisInsight Traefik "AdGuard Home"; do
   assert_contains "$dashy_config" "title: ${item}"
 done
 
