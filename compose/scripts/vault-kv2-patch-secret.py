@@ -118,7 +118,8 @@ def main() -> int:
         connection.putheader("Host", args.server_name)
         connection.putheader("X-Vault-Request", "true")
         connection.putheader("X-Vault-Token", vault_token)
-        connection.putheader("Content-Type", "application/json")
+        # KV v2 accepts partial updates only as JSON Merge Patch.
+        connection.putheader("Content-Type", "application/merge-patch+json")
         connection.putheader("Content-Length", str(len(payload)))
         connection.endheaders(payload)
         response = connection.getresponse()
