@@ -3,6 +3,7 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 dockerfile="$root/compose/stacks/cicd/semaphore/Dockerfile"
+semaphore_compose="$root/compose/stacks/cicd/semaphore/compose.yaml"
 dns_playbook="$root/compose/ansible/dns-smoke-test.yml"
 k6_playbook="$root/compose/ansible/run-scalecart-api-hpa-load-test.yml"
 dns_reconciler="$root/compose/scripts/reconcile-mgmt-dns-smoke-task.sh"
@@ -17,7 +18,7 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 contains() { grep -Fq -- "$2" "$1" || fail "missing '$2' in $1"; }
 absent_file() { test ! -e "$1" || fail "unexpected legacy wrapper: $1"; }
 
-for file in "$dockerfile" "$dns_playbook" "$k6_playbook" "$dns_reconciler" "$k6_reconciler" "$k6_workload" "$readme"; do
+for file in "$dockerfile" "$semaphore_compose" "$dns_playbook" "$k6_playbook" "$dns_reconciler" "$k6_reconciler" "$k6_workload" "$readme"; do
   test -f "$file" || fail "missing $file"
 done
 absent_file "$dns_wrapper"
@@ -25,6 +26,8 @@ absent_file "$k6_wrapper"
 absent_file "$k6_launcher"
 
 contains "$dockerfile" 'bind-tools'
+contains "$semaphore_compose" 'group_add:'
+contains "$semaphore_compose" '- "0"'
 
 contains "$dns_playbook" 'hosts: localhost'
 contains "$dns_playbook" 'connection: local'
