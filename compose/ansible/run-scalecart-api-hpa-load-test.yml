@@ -45,7 +45,7 @@
         argv:
           - k6
           - run
-          - compose/scripts/k6/scalecart-api-hpa.js
+          - /opt/acer-mgmt/compose/scripts/k6/scalecart-api-hpa.js
       environment:
         K6_BASE_URL: "{{ k6_base_url }}"
         K6_DEMO_API_KEY: "{{ k6_demo_api_key }}"

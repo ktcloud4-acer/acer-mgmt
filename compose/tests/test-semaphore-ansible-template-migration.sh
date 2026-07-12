@@ -43,6 +43,7 @@ contains "$k6_playbook" '/run/vault-k6'
 contains "$k6_playbook" 'K6_DEMO_API_KEY'
 contains "$k6_playbook" 'no_log: true'
 contains "$k6_playbook" 'scalecart-api-hpa.js'
+contains "$k6_playbook" '/opt/acer-mgmt/compose/scripts/k6/scalecart-api-hpa.js'
 contains "$k6_playbook" 'K6_RATE'
 contains "$k6_playbook" 'K6_DURATION'
 contains "$k6_playbook" "lookup('ansible.builtin.env', 'K6_TEAM')"
