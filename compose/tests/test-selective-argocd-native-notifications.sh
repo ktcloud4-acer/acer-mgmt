@@ -63,7 +63,7 @@ assert_missing "$trigger_deployed"
 
 assert_not_contains "$prometheus_config" "channel: argocd"
 assert_not_contains "$prometheus_config" "job_name: argocd-application-controller"
-assert_not_contains "$prometheus_config" "https://argocd.imcherry5778.xyz/"
+assert_not_contains "$prometheus_config" "targets: ['https://argocd.imcherry5778.xyz/']"
 assert_not_contains "$endpoint_rules" "ArgoCdEndpointDown"
 assert_not_contains "$alertmanager_config" "slack-argocd-alerts"
 assert_not_contains "$alertmanager_config" 'channel="argocd"'

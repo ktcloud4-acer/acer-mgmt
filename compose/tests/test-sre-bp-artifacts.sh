@@ -3,7 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-WORKSPACE_ROOT="$(cd "${REPO_ROOT}/.." && pwd)"
+PRIMARY_REPO="$(git -C "${REPO_ROOT}" worktree list --porcelain | awk '/^worktree / {sub(/^worktree /, ""); print; exit}')"
+WORKSPACE_ROOT="${WORKSPACE_ROOT:-$(cd "${PRIMARY_REPO}/.." && pwd)}"
 
 fail() {
   echo "FAIL: $*" >&2
