@@ -6,7 +6,7 @@ ARG HELM_VERSION=v3.19.0
 
 USER root
 
-RUN apk add --no-cache ansible-core curl jq openssh-client tar \
+RUN apk add --no-cache ansible-core bind-tools curl jq openssh-client tar \
     && curl -fsSL "https://github.com/grafana/k6/releases/download/${K6_VERSION}/k6-${K6_VERSION}-linux-amd64.tar.gz" -o /tmp/k6.tar.gz \
     && tar -xzf /tmp/k6.tar.gz -C /tmp \
     && install -m 0755 "/tmp/k6-${K6_VERSION}-linux-amd64/k6" /usr/local/bin/k6 \

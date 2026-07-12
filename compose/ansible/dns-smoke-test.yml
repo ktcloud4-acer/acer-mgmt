@@ -1,0 +1,106 @@
+---
+- name: Run mgmt DNS smoke checks locally
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    dns_base_domain: "{{ lookup('ansible.builtin.env', 'BASE_DOMAIN') | default('imcherry5778.xyz', true) }}"
+    dns_server: "{{ lookup('ansible.builtin.env', 'ADGUARD_DNS_IP') | default('100.117.59.96', true) }}"
+    dns_expected_ip: "{{ lookup('ansible.builtin.env', 'EXPECTED_IP') | default('100.117.59.96', true) }}"
+    dns_kubeconfig: "{{ lookup('ansible.builtin.env', 'KUBECONFIG_FILE') | default('/home/user1/acer-mgmt/secrets/k3d/mgmt.kubeconfig', true) }}"
+    dns_service_hosts:
+      - grafana
+      - alertmanager
+      - harbor
+      - argocd
+      - keycloak
+      - dash
+      - wazuh
+      - redis
+      - n8n
+      - teleport
+      - tp-alertmanager
+      - supabase-admin
+  tasks:
+    - name: Query AdGuard service rewrites with dig
+      ansible.builtin.command:
+        argv:
+          - dig
+          - "@{{ dns_server }}"
+          - "{{ item }}.{{ dns_base_domain }}"
+          - +short
+      loop: "{{ dns_service_hosts }}"
+      register: dns_service_answers
+      changed_when: false
+
+    - name: Require the expected AdGuard answer for every service
+      ansible.builtin.assert:
+        that:
+          - item.stdout | trim == dns_expected_ip
+        fail_msg: >-
+          {{ item.item }}.{{ dns_base_domain }} expected {{ dns_expected_ip }},
+          got {{ item.stdout | trim | default('<empty>', true) }}.
+      loop: "{{ dns_service_answers.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Verify AdGuard upstream recursion
+      ansible.builtin.command:
+        argv:
+          - dig
+          - "@{{ dns_server }}"
+          - registry-1.docker.io
+          - +short
+      register: dns_external_answer
+      changed_when: false
+      failed_when: dns_external_answer.stdout | trim | length == 0
+
+    - name: Query the mgmt OS resolver
+      ansible.builtin.command:
+        argv:
+          - getent
+          - ahostsv4
+          - "grafana.{{ dns_base_domain }}"
+      register: dns_os_resolver
+      changed_when: false
+      failed_when: false
+
+    - name: Report an OS resolver mismatch without failing the smoke test
+      ansible.builtin.debug:
+        msg: >-
+          WARN mgmt OS resolver did not return {{ dns_expected_ip }};
+          Tailscale Split DNS may not be configured.
+      when: dns_expected_ip not in dns_os_resolver.stdout
+
+    - name: Detect the optional k3d kubeconfig mount
+      ansible.builtin.stat:
+        path: "{{ dns_kubeconfig }}"
+      register: dns_kubeconfig_stat
+
+    - name: Query the k3d pod resolver when the kubeconfig is mounted
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ dns_kubeconfig }}"
+          - -n
+          - argocd
+          - exec
+          - deploy/argocd-server
+          - --
+          - getent
+          - ahostsv4
+          - "harbor.{{ dns_base_domain }}"
+      register: dns_pod_resolver
+      changed_when: false
+      failed_when: false
+      when: dns_kubeconfig_stat.stat.exists
+
+    - name: Report a k3d pod resolver mismatch without failing the smoke test
+      ansible.builtin.debug:
+        msg: >-
+          WARN k3d pod resolver did not return {{ dns_expected_ip }};
+          check CoreDNS custom forwarding and node DNS.
+      when:
+        - dns_kubeconfig_stat.stat.exists
+        - dns_expected_ip not in dns_pod_resolver.stdout

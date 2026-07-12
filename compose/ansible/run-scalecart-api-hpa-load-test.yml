@@ -1,0 +1,54 @@
+---
+- name: Run a team ScaleCart API HPA load test locally
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    k6_team: "{{ K6_TEAM }}"
+    k6_base_url: "{{ K6_BASE_URL }}"
+    k6_rate: "{{ K6_RATE | default(lookup('ansible.builtin.env', 'K6_RATE') | default('150', true), true) }}"
+    k6_duration: "{{ K6_DURATION | default(lookup('ansible.builtin.env', 'K6_DURATION') | default('4m', true), true) }}"
+    k6_key_file: "{{ lookup('ansible.builtin.env', 'K6_KEY_FILE_ROOT') | default('/run/vault-k6', true) }}/{{ K6_TEAM }}.env"
+  pre_tasks:
+    - name: Validate the fixed team and k6 overrides
+      ansible.builtin.assert:
+        that:
+          - k6_team in ['ggg', 'khb', 'ljw', 'nmg', 'oje']
+          - k6_base_url is match('^https://')
+          - k6_rate | string is match('^[1-9][0-9]*$')
+          - k6_duration | string is match('^[0-9smh]+$')
+        fail_msg: K6_TEAM, K6_BASE_URL, K6_RATE, or K6_DURATION is invalid.
+
+    - name: Read the Vault-rendered team k6 key file
+      ansible.builtin.slurp:
+        src: "{{ k6_key_file }}"
+      register: k6_key_file_data
+      no_log: true
+
+    - name: Extract the k6 demo API key
+      ansible.builtin.set_fact:
+        k6_demo_api_key: >-
+          {{ (k6_key_file_data.content | b64decode |
+          regex_findall('(?m)^K6_DEMO_API_KEY=(.+)$') | first) | default('', true) }}
+      no_log: true
+
+    - name: Require the k6 demo API key
+      ansible.builtin.assert:
+        that:
+          - k6_demo_api_key | length > 0
+        fail_msg: Vault-rendered K6_DEMO_API_KEY is unavailable.
+      no_log: true
+
+  tasks:
+    - name: Run the ScaleCart API HPA k6 workload
+      ansible.builtin.command:
+        argv:
+          - k6
+          - run
+          - compose/scripts/k6/scalecart-api-hpa.js
+      environment:
+        K6_BASE_URL: "{{ k6_base_url }}"
+        K6_DEMO_API_KEY: "{{ k6_demo_api_key }}"
+        SCALECART_K6_RATE: "{{ k6_rate | string }}"
+        SCALECART_K6_HOLD_DURATION: "{{ k6_duration | string }}"
+      changed_when: false
