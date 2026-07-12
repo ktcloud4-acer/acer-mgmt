@@ -82,7 +82,7 @@ assert_contains "$DOCKERFILE" 'USER 10001:10001'
 assert_contains "$DOCKERFILE" 'EXPOSE 8080'
 assert_contains "$DOCKERFILE" 'CMD ["python", "-m", "app.server"]'
 
-assert_service_contains docker-socket-proxy 'image: ghcr.io/tecnativa/docker-socket-proxy:0.4.2'
+assert_service_contains docker-socket-proxy 'image: tecnativa/docker-socket-proxy:v0.4.2'
 assert_service_contains docker-socket-proxy '/var/run/docker.sock:/var/run/docker.sock:ro'
 for permission in 'POST: "0"' 'AUTH: "0"' 'SECRETS: "0"' 'EXEC: "0"' 'IMAGES: "0"' 'NETWORKS: "0"' 'VOLUMES: "0"' 'EVENTS: "0"' 'CONTAINERS: "1"' 'INFO: "1"' 'VERSION: "1"'; do
   assert_service_contains docker-socket-proxy "$permission"
