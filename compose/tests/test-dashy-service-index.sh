@@ -33,6 +33,17 @@ assert_item_target() {
   ' "$3" || fail "expected ${title} target ${target} in $3"
 }
 
+assert_item_not_contains() {
+  local title="$1"
+  local unexpected="$2"
+  awk -v title="$title" -v unexpected="$unexpected" '
+    $0 == "      - title: " title { found=1; next }
+    found && $0 == "        " unexpected { blocked=1; exit }
+    found && $0 ~ /^      - title:/ { exit }
+  END { exit found && !blocked ? 0 : 1 }
+  ' "$3" || fail "did not expect ${unexpected} on ${title} in $3"
+}
+
 dashy_compose="${DASHY_ROOT}/compose.yaml"
 dashy_config="${DASHY_ROOT}/config/conf.yml"
 status_config="${DASHY_ROOT}/config/status.yml"
@@ -59,11 +70,11 @@ for setting in \
   assert_contains "$dashy_config" "$setting"
 done
 
-for group in Observability Backup CI/CD Data Infra Security Edge; do
+for group in Observability Backup CI/CD Data Infra Security Edge Operations; do
   assert_contains "$dashy_config" "name: ${group}"
 done
 
-for item in Grafana Prometheus Alertmanager Kibana n8n MinIO Restic "Argo CD" GitLab "GitLab Runner" SonarQube Allure Playwright Semaphore Harbor Kafka Supabase NetBox Keycloak Teleport Vault Traefik "AdGuard Home"; do
+for item in Grafana Prometheus Alertmanager Kibana n8n MinIO Restic "Argo CD" GitLab "GitLab Runner" SonarQube Allure Playwright Semaphore Harbor Kafka Supabase NetBox Keycloak Teleport Vault Traefik "AdGuard Home" "Docker Runtime"; do
   assert_contains "$dashy_config" "title: ${item}"
 done
 
@@ -76,8 +87,10 @@ assert_not_contains "$middlewares_config" "frameDeny: true"
 assert_contains "$middlewares_config" 'X-Frame-Options: ""'
 assert_contains "$grafana_compose" 'GF_SECURITY_ALLOW_EMBEDDING: "true"'
 
-for item in Grafana Alertmanager Semaphore Vault; do
+for item in Grafana Alertmanager Semaphore Vault "Docker Runtime"; do
   assert_item_target "$item" workspace "$dashy_config"
 done
+
+assert_item_not_contains "Docker Runtime" 'statusCheck:' "$dashy_config"
 
 echo "Dashy service index configuration tests passed"
