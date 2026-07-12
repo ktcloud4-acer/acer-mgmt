@@ -40,6 +40,7 @@ services:
       - ${MGMT_REPO_ROOT:-/home/user1/acer-mgmt}:/opt/acer-mgmt:ro
       - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/cicd/k6:/run/vault-k6:ro
       - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/semaphore_oidc_client_secret:/run/secrets/semaphore_oidc_client_secret:ro,z
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-tls/ca.crt:/run/vault-ca/ca.crt:ro,z
     networks:
       - default
       - mgmt-proxy
