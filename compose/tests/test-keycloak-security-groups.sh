@@ -26,5 +26,6 @@ assert_contains "$netbox_extra" "netbox.authentication.user_default_groups_handl
 assert_contains "$bootstrap" 'ensure_group "netbox-admin"'
 assert_contains "$bootstrap" 'ensure_group "netbox-editor"'
 assert_contains "$bootstrap" 'ensure_group "argocd-admin"'
+assert_contains "$bootstrap" 'grep -Eq'
 
 echo "keycloak security-group tests passed"

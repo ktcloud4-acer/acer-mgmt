@@ -42,7 +42,7 @@ fi
 
 ensure_group() {
   local group="$1"
-  if kc get groups -r "$REALM" -q search="$group" | grep -q "\\\"name\\\" *: *\\\"${group}\\\""; then
+  if kc get groups -r "$REALM" -q search="$group" | grep -Eq "\"name\"[[:space:]]*:[[:space:]]*\"${group}\""; then
     echo "[$(date -Is)] group ${group} already exists"
   else
     echo "[$(date -Is)] creating group ${group}"
