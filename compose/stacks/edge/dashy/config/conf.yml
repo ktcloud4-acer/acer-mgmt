@@ -69,7 +69,7 @@ sections:
         url: https://n8n.imcherry5778.xyz
 
   - name: Backup
-    icon: fas fa-box-archive
+    icon: fas fa-archive
     items:
       - title: MinIO
         description: S3-compatible backup storage
@@ -131,7 +131,7 @@ sections:
         url: https://netbox.imcherry5778.xyz
 
   - name: Security
-    icon: fas fa-shield-halved
+    icon: fas fa-shield-alt
     items:
       - title: Keycloak
         description: Central SSO identity provider
