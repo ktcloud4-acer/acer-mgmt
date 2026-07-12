@@ -14,6 +14,10 @@ services:
     container_name: semaphore
     # Vault Agent renders OIDC secrets as group 1000 with mode 0640.
     user: "1001:1000"
+    # The read-only k6 key directory is owned by the host's root group (0750).
+    # Keep the non-root process and add only traversal access to that mount.
+    group_add:
+      - "0"
     restart: unless-stopped
     depends_on:
       semaphore-db:
