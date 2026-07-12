@@ -7,6 +7,7 @@ agent_config="$ROOT_DIR/compose/stacks/security/wazuh/config/agent.conf"
 bootstrap="$ROOT_DIR/compose/scripts/bootstrap-wazuh-stack.sh"
 secrets_bootstrap="$ROOT_DIR/compose/scripts/bootstrap-wazuh-secrets.sh"
 agent_installer="$ROOT_DIR/compose/scripts/install-wazuh-agent.sh"
+runtime_reconciler="$ROOT_DIR/compose/scripts/reconcile-wazuh-runtime.sh"
 vault_agent="$ROOT_DIR/compose/stacks/security/vault-agent/config/agent.hcl"
 
 fail() {
@@ -38,7 +39,8 @@ assert_contains "$bootstrap" 'WAZUH_AGENT_SECRETS_FILE'
 assert_contains "$bootstrap" 'authd.pass'
 assert_contains "$bootstrap" '<use_password>yes</use_password>'
 assert_contains "$bootstrap" 'chown -R 1000:1000 "$WAZUH_ROOT/indexer"'
-assert_contains "$secrets_bootstrap" "openssl rand -hex 32"
+assert_contains "$secrets_bootstrap" "printf 'Aa!0%s\\n'"
+assert_contains "$secrets_bootstrap" '$(openssl rand -hex 30)'
 assert_contains "$secrets_bootstrap" "vault kv put -mount=kv mgmt/wazuh -"
 assert_contains "$secrets_bootstrap" "-field=indexer_password mgmt/wazuh"
 assert_contains "$secrets_bootstrap" 'docker exec -i "$VAULT_CONTAINER" sh -s'
@@ -50,5 +52,12 @@ assert_contains "$agent_installer" "packages.wazuh.com/4.x/yum/"
 assert_contains "$vault_agent" 'kv/data/mgmt/wazuh'
 assert_contains "$vault_agent" 'destination = "/vault/secrets/security/wazuh.env"'
 assert_contains "$vault_agent" 'destination = "/vault/secrets/security/wazuh-agent.env"'
+assert_contains "$runtime_reconciler" 'fs.inotify.max_user_instances=1024'
+assert_contains "$runtime_reconciler" 'AuthenticationManager'
+assert_contains "$runtime_reconciler" 'auth.update_user(2, password)'
+assert_contains "$runtime_reconciler" 'WAZUH_API_PASSWORD'
+assert_contains "$runtime_reconciler" 'wazuh-wui'
+assert_contains "$runtime_reconciler" 'manager API auth HTTP 200'
+assert_contains "$bootstrap" '/^[[:space:]]*username: wazuh-wui$/'
 
 echo "wazuh stack tests passed"
