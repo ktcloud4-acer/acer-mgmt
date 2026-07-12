@@ -139,6 +139,10 @@ sections:
         description: Endpoint security alerts and agent health
         icon: fas fa-shield-virus
         url: https://wazuh.imcherry5778.xyz
+      - title: RedisInsight
+        description: OAuth2 Proxy session store administration
+        icon: fas fa-database
+        url: https://redis.imcherry5778.xyz
 
   - name: Edge
     icon: fas fa-network-wired

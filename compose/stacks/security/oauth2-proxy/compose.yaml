@@ -30,12 +30,18 @@ services:
       # Refresh before Keycloak's one-hour SSO idle timeout so an active
       # browser session never tries to refresh an already-expired token.
       - --cookie-refresh=30m
+      - --session-store-type=redis
+      - --redis-connection-url=redis://oauth2-proxy-redis:6379/0
       - --upstream=static://202
     volumes:
       - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/oauth2_proxy_client_secret:/run/secrets/oauth2_proxy_client_secret:ro,z
       - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/oauth2_proxy_cookie_secret:/run/secrets/oauth2_proxy_cookie_secret:ro,z
     networks:
       - mgmt-proxy
+      - oauth2-proxy-session
+    depends_on:
+      oauth2-proxy-redis:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
@@ -44,7 +50,63 @@ services:
       - "traefik.http.routers.oauth2-proxy.middlewares=secure-headers@file"
       - "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"
 
+  # Shared SSO session state. This service is isolated from the proxy network
+  # and has no published TCP port.
+  oauth2-proxy-redis:
+    image: redis:7.4.2-alpine
+    container_name: oauth2-proxy-redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --save
+      - "60"
+      - "1"
+      - --loglevel
+      - warning
+    volumes:
+      - oauth2-proxy-redis-data:/data
+    networks:
+      - oauth2-proxy-session
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -qx PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  # Browser-only administrative UI. Redis remains private on the session
+  # network; this UI is the only Redis-related Traefik route.
+  redisinsight:
+    image: redis/redisinsight:3.6.0
+    container_name: redisinsight
+    restart: unless-stopped
+    depends_on:
+      oauth2-proxy-redis:
+        condition: service_healthy
+    volumes:
+      - redisinsight-data:/data
+    networks:
+      - mgmt-proxy
+      - oauth2-proxy-session
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
+      - "traefik.http.routers.redisinsight.rule=Host(`redis.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.redisinsight.entrypoints=websecure"
+      - "traefik.http.routers.redisinsight.middlewares=sso-auth@file,secure-headers@file"
+      - "traefik.http.services.redisinsight.loadbalancer.server.port=5540"
+
 networks:
   mgmt-proxy:
     name: ${PROXY_NET:-mgmt-proxy}
     external: true
+
+  oauth2-proxy-session:
+    name: ${OAUTH2_PROXY_SESSION_NET:-oauth2-proxy-session}
+    internal: true
+
+volumes:
+  oauth2-proxy-redis-data:
+  redisinsight-data:
