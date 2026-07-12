@@ -17,6 +17,31 @@
           - ('aio_' ~ chaos_dashboard_team) in group_names
         fail_msg: The task must target one matching aio_<team> inventory group.
 
+    - name: Verify the Kubernetes kubeconfig exists
+      ansible.builtin.stat:
+        path: "{{ chaos_dashboard_kubeconfig }}"
+      register: chaos_dashboard_kubeconfig_stat
+
+    - name: Require a readable Kubernetes kubeconfig
+      ansible.builtin.assert:
+        that:
+          - chaos_dashboard_kubeconfig_stat.stat.exists
+          - chaos_dashboard_kubeconfig_stat.stat.readable
+        fail_msg: >-
+          {{ chaos_dashboard_kubeconfig }} is unavailable on this AIO.
+          Install or restore the team's Kubernetes cluster before issuing a Dashboard token.
+
+    - name: Verify Chaos Mesh is installed
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ chaos_dashboard_kubeconfig }}"
+          - get
+          - namespace
+          - chaos-mesh
+      changed_when: false
+
   tasks:
     - name: Verify the restricted Dashboard service account exists
       ansible.builtin.command:
