@@ -112,7 +112,7 @@ while read -r entry; do
   view_id="$(api_get "/project/$project_id/views" | jq -r '.[] | select(.title == "All") | .id' | head -n1)"
   require_id "$view_id" "All view in $project_name"
   jq -n --arg name "$task_name" --arg team "$team" --argjson project "$project_id" --argjson inventory "$inventory_id" --argjson repository "$repository_id" --argjson environment "$environment_id" --argjson view "$view_id" \
-    '{name:$name,project_id:$project,inventory_id:$inventory,repository_id:$repository,environment_ids:[$environment],view_id:$view,playbook:"compose/ansible/issue-chaos-dashboard-token.yml",arguments:("[\\\"--extra-vars\\\",\\\"chaos_dashboard_team=" + $team + "\\\"]"),description:("Issue a 10-minute token for the " + $team + " Chaos Mesh Dashboard from mgmt."),app:"ansible",type:"",allow_parallel_tasks:false,survey_vars:[]}' >"$tmp_dir/template.json"
+    '{name:$name,project_id:$project,inventory_id:$inventory,repository_id:$repository,environment_ids:[$environment],view_id:$view,playbook:"compose/ansible/issue-chaos-dashboard-token.yml",arguments:("[\"--extra-vars\",\"chaos_dashboard_team=" + $team + "\"]"),description:("Issue a 10-minute token for the " + $team + " Chaos Mesh Dashboard from mgmt."),app:"ansible",type:"",allow_parallel_tasks:false,survey_vars:[]}' >"$tmp_dir/template.json"
   template_id="$(api_get "/project/$project_id/templates" | jq -r --arg name "$task_name" '.[] | select(.name == $name) | .id' | head -n1)"
   if [ -z "$template_id" ] || [ "$template_id" = null ]; then
     template_id="$(api_post "/project/$project_id/templates" "$tmp_dir/template.json" | jq -r '.id')"
