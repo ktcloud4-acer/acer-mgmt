@@ -16,6 +16,7 @@
 - Dashy is the supported browser entry point; direct unauthenticated Semaphore access returns 401.
 - Only `https://dash.imcherry5778.xyz` is allowed as an iframe ancestor.
 - Preserve Semaphore PostgreSQL data, API tokens, Vault API routing, and a documented break-glass path.
+- Do not trust the pre-existing `semaphore_oidc_client_secret` render file: current Vault data has no `oidc_client_secret` field and the current Vault Agent source has no template for it. Replace it only by the managed render in Task 2.
 
 ---
 
@@ -100,6 +101,17 @@ assert_contains "$bootstrap" 'CLIENT_ID=${SEMAPHORE_OIDC_CLIENT_ID:-semaphore}'
 assert_contains "$bootstrap" '/api/auth/oidc/keycloak/redirect'
 assert_contains "$bootstrap" 'vault kv patch -mount=kv mgmt/semaphore'
 ```
+
+- [ ] **Step 1a: Verify the supplied Vault token can read the target secret**
+
+Run without printing the token or secret:
+
+```bash
+docker exec vault sh -c 'VAULT_TOKEN="$(cat /tmp/.vt)" vault kv get -mount=kv mgmt/semaphore >/dev/null'
+```
+
+Expected: exit `0`. If it fails, stop before changing Keycloak because the
+client secret cannot be reconciled safely.
 
 - [ ] **Step 2: Implement the Keycloak/Vault bootstrap**
 
