@@ -15,14 +15,16 @@ short-lived access certificates and auditable sessions.
 - Native `acer-mgmt` SSH Service: host systemd unit
   `teleport-node.service`, config `/etc/teleport-node.yaml`, and identity data
   `/var/lib/teleport-node`.
-- TLS material: `/run/acer-mgmt/secrets/security/teleport/tls.crt` and
-  `/run/acer-mgmt/secrets/security/teleport/tls.key`, rendered by Vault Agent.
-- Application proxy addresses use `tp-<app>.${BASE_DOMAIN}:3080`; each must
-  have an exact AdGuard rewrite to the management Tailscale IP. This keeps
-  them within the existing `*.${BASE_DOMAIN}` TLS certificate without
-  intercepting the matching Traefik service hostname.
+- TLS material: `${DATA_ROOT}/vault-agent/secrets/security/teleport/tls.crt`
+  and `${DATA_ROOT}/vault-agent/secrets/security/teleport/tls.key`, rendered
+  by Vault Agent.
+- Application proxy addresses use `<app>.teleport.${BASE_DOMAIN}:3080`; each
+  must have an exact AdGuard rewrite to the management Tailscale IP. The
+  dedicated `*.teleport.${BASE_DOMAIN}` certificate keeps these names separate
+  from their direct Traefik service hostnames.
 - Optional Enterprise/HCP SSO env:
-  `/run/acer-mgmt/secrets/security/teleport.env`, rendered by Vault Agent.
+  `${DATA_ROOT}/vault-agent/secrets/security/teleport.env`, rendered by Vault
+  Agent.
 
 Teleport intentionally uses separate Teleport proxy ports instead of Traefik
 HTTPS termination. This preserves Teleport's SSH, reverse tunnel, and
