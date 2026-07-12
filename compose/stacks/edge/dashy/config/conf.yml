@@ -122,6 +122,10 @@ sections:
         icon: fas fa-lock
         url: https://vault.imcherry5778.xyz
         target: workspace
+      - title: Wazuh
+        description: Endpoint security alerts and agent health
+        icon: fas fa-shield-virus
+        url: https://wazuh.imcherry5778.xyz
 
   - name: Edge
     icon: fas fa-network-wired

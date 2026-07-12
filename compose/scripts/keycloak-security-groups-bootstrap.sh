@@ -58,6 +58,8 @@ ensure_group "netbox-editor"
 ensure_group "netbox-admin"
 ensure_group "argocd-deployer"
 ensure_group "argocd-admin"
+ensure_group "wazuh-admins"
+ensure_group "wazuh-readonly"
 
 echo "[$(date -Is)] enabling Keycloak user/admin audit events"
 kc update "events/config" -r "$REALM" \
