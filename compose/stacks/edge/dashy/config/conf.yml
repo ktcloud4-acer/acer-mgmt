@@ -138,3 +138,12 @@ sections:
         description: Internal DNS wildcard management
         icon: fas fa-shield-alt
         url: https://adguard.imcherry5778.xyz
+
+  - name: Operations
+    icon: fas fa-cubes
+    items:
+      - title: Docker Runtime
+        description: Live read-only Compose stack and container state
+        icon: fab fa-docker
+        url: https://runtime.imcherry5778.xyz
+        target: workspace

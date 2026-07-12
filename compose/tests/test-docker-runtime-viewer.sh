@@ -6,6 +6,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 STACK_DIR="${REPO_ROOT}/compose/stacks/edge/docker-runtime"
 COMPOSE_FILE="${STACK_DIR}/compose.yaml"
 DOCKERFILE="${STACK_DIR}/Dockerfile"
+MIDDLEWARES_FILE="${REPO_ROOT}/compose/stacks/edge/traefik/config/dynamic/middlewares.yaml"
 
 fail() {
   echo "DOCKER_RUNTIME_VIEWER_CONTRACT=FAIL: $*" >&2
@@ -71,6 +72,7 @@ assert_service_networks() {
 
 assert_file "$COMPOSE_FILE"
 assert_file "$DOCKERFILE"
+assert_file "$MIDDLEWARES_FILE"
 
 assert_contains "$DOCKERFILE" 'FROM python:3.13-alpine'
 assert_contains "$DOCKERFILE" 'COPY app/ app/'
@@ -112,6 +114,11 @@ assert_service_contains docker-runtime-viewer 'wget -q --spider http://127.0.0.1
 assert_service_contains docker-runtime-viewer 'traefik.http.routers.docker-runtime.rule=Host(`runtime.${BASE_DOMAIN}`)'
 assert_service_contains docker-runtime-viewer 'traefik.http.routers.docker-runtime.middlewares=sso-auth@file,docker-runtime-iframe@file'
 assert_service_contains docker-runtime-viewer 'traefik.http.services.docker-runtime.loadbalancer.server.port=8080'
+
+assert_contains "$MIDDLEWARES_FILE" 'docker-runtime-iframe:'
+assert_contains "$MIDDLEWARES_FILE" 'frame-ancestors https://dash.imcherry5778.xyz'
+assert_contains "$MIDDLEWARES_FILE" 'X-Frame-Options: ""'
+assert_not_contains "$MIDDLEWARES_FILE" 'frame-ancestors *'
 
 assert_not_contains "$COMPOSE_FILE" 'ports:'
 assert_not_contains "$COMPOSE_FILE" 'privileged: true'
