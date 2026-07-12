@@ -12,6 +12,8 @@ services:
       dockerfile: Dockerfile
     image: acer/semaphore-k6-kubectl:v2.18.25-k6.1.0.0-rc2-kubectl.1.35.6
     container_name: semaphore
+    # Vault Agent renders OIDC secrets as group 1000 with mode 0640.
+    user: "1001:1000"
     restart: unless-stopped
     depends_on:
       semaphore-db:
@@ -29,9 +31,15 @@ services:
       SEMAPHORE_ADMIN_EMAIL: admin@${BASE_DOMAIN}
       SEMAPHORE_SCHEDULE_TIMEZONE: ${TZ:-Asia/Seoul}
       SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore
+      # Semaphore owns the user session through Keycloak OIDC. The client
+      # secret stays in the mounted file, never in the container environment.
+      SEMAPHORE_PASSWORD_LOGIN_DISABLED: "true"
+      SEMAPHORE_OIDC_PROVIDERS: >-
+        {"keycloak":{"display_name":"Keycloak","provider_url":"https://keycloak.${BASE_DOMAIN}/realms/${KEYCLOAK_REALM:-mgmt}","client_id":"${SEMAPHORE_OIDC_CLIENT_ID:-semaphore}","client_secret_file":"/run/secrets/semaphore_oidc_client_secret","redirect_url":"https://semaphore.${BASE_DOMAIN}/api/auth/oidc/keycloak/redirect","scopes":["openid","profile","email"],"username_claim":"preferred_username","email_claim":"email","name_claim":"name"}}
     volumes:
       - ${MGMT_REPO_ROOT:-/home/user1/acer-mgmt}:/opt/acer-mgmt:ro
       - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/cicd/k6:/run/vault-k6:ro
+      - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/semaphore_oidc_client_secret:/run/secrets/semaphore_oidc_client_secret:ro,z
     networks:
       - default
       - mgmt-proxy
@@ -46,7 +54,9 @@ services:
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
       - "traefik.http.routers.semaphore.rule=Host(`semaphore.${BASE_DOMAIN}`)"
       - "traefik.http.routers.semaphore.entrypoints=websecure"
-      - "traefik.http.routers.semaphore.middlewares=sso-auth@file,secure-headers@file"
+      # oauth2-auth enforces platform-admin without converting Semaphore's own
+      # API 401 responses into the oauth2-proxy sign-in loop.
+      - "traefik.http.routers.semaphore.middlewares=oauth2-auth@file,semaphore-iframe@file"
       - "traefik.http.services.semaphore.loadbalancer.server.port=3000"
 
   semaphore-db:

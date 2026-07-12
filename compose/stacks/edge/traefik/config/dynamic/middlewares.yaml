@@ -44,6 +44,18 @@ http:
           "401": 302
           "403": 302
 
+    # Semaphore uses its own Keycloak OIDC session. Only Dashy may frame it;
+    # oauth2-auth provides the platform-admin gate without oauth2-signin.
+    semaphore-iframe:
+      headers:
+        customResponseHeaders:
+          X-Frame-Options: ""
+          Content-Security-Policy: "frame-ancestors https://dash.imcherry5778.xyz; object-src 'none'"
+        contentTypeNosniff: true
+        browserXssFilter: true
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+
     keycloak-headers:
       headers:
         # DEMO MODE: an expired oauth2-proxy session must be able to complete

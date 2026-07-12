@@ -31,6 +31,7 @@ done
 assert_contains "$compose_file" 'SEMAPHORE_OIDC_PROVIDERS:'
 assert_contains "$compose_file" 'client_secret_file'
 assert_contains "$compose_file" '/run/secrets/semaphore_oidc_client_secret:ro,z'
+assert_contains "$compose_file" 'user: "1001:1000"'
 assert_contains "$compose_file" 'SEMAPHORE_PASSWORD_LOGIN_DISABLED: "true"'
 assert_contains "$compose_file" 'traefik.http.routers.semaphore.middlewares=oauth2-auth@file,semaphore-iframe@file'
 assert_not_contains "$compose_file" 'traefik.http.routers.semaphore.middlewares=sso-auth@file'
