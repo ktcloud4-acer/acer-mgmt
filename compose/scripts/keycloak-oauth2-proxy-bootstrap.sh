@@ -54,8 +54,7 @@ kc get "realms/${REALM}" >/dev/null 2>&1 || {
 
 client_uuid() {
   kc get clients -r "$REALM" -q clientId="$CLIENT_ID" |
-    sed -n 's/.*"id" *: *"\([^"]*\)".*/\1/p' |
-    head -n1
+    sed -n 's/.*"id" *: *"\([^"]*\)".*/\1/p'
 }
 
 CLIENT_UUID="$(client_uuid)"
@@ -112,7 +111,8 @@ mapper_id="$(
   kc get "clients/${CLIENT_UUID}/protocol-mappers/models" -r "$REALM" |
     awk '
       /"id" *:/ { id=$0; sub(/^.*"id" *: *"/, "", id); sub(/".*$/, "", id) }
-      /"name" *: *"groups"/ { print id; exit }
+      /"name" *: *"groups"/ && !found { result=id; found=1 }
+      END { if (found) print result }
     '
 )"
 

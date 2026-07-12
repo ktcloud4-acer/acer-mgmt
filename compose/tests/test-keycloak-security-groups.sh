@@ -18,6 +18,15 @@ assert_contains() {
   grep -Fq -- "$expected" "$file" || fail "$file does not contain: $expected"
 }
 
+assert_not_contains() {
+  local file="$1"
+  local unexpected="$2"
+  [[ -f "$file" ]] || fail "missing file: $file"
+  if grep -Fq -- "$unexpected" "$file"; then
+    fail "$file must not contain: $unexpected"
+  fi
+}
+
 assert_contains "$netbox_extra" '"netbox-admin"'
 assert_contains "$netbox_extra" '"netbox-editor"'
 assert_contains "$netbox_extra" "def map_keycloak_groups"
@@ -35,5 +44,6 @@ assert_contains "$oauth_bootstrap" '"full.path": "false"'
 assert_contains "$oauth_bootstrap" '"id.token.claim": "true"'
 assert_contains "$oauth_bootstrap" '"access.token.claim": "true"'
 assert_contains "$oauth_bootstrap" '"userinfo.token.claim": "true"'
+assert_not_contains "$oauth_bootstrap" 'head -n1'
 
 echo "keycloak security-group tests passed"
