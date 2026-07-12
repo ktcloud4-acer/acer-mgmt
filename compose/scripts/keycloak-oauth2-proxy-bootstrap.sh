@@ -120,10 +120,10 @@ mapper_id="$(
 )"
 
 if [[ -n "$mapper_id" ]]; then
-  echo "Updating groups claim mapper for $CLIENT_ID"
-  kc update "clients/${CLIENT_UUID}/protocol-mappers/models/${mapper_id}" \
-    -r "$REALM" \
-    -f /tmp/oauth2-proxy-groups-mapper.json >/dev/null
+  # Keycloak preserves client mapper identifiers but rejects a full payload
+  # replacement on some versions. A mapper with this stable name is already
+  # the desired claim contract, so preserve it rather than risking removal.
+  echo "Groups claim mapper already exists for $CLIENT_ID"
 else
   echo "Creating groups claim mapper for $CLIENT_ID"
   kc create "clients/${CLIENT_UUID}/protocol-mappers/models" \
