@@ -116,6 +116,7 @@ printf '%s' "$CLIENT_SECRET" | python3 "$VAULT_KV_PATCH_HELPER" \
   --token-file "$VAULT_TOKEN_FILE" \
   --mount kv \
   --secret-path mgmt/semaphore \
-  --field oidc_client_secret
+  --field oidc_client_secret \
+  --allow-rw-fallback
 
 echo "Keycloak Semaphore OIDC bootstrap completed for realm $REALM"

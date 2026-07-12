@@ -4,7 +4,9 @@
 The Vault CLI's ``vault kv patch`` first reads ``sys/internal/ui/mounts`` to
 discover the mount type. A least-privilege deployment token may deliberately
 have PATCH access to one KV path without access to that system metadata. This
-helper calls the already-known KV v2 endpoint directly.
+helper calls the already-known KV v2 endpoint directly. If the token has the
+documented read/write form of KV patch permission instead of PATCH, an explicit
+fallback reads the current version and writes a CAS-protected merged document.
 
 The Keycloak client secret arrives only on stdin. The Vault token is read only
 from the named file inside the Vault container. Neither value is written to a
@@ -53,7 +55,45 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--secret-path", required=True)
     parser.add_argument("--field", required=True)
     parser.add_argument("--server-name", default="vault")
+    parser.add_argument(
+        "--allow-rw-fallback",
+        action="store_true",
+        help="fall back to read + CAS-protected write when PATCH is denied",
+    )
     return parser.parse_args()
+
+
+def vault_request(
+    *,
+    context: ssl.SSLContext,
+    vault_ip: str,
+    server_name: str,
+    token: str,
+    method: str,
+    endpoint: str,
+    payload: bytes | None = None,
+    content_type: str | None = None,
+) -> tuple[int, bytes]:
+    """Make one TLS-verified Vault request without logging its response body."""
+    raw_socket = socket.create_connection((vault_ip, 8200), timeout=10)
+    tls_socket = context.wrap_socket(raw_socket, server_hostname=server_name)
+    connection = http.client.HTTPConnection(vault_ip, 8200, timeout=10)
+    connection.sock = tls_socket
+
+    try:
+        connection.putrequest(method, endpoint, skip_host=True)
+        connection.putheader("Host", server_name)
+        connection.putheader("X-Vault-Request", "true")
+        connection.putheader("X-Vault-Token", token)
+        if content_type:
+            connection.putheader("Content-Type", content_type)
+        if payload is not None:
+            connection.putheader("Content-Length", str(len(payload)))
+        connection.endheaders(payload)
+        response = connection.getresponse()
+        return response.status, response.read()
+    finally:
+        connection.close()
 
 
 def main() -> int:
@@ -102,34 +142,69 @@ def main() -> int:
     except UnicodeDecodeError as exc:
         raise RuntimeError("secret payload is not UTF-8") from exc
 
-    payload = json.dumps(
+    patch_payload = json.dumps(
         {"data": {args.field: secret_text}}, separators=(",", ":")
     ).encode("utf-8")
     context = ssl.create_default_context(cafile=str(ca_cert))
-    raw_socket = socket.create_connection((vault_ip, 8200), timeout=10)
-    tls_socket = context.wrap_socket(raw_socket, server_hostname=args.server_name)
-    connection = http.client.HTTPConnection(vault_ip, 8200, timeout=10)
-    connection.sock = tls_socket
-
-    try:
-        connection.putrequest(
-            "PATCH", f"/v1/{mount}/data/{secret_path}", skip_host=True
-        )
-        connection.putheader("Host", args.server_name)
-        connection.putheader("X-Vault-Request", "true")
-        connection.putheader("X-Vault-Token", vault_token)
+    endpoint = f"/v1/{mount}/data/{secret_path}"
+    status, _ = vault_request(
+        context=context,
+        vault_ip=vault_ip,
+        server_name=args.server_name,
+        token=vault_token,
+        method="PATCH",
+        endpoint=endpoint,
+        payload=patch_payload,
         # KV v2 accepts partial updates only as JSON Merge Patch.
-        connection.putheader("Content-Type", "application/merge-patch+json")
-        connection.putheader("Content-Length", str(len(payload)))
-        connection.endheaders(payload)
-        response = connection.getresponse()
-        status = response.status
-        response.read()
-    finally:
-        connection.close()
-
-    if not 200 <= status < 300:
+        content_type="application/merge-patch+json",
+    )
+    if 200 <= status < 300:
+        print("Vault KV v2 secret field patched.")
+        return 0
+    if status != 403 or not args.allow_rw_fallback:
         raise RuntimeError(f"Vault KV v2 PATCH returned HTTP {status}")
+
+    # This is the KV CLI's documented read/write patch strategy. The response
+    # is parsed only in process memory and its version is used as a CAS guard,
+    # so a concurrent change cannot be overwritten silently.
+    read_status, read_response = vault_request(
+        context=context,
+        vault_ip=vault_ip,
+        server_name=args.server_name,
+        token=vault_token,
+        method="GET",
+        endpoint=endpoint,
+    )
+    if read_status != 200:
+        raise RuntimeError(f"Vault KV v2 fallback read returned HTTP {read_status}")
+    try:
+        read_data = json.loads(read_response)
+        envelope = read_data["data"]
+        existing_data = dict(envelope["data"])
+        version = envelope["metadata"]["version"]
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise RuntimeError("Vault KV v2 fallback read returned an invalid response") from exc
+    if not isinstance(version, int) or version < 1:
+        raise RuntimeError("Vault KV v2 fallback read has no usable version")
+
+    existing_data[args.field] = secret_text
+    write_payload = json.dumps(
+        {"options": {"cas": version}, "data": existing_data}, separators=(",", ":")
+    ).encode("utf-8")
+    write_status, _ = vault_request(
+        context=context,
+        vault_ip=vault_ip,
+        server_name=args.server_name,
+        token=vault_token,
+        method="POST",
+        endpoint=endpoint,
+        payload=write_payload,
+        content_type="application/json",
+    )
+    if not 200 <= write_status < 300:
+        raise RuntimeError(
+            f"Vault KV v2 read/write fallback returned HTTP {write_status}"
+        )
 
     print("Vault KV v2 secret field patched.")
     return 0
