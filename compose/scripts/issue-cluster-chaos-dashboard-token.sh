@@ -5,12 +5,17 @@ set -euo pipefail
 # template fixes both the cluster name and its restricted issuer credential;
 # callers cannot supply a kubeconfig or request a longer-lived token.
 : "${CHAOS_DASHBOARD_CLUSTER:?missing fixed Dashboard cluster}"
-: "${CHAOS_TOKEN_ISSUER_KUBECONFIG_B64:?missing Dashboard issuer credential}"
 
 case "$CHAOS_DASHBOARD_CLUSTER" in
   mgmt|nmg|ggg|khb|ljw|oje) ;;
   *) echo 'Unsupported Chaos Dashboard cluster.' >&2; exit 1 ;;
 esac
+
+if [[ -z "${CHAOS_TOKEN_ISSUER_KUBECONFIG_B64:-}" ]]; then
+  echo "Dashboard issuer credential for $CHAOS_DASHBOARD_CLUSTER is not configured yet." >&2
+  echo 'This template is ready; retry after the cluster issuer has been bootstrapped.' >&2
+  exit 1
+fi
 
 credential_dir="$(mktemp -d)"
 trap 'rm -rf "$credential_dir"' EXIT

@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Reconciles six fixed Dashboard-token templates in the existing acer-mgmt
+# Reconciles one fixed Dashboard-token template for every team cluster in the
+# existing acer-mgmt Semaphore project. Templates are created even while a
+# target is offline; an unavailable issuer produces a clear task error rather
+# than blocking the whole team rollout.
 # Semaphore project. Vault-rendered issuer files are read on the host only to
 # write Semaphore encrypted environments; they are not mounted into jobs.
 SEMAPHORE_CONTAINER=${SEMAPHORE_CONTAINER:-semaphore}
@@ -12,17 +15,12 @@ command -v docker >/dev/null 2>&1 || { echo 'docker is required' >&2; exit 1; }
 docker inspect "$SEMAPHORE_CONTAINER" >/dev/null
 
 declare -A issuer_files=(
-  [mgmt]="$VAULT_SECRETS_ROOT/chaos-dashboard-token-issuer.env"
   [nmg]="$VAULT_SECRETS_ROOT/chaos-dashboard-token-issuers/nmg.env"
   [ggg]="$VAULT_SECRETS_ROOT/chaos-dashboard-token-issuers/ggg.env"
   [khb]="$VAULT_SECRETS_ROOT/chaos-dashboard-token-issuers/khb.env"
   [ljw]="$VAULT_SECRETS_ROOT/chaos-dashboard-token-issuers/ljw.env"
   [oje]="$VAULT_SECRETS_ROOT/chaos-dashboard-token-issuers/oje.env"
 )
-
-for cluster in mgmt nmg ggg khb ljw oje; do
-  [[ -r "${issuer_files[$cluster]}" ]] || { echo "missing Vault issuer file for $cluster" >&2; exit 1; }
-done
 
 tmp_dir="$(mktemp -d)"
 container_manifest=/tmp/cluster-chaos-dashboard-issuers.json
@@ -33,9 +31,11 @@ cleanup() {
 trap cleanup EXIT
 
 jq -n '[]' >"$tmp_dir/issuers.json"
-for cluster in mgmt nmg ggg khb ljw oje; do
-  issuer_b64="$(sed -n 's/^CHAOS_TOKEN_ISSUER_KUBECONFIG_B64=//p' "${issuer_files[$cluster]}")"
-  [[ -n "$issuer_b64" ]] || { echo "empty Vault issuer value for $cluster" >&2; exit 1; }
+for cluster in nmg ggg khb ljw oje; do
+  issuer_b64=""
+  if [[ -r "${issuer_files[$cluster]}" ]]; then
+    issuer_b64="$(sed -n 's/^CHAOS_TOKEN_ISSUER_KUBECONFIG_B64=//p' "${issuer_files[$cluster]}")"
+  fi
   jq --arg cluster "$cluster" --arg issuer "$issuer_b64" '. + [{cluster:$cluster,issuer:$issuer}]' "$tmp_dir/issuers.json" >"$tmp_dir/issuers.next.json"
   mv "$tmp_dir/issuers.next.json" "$tmp_dir/issuers.json"
 done
@@ -73,12 +73,20 @@ for entry in $(jq -c '.[]' "$issuer_manifest"); do
   environment_name="Dashboard token issuer - $cluster"
   template_name="Chaos Dashboard token - $cluster"
   environment_id="$(api_get "/project/$project_id/environment" | jq -r --arg name "$environment_name" '.[] | select(.name == $name) | .id' | head -n1)"
-  jq -n --argjson project "$project_id" --arg name "$environment_name" --arg cluster "$cluster" --arg issuer "$issuer_b64" '{name:$name,project_id:$project,json:"{}",env:{CHAOS_DASHBOARD_CLUSTER:$cluster,CHAOS_TOKEN_ISSUER_KUBECONFIG_B64:$issuer}|tojson}' >"$tmp_dir/environment.json"
-  if [ -z "$environment_id" ] || [ "$environment_id" = null ]; then
-    environment_id="$(api_post "/project/$project_id/environment" "$tmp_dir/environment.json" | jq -r '.id')"
+  if [ -n "$issuer_b64" ] || [ -z "$environment_id" ] || [ "$environment_id" = null ]; then
+    if [ -n "$issuer_b64" ]; then
+      jq -n --argjson project "$project_id" --arg name "$environment_name" --arg cluster "$cluster" --arg issuer "$issuer_b64" '{name:$name,project_id:$project,json:"{}",env:{CHAOS_DASHBOARD_CLUSTER:$cluster,CHAOS_TOKEN_ISSUER_KUBECONFIG_B64:$issuer}|tojson}' >"$tmp_dir/environment.json"
+    else
+      jq -n --argjson project "$project_id" --arg name "$environment_name" --arg cluster "$cluster" '{name:$name,project_id:$project,json:"{}",env:{CHAOS_DASHBOARD_CLUSTER:$cluster}|tojson}' >"$tmp_dir/environment.json"
+    fi
+    if [ -z "$environment_id" ] || [ "$environment_id" = null ]; then
+      environment_id="$(api_post "/project/$project_id/environment" "$tmp_dir/environment.json" | jq -r '.id')"
+    else
+      jq --argjson environment "$environment_id" '. + {id:$environment}' "$tmp_dir/environment.json" >"$tmp_dir/environment-update.json"
+      api_put "/project/$project_id/environment/$environment_id" "$tmp_dir/environment-update.json" >/dev/null
+    fi
   else
-    jq --argjson environment "$environment_id" '. + {id:$environment}' "$tmp_dir/environment.json" >"$tmp_dir/environment-update.json"
-    api_put "/project/$project_id/environment/$environment_id" "$tmp_dir/environment-update.json" >/dev/null
+    printf 'issuer unavailable for %s; preserving existing encrypted environment\n' "$cluster" >&2
   fi
   jq -n --argjson project "$project_id" --argjson repository "$repository_id" --argjson environment "$environment_id" --argjson view "$view_id" --arg name "$template_name" --arg cluster "$cluster" '{name:$name,project_id:$project,repository_id:$repository,environment_ids:[$environment],view_id:$view,playbook:"compose/scripts/issue-cluster-chaos-dashboard-token.sh",arguments:"[]",description:("Issue a 10-minute token for the " + $cluster + " Chaos Mesh Dashboard."),app:"bash",type:"",allow_parallel_tasks:false,survey_vars:[]}' >"$tmp_dir/template.json"
   template_id="$(api_get "/project/$project_id/templates" | jq -r --arg name "$template_name" '.[] | select(.name == $name) | .id' | head -n1)"

@@ -11,6 +11,7 @@ MGMT_KUBECONFIG=${MGMT_KUBECONFIG:-/home/user1/.kube/config}
 MGMT_KUBERNETES_HOST=${MGMT_KUBERNETES_HOST:-https://k3d-mgmt-server-0:6443}
 namespace=chaos-mesh
 issuer_service_account=chaos-dashboard-token-issuer
+CHAOS_DASHBOARD_CLUSTERS=${CHAOS_DASHBOARD_CLUSTERS:-'nmg ggg khb ljw oje'}
 
 for command in kubectl jq docker base64 mktemp; do
   command -v "$command" >/dev/null 2>&1 || { echo "missing required command: $command" >&2; exit 1; }
@@ -38,7 +39,11 @@ vault_put_issuer() {
   ' sh "$path" "$container_payload" <"$payload"
 }
 
-for cluster in nmg ggg khb ljw oje; do
+for cluster in $CHAOS_DASHBOARD_CLUSTERS; do
+  case "$cluster" in
+    nmg|ggg|khb|ljw|oje) ;;
+    *) echo "unsupported Dashboard issuer cluster: $cluster" >&2; exit 1 ;;
+  esac
   source_json="$(vault_get_cluster "mgmt/argocd/clusters/$cluster")"
   server="$(jq -er '.data.data.server' <<<"$source_json")"
   config="$(jq -er '.data.data.config | fromjson' <<<"$source_json")"

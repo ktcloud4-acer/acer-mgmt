@@ -21,13 +21,17 @@ done
 
 assert_contains "$issuer" 'case "$CHAOS_DASHBOARD_CLUSTER" in'
 assert_contains "$issuer" 'mgmt|nmg|ggg|khb|ljw|oje)'
+assert_contains "$issuer" 'is not configured yet'
 assert_contains "$issuer" 'create token chaos-dashboard-manager --duration=10m'
 assert_contains "$issuer" 'serviceaccounts/chaos-dashboard-manager'
 assert_not_contains "$issuer" 'ssh '
 assert_not_contains "$issuer" 'cluster-admin'
 assert_contains "$provisioner" 'Dashboard token issuer - '
 assert_contains "$provisioner" 'CHAOS_DASHBOARD_CLUSTER'
+assert_contains "$provisioner" 'for cluster in nmg ggg khb ljw oje; do'
+assert_contains "$provisioner" 'issuer_b64=""'
 assert_contains "$bootstrap" 'vault kv put -mount=kv'
+assert_contains "$bootstrap" 'CHAOS_DASHBOARD_CLUSTERS'
 assert_not_contains "$bootstrap" 'cluster-admin'
 
 tmp="$(mktemp -d)"
