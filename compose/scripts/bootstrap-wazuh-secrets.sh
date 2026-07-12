@@ -28,7 +28,9 @@ fi
 
 for field in indexer_password dashboard_password api_password registration_password; do
   umask 077
-  openssl rand -hex 32 >"$tmpdir/$field"
+  # Wazuh RBAC requires lower-case, upper-case, digit, and special characters.
+  # Prefix every generated secret so a random value always satisfies that policy.
+  printf 'Aa!0%s\n' "$(openssl rand -hex 30)" >"$tmpdir/$field"
 done
 
 printf '{"indexer_password":"%s","dashboard_password":"%s","api_password":"%s","registration_password":"%s"}\n' \
