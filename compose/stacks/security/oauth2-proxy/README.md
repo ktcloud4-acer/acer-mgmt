@@ -1,7 +1,7 @@
 # OAuth2 Proxy SSO gateway
 
 `oauth2-proxy` is the shared forward-auth service used by Traefik middleware
-`sso-auth@file`. Services such as Homepage call Traefik, Traefik calls
+`sso-auth@file`. Services such as Dashy call Traefik, Traefik calls
 `http://oauth2-proxy:4180/oauth2/auth`, and unauthenticated users are redirected
 to Keycloak.
 

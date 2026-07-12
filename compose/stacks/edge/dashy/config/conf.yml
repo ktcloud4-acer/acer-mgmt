@@ -61,7 +61,7 @@ sections:
       - title: Allure
         description: Test reports (unit/integration/e2e)
         icon: https://raw.githubusercontent.com/allure-framework/allure2/main/allure-generator/src/main/javascript/features/shell/allure_logo.svg
-        url: https://allure.imcherry5778.xyz/allure-docker-service/projects/web-service/reports/latest/index.html
+        url: https://allure.imcherry5778.xyz/allure-docker-service/projects/acer-web/reports/latest/index.html
       - title: Playwright
         description: e2e (Playwright) HTML report
         icon: https://playwright.dev/img/playwright-logo.svg

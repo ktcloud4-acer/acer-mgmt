@@ -26,7 +26,6 @@ prometheus_compose="${REPO_ROOT}/compose/stacks/observability/prometheus/compose
 prometheus_config="${REPO_ROOT}/compose/stacks/observability/prometheus/config/prometheus.yml"
 smoke_rules="${REPO_ROOT}/compose/stacks/observability/prometheus/config/alerts/alertmanager-smoke.yml"
 demo_rules="${REPO_ROOT}/compose/stacks/observability/prometheus/config/alerts/demo-scalecart.yml"
-homepage_services="${REPO_ROOT}/compose/stacks/edge/homepage/config/services.yaml"
 vault_agent_config="${REPO_ROOT}/compose/stacks/security/vault-agent/config/agent.hcl"
 
 assert_file "$alertmanager_compose"
@@ -67,9 +66,6 @@ assert_contains "$demo_rules" 'deployment="scalecart-worker"'
 assert_contains "$demo_rules" "for: 5s"
 assert_contains "$demo_rules" 'demo: "true"'
 assert_contains "$demo_rules" "https://grafana.teleport.imcherry5778.xyz:3080"
-
-assert_contains "$homepage_services" "Alertmanager:"
-assert_contains "$homepage_services" "https://alertmanager.{{HOMEPAGE_VAR_BASE_DOMAIN}}"
 
 assert_contains "$vault_agent_config" 'kv/data/mgmt/alertmanager'
 assert_contains "$vault_agent_config" 'destination = "/vault/secrets/alertmanager/slack_webhook_infra"'

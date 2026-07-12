@@ -60,6 +60,9 @@ for item in Grafana Prometheus Alertmanager Kibana n8n MinIO "Argo CD" GitLab So
   assert_contains "$dashy_config" "title: ${item}"
 done
 
+assert_contains "$dashy_config" "url: https://allure.imcherry5778.xyz/allure-docker-service/projects/acer-web/reports/latest/index.html"
+assert_not_contains "$dashy_config" "allure-docker-service/projects/web-service/reports/latest/index.html"
+
 for page in Monitor Containers; do
   assert_contains "$dashy_config" "name: ${page}"
 done
