@@ -42,8 +42,8 @@ POLICY
     vault policy write admin "$policy_file" >/dev/null
   fi
 
-  vault token capabilities sys/config/ui/headers/Content-Security-Policy | tr "," "\n" | grep -Fxq update
-  vault token capabilities sys/config/ui/headers/Content-Security-Policy | tr "," "\n" | grep -Fxq sudo
+  vault token capabilities sys/config/ui/headers/Content-Security-Policy | tr "," "\n" | tr -d " " | grep -Fxq update
+  vault token capabilities sys/config/ui/headers/Content-Security-Policy | tr "," "\n" | tr -d " " | grep -Fxq sudo
   vault write sys/config/ui/headers/Content-Security-Policy \
     values="frame-src '\''self'\''; frame-ancestors ${DASHY_ORIGIN}; object-src '\''none'\''" >/dev/null
 VAULT_SH

@@ -112,6 +112,7 @@ assert_contains "$reconciler" 'path "sys/config/ui/headers/Content-Security-Poli
 assert_contains "$reconciler" 'vault policy write admin'
 assert_contains "$reconciler" 'vault token capabilities sys/config/ui/headers/Content-Security-Policy'
 assert_contains "$reconciler" 'tr "," "\n"'
+assert_contains "$reconciler" 'tr -d " "'
 assert_contains "$reconciler" 'grep -Fxq update'
 assert_contains "$reconciler" 'grep -Fxq sudo'
 sh -n "$reconciler" || fail 'Vault reconciliation script must be POSIX-sh compatible'
