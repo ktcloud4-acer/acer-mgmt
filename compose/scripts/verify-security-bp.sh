@@ -6,7 +6,7 @@ BASE_DOMAIN="${BASE_DOMAIN:-imcherry5778.xyz}"
 DATA_ROOT="${DATA_ROOT:-/home/mgmt-data}"
 SECRETS_ROOT="${SECRETS_ROOT:-}"
 if [[ -z "$SECRETS_ROOT" ]]; then
-  for candidate in /run/acer-mgmt/secrets "$DATA_ROOT/vault-agent/secrets"; do
+  for candidate in "$DATA_ROOT/vault-agent/secrets" /run/acer-mgmt/secrets; do
     if [[ -d "$candidate" ]]; then
       SECRETS_ROOT="$candidate"
       break
