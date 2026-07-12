@@ -19,6 +19,7 @@ set +a
 : "${WAZUH_INDEXER_PASSWORD:?missing WAZUH_INDEXER_PASSWORD}"
 : "${WAZUH_DASHBOARD_PASSWORD:?missing WAZUH_DASHBOARD_PASSWORD}"
 : "${WAZUH_API_PASSWORD:?missing WAZUH_API_PASSWORD}"
+: "${WAZUH_REGISTRATION_PASSWORD:?missing WAZUH_REGISTRATION_PASSWORD}"
 
 hash_password() {
   local password="$1"
@@ -51,6 +52,19 @@ sed -i "/^admin:$/,/^kibanaserver:$/ s#^  hash: .*#  hash: \"${indexer_hash}\"#"
 sed -i "/^kibanaserver:$/,/^kibanaro:$/ s#^  hash: .*#  hash: \"${dashboard_hash}\"#" "$users_file"
 sed -i "s#password: \"MyS3cr37P450r\.\*-\"#password: \"${WAZUH_API_PASSWORD}\"#" \
   "$WAZUH_ROOT/config/wazuh_dashboard/wazuh.yml"
+
+# The agent installer uses the Vault-rendered registration password. Require the
+# same password at the manager instead of accepting unauthenticated enrollments.
+manager_config="$WAZUH_ROOT/config/wazuh_cluster/wazuh_manager.conf"
+sed -i 's#<use_password>no</use_password>#<use_password>yes</use_password>#' "$manager_config"
+grep -Fq '<use_password>yes</use_password>' "$manager_config" || {
+  echo 'Wazuh manager password enrollment setting is missing' >&2
+  exit 1
+}
+install -d -m 0750 "$WAZUH_ROOT/manager-etc"
+umask 077
+printf '%s\n' "$WAZUH_REGISTRATION_PASSWORD" >"$WAZUH_ROOT/manager-etc/authd.pass"
+chmod 0640 "$WAZUH_ROOT/manager-etc/authd.pass"
 
 # Generate component TLS certificates using Wazuh's pinned official utility.
 docker run --rm \
