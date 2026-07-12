@@ -1,0 +1,14 @@
+{
+  "index_patterns": ["acer-audit-*"],
+  "priority": 250,
+  "_meta": {
+    "managed_by": "acer-mgmt",
+    "description": "보안 감사 인덱스 기본 설정: 단일노드 replica0(yellow→green) + 감사 전용 90일 보존 ILM. 우선순위 250 으로 일반 로그 템플릿(acer-logs, 200)보다 구체적."
+  },
+  "template": {
+    "settings": {
+      "number_of_replicas": 0,
+      "index.lifecycle.name": "acer-audit-retention"
+    }
+  }
+}
