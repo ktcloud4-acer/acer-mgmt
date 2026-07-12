@@ -48,7 +48,7 @@ assert_contains "$traefik_stack" "traefik.http.routers.traefik-teleport.entrypoi
 assert_contains "$traefik_stack" "traefik.http.routers.traefik-teleport.service=api@internal"
 assert_contains "$middlewares" "grafana-teleport-launch:"
 assert_contains "$middlewares" "Host(`grafana-teleport-launch.internal`)"
-assert_contains "$middlewares" 'replacement: "https://grafana.${BASE_DOMAIN}/$1"'
+assert_contains "$middlewares" 'replacement: "https://grafana.imcherry5778.xyz/$1"'
 assert_not_contains "$traefik_stack" '"8081:8081"'
 assert_contains "$teleport_config" "name: minio-console"
 assert_contains "$teleport_config" "name: semaphore"
