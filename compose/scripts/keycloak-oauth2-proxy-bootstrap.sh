@@ -77,6 +77,7 @@ fi
   exit 1
 }
 
+echo "Reconciling Keycloak client $CLIENT_ID"
 kc update "clients/${CLIENT_UUID}" -r "$REALM" \
   -s secret="$CLIENT_SECRET" \
   -s enabled=true \
@@ -118,10 +119,12 @@ mapper_id="$(
 )"
 
 if [[ -n "$mapper_id" ]]; then
+  echo "Updating groups claim mapper for $CLIENT_ID"
   kc update "clients/${CLIENT_UUID}/protocol-mappers/models/${mapper_id}" \
     -r "$REALM" \
     -f /tmp/oauth2-proxy-groups-mapper.json >/dev/null
 else
+  echo "Creating groups claim mapper for $CLIENT_ID"
   kc create "clients/${CLIENT_UUID}/protocol-mappers/models" \
     -r "$REALM" \
     -f /tmp/oauth2-proxy-groups-mapper.json >/dev/null
