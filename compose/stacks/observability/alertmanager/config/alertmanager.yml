@@ -18,6 +18,17 @@ route:
         - severity="test"
     - receiver: slack-infra-alerts
       matchers:
+        - demo="true"
+      group_by:
+        - alertname
+        - cluster
+        - namespace
+        - deployment
+      group_wait: 0s
+      group_interval: 5s
+      repeat_interval: 1h
+    - receiver: slack-infra-alerts
+      matchers:
         - source="falco"
       group_by:
         - rule
@@ -71,5 +82,8 @@ receivers:
           대상: {{ if .Labels.target }}{{ .Labels.target }}{{ else if .Labels.instance }}{{ .Labels.instance }}{{ else if .Labels.node }}{{ .Labels.node }}{{ else if .Labels.pod }}{{ .Labels.namespace }}/{{ .Labels.pod }}{{ else }}-{{ end }}
           요약: {{ .Annotations.summary }}
           설명: {{ .Annotations.description }}
+          {{ if .Annotations.dashboard_url }}
+          대시보드: <{{ .Annotations.dashboard_url }}|Teleport에서 Grafana 열기>
+          {{ end }}
           {{ end }}
           {{ end }}
