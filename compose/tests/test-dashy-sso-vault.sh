@@ -116,6 +116,7 @@ assert_contains "$reconciler" 'tr "," "\n"'
 assert_contains "$reconciler" 'tr -d " "'
 assert_contains "$reconciler" 'grep -Fxq update'
 assert_contains "$reconciler" 'grep -Fxq sudo'
+assert_contains "$reconciler" 'values="frame-src '\''self'\''; frame-ancestors ${DASHY_ORIGIN}; object-src '\''none'\''"'
 sh -n "$reconciler" || fail 'Vault reconciliation script must be POSIX-sh compatible'
 assert_contains "$reconciler" "sh -seu <<'VAULT_SH'"
 
