@@ -61,7 +61,7 @@ curl -sS -o /dev/null -w '%{http_code}\n' https://home.imcherry5778.xyz
 Unauthenticated Dashy access must use the existing SSO flow. Homepage must
 remain reachable.
 
-After signing in as `platform-admin`, verify the seven service groups and that
+After signing in with any `mgmt` Keycloak user, verify the seven service groups and that
 a normal left-click opens a service in a new tab. Dashy's built-in right-click
 context menu remains enabled so operators can choose another supported opening
 method, including modal or Workspace. Grafana must render in both iframe modes.
