@@ -102,6 +102,7 @@ cat >"$mapper_file" <<'JSON'
     "id.token.claim": "true",
     "access.token.claim": "true",
     "userinfo.token.claim": "true",
+    "introspection.token.claim": "true",
     "claim.name": "groups"
   }
 }
