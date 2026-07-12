@@ -57,10 +57,6 @@ sections:
         description: S3-compatible backup storage
         icon: fas fa-hard-drive
         url: https://minio.imcherry5778.xyz
-      - title: Restic
-        description: Daily encrypted host-volume backup
-        icon: fas fa-archive
-
   - name: CI/CD
     icon: fas fa-code-branch
     items:
@@ -72,9 +68,6 @@ sections:
         description: Source control and CI/CD
         icon: fab fa-gitlab
         url: https://gitlab.imcherry5778.xyz
-      - title: GitLab Runner
-        description: Registered Docker CI executor
-        icon: fas fa-running
       - title: SonarQube
         description: Static analysis and quality
         icon: fas fa-wave-square
