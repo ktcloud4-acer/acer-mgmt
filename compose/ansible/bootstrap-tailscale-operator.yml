@@ -4,7 +4,7 @@
   gather_facts: false
   vars:
     tailscale_operator_chart_version: "1.98.4"
-    tailscale_kubeconfig: /home/ubuntu/.kube/acer-kubeadm.yaml
+    tailscale_kubeconfig: /home/ubuntu/.kube/config
     tailscale_operator_values: /run/acer-bootstrap/tailscale-operator-values.yaml
     tailscale_proxy_manifest: /run/acer-bootstrap/tailscale-proxygroup.yaml
   pre_tasks:
