@@ -5,22 +5,23 @@ set -euo pipefail
 # existing acer-mgmt Semaphore project. Templates are created even while a
 # target is offline; an unavailable issuer produces a clear task error rather
 # than blocking the whole team rollout.
-# Semaphore project. Vault-rendered issuer files are read on the host only to
-# write Semaphore encrypted environments; they are not mounted into jobs.
+# Issuers are read directly from Vault only while environments are reconciled;
+# they are not rendered by the always-on Vault Agent or mounted into jobs.
 SEMAPHORE_CONTAINER=${SEMAPHORE_CONTAINER:-semaphore}
-VAULT_SECRETS_ROOT=${VAULT_SECRETS_ROOT:-/home/mgmt-data/vault-agent/secrets/cicd}
+VAULT_CONTAINER=${VAULT_CONTAINER:-vault}
 container_repo_root=${SEMAPHORE_REPOSITORY_PATH:-/opt/acer-mgmt}
 
 command -v docker >/dev/null 2>&1 || { echo 'docker is required' >&2; exit 1; }
 docker inspect "$SEMAPHORE_CONTAINER" >/dev/null
+docker inspect "$VAULT_CONTAINER" >/dev/null
 
-declare -A issuer_files=(
-  [nmg]="$VAULT_SECRETS_ROOT/chaos-dashboard-token-issuers/nmg.env"
-  [ggg]="$VAULT_SECRETS_ROOT/chaos-dashboard-token-issuers/ggg.env"
-  [khb]="$VAULT_SECRETS_ROOT/chaos-dashboard-token-issuers/khb.env"
-  [ljw]="$VAULT_SECRETS_ROOT/chaos-dashboard-token-issuers/ljw.env"
-  [oje]="$VAULT_SECRETS_ROOT/chaos-dashboard-token-issuers/oje.env"
-)
+read_issuer() {
+  local cluster=$1
+  docker exec "$VAULT_CONTAINER" sh -ceu '
+    export VAULT_ADDR=https://127.0.0.1:8200 VAULT_CACERT=/vault/tls/ca.crt VAULT_TOKEN="$(cat /tmp/.vt)"
+    vault kv get -format=json -mount=kv "mgmt/chaos/dashboard-token-issuers/$1"
+  ' sh "$cluster" | jq -er '.data.data.kubeconfig_b64'
+}
 
 tmp_dir="$(mktemp -d)"
 container_manifest=/tmp/cluster-chaos-dashboard-issuers.json
@@ -33,8 +34,10 @@ trap cleanup EXIT
 jq -n '[]' >"$tmp_dir/issuers.json"
 for cluster in nmg ggg khb ljw oje; do
   issuer_b64=""
-  if [[ -r "${issuer_files[$cluster]}" ]]; then
-    issuer_b64="$(sed -n 's/^CHAOS_TOKEN_ISSUER_KUBECONFIG_B64=//p' "${issuer_files[$cluster]}")"
+  if issuer_b64="$(read_issuer "$cluster" 2>/dev/null)"; then
+    :
+  else
+    issuer_b64=""
   fi
   jq --arg cluster "$cluster" --arg issuer "$issuer_b64" '. + [{cluster:$cluster,issuer:$issuer}]' "$tmp_dir/issuers.json" >"$tmp_dir/issuers.next.json"
   mv "$tmp_dir/issuers.next.json" "$tmp_dir/issuers.json"

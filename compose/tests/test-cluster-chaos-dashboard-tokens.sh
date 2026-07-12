@@ -14,7 +14,7 @@ assert_not_contains() { ! grep -Fq -- "$2" "$1" || fail "did not expect '$2' in 
 for team in nmg ggg khb ljw oje; do
   assert_not_contains "$vault_agent" "kv/data/mgmt/chaos/dashboard-token-issuers/$team"
   assert_not_contains "$vault_agent" "destination = \"/vault/secrets/cicd/chaos-dashboard-token-issuers/$team.env\""
-  assert_contains "$provisioner" "chaos-dashboard-token-issuers/$team.env"
+  assert_contains "$provisioner" 'mgmt/chaos/dashboard-token-issuers/$1'
   assert_contains "$bootstrap" 'mgmt/argocd/clusters/$cluster'
   assert_contains "$bootstrap" 'mgmt/chaos/dashboard-token-issuers/$cluster'
 done
@@ -30,6 +30,9 @@ assert_contains "$provisioner" 'Dashboard token issuer - '
 assert_contains "$provisioner" 'CHAOS_DASHBOARD_CLUSTER'
 assert_contains "$provisioner" 'for cluster in nmg ggg khb ljw oje; do'
 assert_contains "$provisioner" 'issuer_b64=""'
+assert_contains "$provisioner" 'VAULT_CONTAINER=${VAULT_CONTAINER:-vault}'
+assert_contains "$provisioner" 'vault kv get -format=json -mount=kv'
+assert_not_contains "$provisioner" 'VAULT_SECRETS_ROOT'
 assert_contains "$bootstrap" 'vault kv put -mount=kv'
 assert_contains "$bootstrap" 'CHAOS_DASHBOARD_CLUSTERS'
 assert_contains "$bootstrap" '"current-context":'
