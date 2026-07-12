@@ -1,0 +1,25 @@
+---
+- name: Issue the mgmt Chaos Mesh Dashboard token locally
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Require the restricted mgmt Dashboard issuer credential
+      ansible.builtin.assert:
+        that:
+          - lookup('ansible.builtin.env', 'CHAOS_TOKEN_ISSUER_KUBECONFIG_B64') | length > 0
+        fail_msg: The restricted mgmt Dashboard issuer credential is not configured.
+      no_log: true
+
+    - name: Issue a ten-minute mgmt Dashboard token
+      ansible.builtin.command:
+        argv:
+          - bash
+          - /opt/acer-mgmt/compose/scripts/issue-chaos-dashboard-token.sh
+      register: chaos_dashboard_token
+      changed_when: false
+      no_log: true
+
+    - name: Show the one-time Dashboard token
+      ansible.builtin.debug:
+        msg: "{{ chaos_dashboard_token.stdout }}"
