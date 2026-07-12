@@ -62,6 +62,12 @@ services:
       - "traefik.http.routers.semaphore.entrypoints=websecure"
       - "traefik.http.routers.semaphore.middlewares=sso-auth@file,semaphore-iframe@file"
       - "traefik.http.routers.semaphore.service=semaphore"
+      # Runners authenticate this narrow endpoint with the Semaphore-issued
+      # registration/runner token. Do not put oauth2-proxy in that path.
+      - "traefik.http.routers.semaphore-runner.rule=Host(`semaphore.${BASE_DOMAIN:-imcherry5778.xyz}`) && PathPrefix(`/api/internal/runners`)"
+      - "traefik.http.routers.semaphore-runner.entrypoints=websecure"
+      - "traefik.http.routers.semaphore-runner.priority=200"
+      - "traefik.http.routers.semaphore-runner.service=semaphore"
       - "traefik.http.routers.semaphore-api.rule=Host(`semaphore.${BASE_DOMAIN:-imcherry5778.xyz}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.semaphore-api.entrypoints=websecure"
       - "traefik.http.routers.semaphore-api.priority=100"

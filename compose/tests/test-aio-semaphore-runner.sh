@@ -12,6 +12,9 @@ contains() { grep -Fq -- "$2" "$1" || fail "missing '$2' in $1"; }
 absent() { ! grep -Fq -- "$2" "$1" || fail "unexpected '$2' in $1"; }
 
 contains "$compose" 'SEMAPHORE_USE_REMOTE_RUNNER: "true"'
+contains "$compose" 'traefik.http.routers.semaphore-runner.rule=Host(`semaphore.${BASE_DOMAIN:-imcherry5778.xyz}`) && PathPrefix(`/api/internal/runners`)'
+contains "$compose" 'traefik.http.routers.semaphore-runner.priority=200'
+contains "$compose" 'traefik.http.routers.semaphore-runner.service=semaphore'
 contains "$agent" 'SEMAPHORE_RUNNER_REGISTRATION_TOKEN='
 contains "$agent" 'kv/data/mgmt/cicd/semaphore-runner/aio'
 [[ "$(grep -Fc 'SEMAPHORE_RUNNER_REGISTRATION_TOKEN=' "$agent")" -eq 2 ]] || fail 'Runner token must render to both Semaphore env files'
