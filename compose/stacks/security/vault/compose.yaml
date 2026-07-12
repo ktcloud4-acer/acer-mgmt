@@ -53,7 +53,9 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - vault status >/dev/null 2>&1
+        # Exit 2 means sealed: the Vault UI is still intentionally reachable
+        # through Traefik so an operator can complete the unseal flow.
+        - vault status >/dev/null 2>&1; exit_code=$$?; [ "$$exit_code" -eq 0 ] || [ "$$exit_code" -eq 2 ]
       interval: 10s
       timeout: 5s
       retries: 12

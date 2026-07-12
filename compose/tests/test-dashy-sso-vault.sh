@@ -51,6 +51,7 @@ assert_contains "$vault_compose" 'traefik.http.routers.vault.middlewares=sso-aut
 assert_contains "$vault_compose" 'traefik.http.routers.vault-api.rule=Host(`vault.${BASE_DOMAIN}`) && PathPrefix(`/v1`)'
 assert_contains "$vault_compose" 'traefik.http.routers.vault-api.priority=100'
 assert_contains "$vault_compose" 'traefik.http.routers.vault-api.middlewares=secure-headers@file'
+assert_contains "$vault_compose" 'exit_code=$$?; [ "$$exit_code" -eq 0 ] || [ "$$exit_code" -eq 2 ]'
 
 declare -A ui_router_contract=(
   ["compose/stacks/observability/grafana/compose.yaml"]='traefik.http.routers.grafana.middlewares=sso-auth@file,secure-headers@file'
