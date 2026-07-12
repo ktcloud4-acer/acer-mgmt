@@ -26,6 +26,8 @@ assert_contains "$wazuh_stack" "wazuh-indexer"
 assert_contains "$wazuh_stack" "wazuh-dashboard"
 assert_contains "$wazuh_stack" "WAZUH_INDEXER_PASSWORD"
 assert_contains "$wazuh_stack" '${DATA_ROOT:-/home/mgmt-data}/wazuh/logs'
+assert_contains "$wazuh_stack" "- wazuh-ingress"
+assert_contains "$wazuh_stack" "wazuh-ingress:"
 assert_contains "$agent_config" "/home/mgmt-data/vault"
 assert_contains "$agent_config" "<ignore>"
 assert_contains "$bootstrap" "wazuh/wazuh-certs-generator:0.0.4"
