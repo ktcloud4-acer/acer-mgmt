@@ -86,7 +86,7 @@ a non-root user with a read-only filesystem where its runtime permits it.
 
 The Runtime Viewer is published through Traefik at a dedicated HTTPS host,
 protected by the existing oauth2-proxy -> Keycloak `platform-admin` policy.
-Its response permits framing only by `https://dash.imcherry5778.xyz`; it does
+Its response permits framing only by `https://dashy.imcherry5778.xyz`; it does
 not use a broad `*` frame-ancestor policy. The direct URL stays useful for
 troubleshooting but has the same authentication gate.
 

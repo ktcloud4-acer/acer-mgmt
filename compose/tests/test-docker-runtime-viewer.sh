@@ -116,7 +116,7 @@ assert_service_contains docker-runtime-viewer 'traefik.http.routers.docker-runti
 assert_service_contains docker-runtime-viewer 'traefik.http.services.docker-runtime.loadbalancer.server.port=8080'
 
 assert_contains "$MIDDLEWARES_FILE" 'docker-runtime-iframe:'
-assert_contains "$MIDDLEWARES_FILE" 'frame-ancestors https://dash.imcherry5778.xyz'
+assert_contains "$MIDDLEWARES_FILE" 'frame-ancestors https://dashy.imcherry5778.xyz'
 assert_contains "$MIDDLEWARES_FILE" 'X-Frame-Options: ""'
 assert_not_contains "$MIDDLEWARES_FILE" 'frame-ancestors *'
 

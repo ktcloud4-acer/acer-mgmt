@@ -255,7 +255,7 @@ app_service:
       uri: http://dashy:8080
       public_addr: dashy.teleport.imcherry5778.xyz
       rewrite:
-        redirect: [dash.imcherry5778.xyz]
+        redirect: [dashy.imcherry5778.xyz]
       labels:
         env: mgmt
         owner: platform

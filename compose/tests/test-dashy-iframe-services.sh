@@ -13,7 +13,7 @@ contains() { grep -Fq -- "$2" "$1" || fail "expected '$2' in $1"; }
 # These applications send restrictive upstream frame policies. Their public UI
 # routes must replace them with a policy that permits Dashy's Workspace only.
 contains "$MIDDLEWARES" 'dashy-iframe:'
-contains "$MIDDLEWARES" "Content-Security-Policy: \"frame-ancestors https://dash.imcherry5778.xyz; object-src 'none'; base-uri 'self';\""
+contains "$MIDDLEWARES" "Content-Security-Policy: \"frame-ancestors https://dashy.imcherry5778.xyz; object-src 'none'; base-uri 'self';\""
 contains "$MIDDLEWARES" 'X-Frame-Options: ""'
 
 contains "$K3D" 'k3d-argocd:'

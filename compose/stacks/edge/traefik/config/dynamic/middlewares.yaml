@@ -19,7 +19,7 @@ http:
       headers:
         customResponseHeaders:
           X-Frame-Options: ""
-          Content-Security-Policy: "frame-ancestors https://dash.imcherry5778.xyz; object-src 'none'; base-uri 'self';"
+          Content-Security-Policy: "frame-ancestors https://dashy.imcherry5778.xyz; object-src 'none'; base-uri 'self';"
         contentTypeNosniff: true
         browserXssFilter: true
         stsSeconds: 31536000
@@ -62,7 +62,7 @@ http:
       headers:
         customResponseHeaders:
           X-Frame-Options: ""
-          Content-Security-Policy: "frame-ancestors https://dash.imcherry5778.xyz; object-src 'none'"
+          Content-Security-Policy: "frame-ancestors https://dashy.imcherry5778.xyz; object-src 'none'"
         contentTypeNosniff: true
         browserXssFilter: true
         stsSeconds: 31536000
@@ -74,7 +74,7 @@ http:
         # its Keycloak login inside Dashy's Workspace iframe.
         customResponseHeaders:
           X-Frame-Options: ""
-          Content-Security-Policy: "frame-src 'self'; frame-ancestors 'self' https://dash.imcherry5778.xyz; object-src 'none';"
+          Content-Security-Policy: "frame-src 'self'; frame-ancestors 'self' https://dashy.imcherry5778.xyz; object-src 'none';"
         contentTypeNosniff: true
         browserXssFilter: true
         stsSeconds: 31536000
@@ -84,7 +84,7 @@ http:
       headers:
         customResponseHeaders:
           X-Frame-Options: ""
-          Content-Security-Policy: "frame-ancestors https://dash.imcherry5778.xyz; object-src 'none'; base-uri 'self';"
+          Content-Security-Policy: "frame-ancestors https://dashy.imcherry5778.xyz; object-src 'none'; base-uri 'self';"
         contentTypeNosniff: true
         stsSeconds: 31536000
         stsIncludeSubdomains: true
@@ -93,7 +93,7 @@ http:
       headers:
         customResponseHeaders:
           X-Frame-Options: ""
-          Content-Security-Policy: "frame-ancestors https://dash.imcherry5778.xyz; object-src 'none'; base-uri 'self';"
+          Content-Security-Policy: "frame-ancestors https://dashy.imcherry5778.xyz; object-src 'none'; base-uri 'self';"
         contentTypeNosniff: true
         stsSeconds: 31536000
         stsIncludeSubdomains: true

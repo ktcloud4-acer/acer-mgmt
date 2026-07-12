@@ -70,7 +70,7 @@ for relative_path in "${!ui_router_contract[@]}"; do
   assert_contains "${REPO_ROOT}/${relative_path}" "${ui_router_contract[$relative_path]}"
 done
 
-assert_contains "$middlewares" 'Content-Security-Policy: "frame-src '\''self'\''; frame-ancestors https://dash.imcherry5778.xyz; object-src '\''none'\'';"'
+assert_contains "$middlewares" 'Content-Security-Policy: "frame-src '\''self'\''; frame-ancestors '\''self'\'' https://dashy.imcherry5778.xyz; object-src '\''none'\'';"'
 assert_contains "$middlewares" 'X-Frame-Options: ""'
 
 # Grafana owns its Keycloak authorization-code flow. Dashy remains the shared

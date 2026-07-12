@@ -59,7 +59,7 @@ The `dashy` container must report `healthy`.
 ## Verify
 
 ```bash
-curl -sS -o /dev/null -w '%{http_code} %{redirect_url}\n' https://dash.imcherry5778.xyz
+curl -sS -o /dev/null -w '%{http_code} %{redirect_url}\n' https://dashy.imcherry5778.xyz
 curl -sS -o /dev/null -w '%{http_code}\n' https://home.imcherry5778.xyz
 ```
 

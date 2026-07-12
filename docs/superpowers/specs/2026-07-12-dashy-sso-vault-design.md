@@ -8,7 +8,7 @@ Traefik UI gate, while preserving service APIs and native access planes.
 ## Boundaries
 
 - Keycloak remains directly reachable as the identity provider and its login
-  response may be framed only by `https://dash.imcherry5778.xyz` in demo mode.
+  response may be framed only by `https://dashy.imcherry5778.xyz` in demo mode.
 - OAuth2-proxy is the authoritative public browser gate for the selected UI
   routes and emits authenticated user/group headers. Grafana consumes the
   user header through Grafana Auth Proxy, so it does not initiate a second

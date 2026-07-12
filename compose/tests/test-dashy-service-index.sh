@@ -39,7 +39,8 @@ assert_file "$prometheus_compose"
 
 assert_contains "$dashy_compose" "image: ghcr.io/lissy93/dashy:4.1.5"
 assert_contains "$dashy_compose" "./config:/app/user-data:ro,Z"
-assert_contains "$dashy_compose" 'traefik.http.routers.dashy.rule=Host(`dash.${BASE_DOMAIN}`)'
+assert_contains "$dashy_compose" 'traefik.http.routers.dashy.rule=Host(`dashy.${BASE_DOMAIN}`)'
+assert_not_contains "$dashy_compose" 'Host(`dash.${BASE_DOMAIN}`)'
 assert_contains "$dashy_compose" "traefik.http.routers.dashy.middlewares=sso-auth@file,secure-headers@file"
 
 for setting in \

@@ -48,7 +48,7 @@ assert_contains "$compose_file" 'traefik.http.routers.semaphore-api.service=sema
 
 assert_contains "$vault_agent" 'destination = "/vault/secrets/semaphore_oidc_client_secret"'
 assert_contains "$middlewares" 'semaphore-iframe:'
-assert_contains "$middlewares" 'frame-ancestors https://dash.imcherry5778.xyz'
+assert_contains "$middlewares" 'frame-ancestors https://dashy.imcherry5778.xyz'
 
 awk '
   $0 == "      - title: Semaphore" { found=1; next }

@@ -5,7 +5,7 @@ set -euo pipefail
 # management token remains inside the Vault container at /tmp/.vt and is never
 # read to the host or written to output.
 VAULT_CONTAINER=${VAULT_CONTAINER:-vault}
-DASHY_ORIGIN=${DASHY_ORIGIN:-https://dash.imcherry5778.xyz}
+DASHY_ORIGIN=${DASHY_ORIGIN:-https://dashy.imcherry5778.xyz}
 
 command -v docker >/dev/null 2>&1 || {
   echo 'docker is required' >&2

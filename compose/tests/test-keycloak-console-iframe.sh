@@ -11,7 +11,7 @@ fail() {
 
 # The Keycloak admin console embeds its own 3p-cookie check page. Keep that
 # same-origin iframe working while still allowing Dashy's demo workspace.
-grep -Fq "frame-ancestors 'self' https://dash.imcherry5778.xyz" "$MIDDLEWARES" \
+grep -Fq "frame-ancestors 'self' https://dashy.imcherry5778.xyz" "$MIDDLEWARES" \
   || fail "keycloak CSP must allow self and Dashy as frame ancestors"
 
 echo "keycloak console iframe CSP tests passed"

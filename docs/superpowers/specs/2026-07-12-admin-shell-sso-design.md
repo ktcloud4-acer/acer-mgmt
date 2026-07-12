@@ -44,7 +44,7 @@ Teleport
 ```
 
 Dashy는 trusted parent origin으로 고정한다. 모든 iframe 대상은
-`https://dash.imcherry5778.xyz`만 `frame-ancestors`로 허용한다. 와일드카드와
+`https://dashy.imcherry5778.xyz`만 `frame-ancestors`로 허용한다. 와일드카드와
 `*`는 사용하지 않는다.
 
 ## 인증 모델
@@ -110,7 +110,7 @@ Kibana, Prometheus, Alertmanager, Vault, AdGuard, Traefik, MinIO, Semaphore는 D
 
 1. 응답의 `X-Frame-Options`를 제거하거나 Dashy와 충돌하지 않게 한다.
 2. `Content-Security-Policy`의 `frame-ancestors`는 정확히
-   `https://dash.imcherry5778.xyz`만 허용한다.
+   `https://dashy.imcherry5778.xyz`만 허용한다.
 3. Dashy의 `frame-src`는 관리 서비스의 명시 allowlist만 사용한다.
 4. iframe navigation과 OIDC callback은 child frame 안에서 완료할 수 있어야 한다.
    Keycloak callback/로그인 페이지도 Dashy ancestor를 허용한다.
