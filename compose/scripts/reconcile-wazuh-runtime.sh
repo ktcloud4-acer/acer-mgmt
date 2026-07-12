@@ -26,8 +26,18 @@ set +a
 sed -i "/^[[:space:]]*username: wazuh-wui$/,/^[[:space:]]*run_as:/ s#^[[:space:]]*password:.*#      password: \"${WAZUH_API_PASSWORD}\"#" \
   "$DASHBOARD_CONFIG"
 
-if ! printf '\n%s\n' "$WAZUH_API_PASSWORD" | docker exec -i "$MANAGER_CONTAINER" \
-  /var/ossec/framework/python/bin/python3 /var/ossec/framework/scripts/rbac_control.py change-password >/dev/null 2>&1; then
+if ! printf '%s\n' "$WAZUH_API_PASSWORD" | docker exec -i "$MANAGER_CONTAINER" \
+  /var/ossec/framework/python/bin/python3 -c '
+import sys
+from wazuh.security import AuthenticationManager
+
+password = sys.stdin.read().rstrip("\n")
+if not password:
+    raise SystemExit("empty password")
+with AuthenticationManager() as auth:
+    if not auth.update_user(2, password):
+        raise SystemExit("RBAC user update failed")
+' >/dev/null 2>&1; then
   echo 'Wazuh API service account reconciliation failed.' >&2
   exit 1
 fi
