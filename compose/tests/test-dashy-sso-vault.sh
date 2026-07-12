@@ -61,7 +61,7 @@ declare -A ui_router_contract=(
   ["compose/stacks/backup/minio/compose.yaml"]='traefik.http.routers.minio-console.middlewares=sso-auth@file,secure-headers@file'
   ["compose/stacks/cicd/allure/compose.yaml"]='traefik.http.routers.allure.middlewares=sso-auth@file,secure-headers@file'
   ["compose/stacks/cicd/playwright/compose.yaml"]='traefik.http.routers.playwright.middlewares=sso-auth@file,secure-headers@file'
-  ["compose/stacks/cicd/semaphore/compose.yaml"]='traefik.http.routers.semaphore.middlewares=sso-auth@file,secure-headers@file'
+  ["compose/stacks/cicd/semaphore/compose.yaml"]='traefik.http.routers.semaphore.middlewares=oauth2-auth@file,semaphore-iframe@file'
   ["compose/stacks/data/kafka/compose.yaml"]='traefik.http.routers.kafka-ui.middlewares=sso-auth@file,secure-headers@file'
   ["compose/stacks/edge/adguard/compose.yaml"]='traefik.http.routers.adguard.middlewares=sso-auth@file,secure-headers@file'
   ["compose/stacks/edge/traefik/compose.yaml"]='traefik.http.routers.traefik.middlewares=sso-auth@file,secure-headers@file'
