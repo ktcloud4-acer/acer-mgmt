@@ -28,6 +28,11 @@ http:
           - X-Auth-Request-Email
           - X-Auth-Request-Groups
           - X-Forwarded-User
+        # Forward a renewed oauth2-proxy session cookie back to the browser.
+        # Without this, an active session keeps its stale cookie even though
+        # oauth2-proxy refreshed the Keycloak token during forward auth.
+        addAuthCookiesToResponse:
+          - _oauth2_proxy
 
     oauth2-signin:
       errors:
