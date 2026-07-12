@@ -10,5 +10,5 @@ sections:
     widgets:
       - type: iframe
         options:
-          url: https://dash.imcherry5778.xyz/platform-monitor
+          url: https://monitor.imcherry5778.xyz
           frameHeight: 860

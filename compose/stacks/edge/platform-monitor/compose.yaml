@@ -23,10 +23,9 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
-      - "traefik.http.routers.platform-monitor.rule=Host(`dash.${BASE_DOMAIN}`) && PathPrefix(`/platform-monitor`)"
-      - "traefik.http.routers.platform-monitor.priority=100"
+      - "traefik.http.routers.platform-monitor.rule=Host(`monitor.${BASE_DOMAIN}`)"
       - "traefik.http.routers.platform-monitor.entrypoints=websecure"
-      - "traefik.http.routers.platform-monitor.middlewares=sso-auth@file,platform-monitor-path@file,platform-monitor-iframe@file"
+      - "traefik.http.routers.platform-monitor.middlewares=sso-auth@file,platform-monitor-iframe@file"
       - "traefik.http.services.platform-monitor.loadbalancer.server.port=8080"
 
 networks:
