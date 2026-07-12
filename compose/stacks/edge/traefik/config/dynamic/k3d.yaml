@@ -65,26 +65,28 @@ http:
           - url: "http://k3d-mgmt-serverlb:80"
     nmg-chaos-dashboard:
       loadBalancer:
-        passHostHeader: false
+        # 스포크 traefik(nmg-ingress) 경유: 원본 Host(nmg-chaos.imcherry5778.xyz)를 보존해야
+        # 스포크 traefik 의 Ingress 규칙이 매칭된다. 그래서 passHostHeader=true.
+        passHostHeader: true
         servers:
-          - url: "https://nmg-chaos.tailc0244b.ts.net"
+          - url: "https://nmg-ingress.tailc0244b.ts.net"
     ggg-chaos-dashboard:
       loadBalancer:
-        passHostHeader: false
+        passHostHeader: true
         servers:
-          - url: "https://ggg-chaos.tailc0244b.ts.net"
+          - url: "https://ggg-ingress.tailc0244b.ts.net"
     khb-chaos-dashboard:
       loadBalancer:
-        passHostHeader: false
+        passHostHeader: true
         servers:
-          - url: "https://khb-chaos.tailc0244b.ts.net"
+          - url: "https://khb-ingress.tailc0244b.ts.net"
     ljw-chaos-dashboard:
       loadBalancer:
-        passHostHeader: false
+        passHostHeader: true
         servers:
-          - url: "https://ljw-chaos.tailc0244b.ts.net"
+          - url: "https://ljw-ingress.tailc0244b.ts.net"
     oje-chaos-dashboard:
       loadBalancer:
-        passHostHeader: false
+        passHostHeader: true
         servers:
-          - url: "https://oje-chaos.tailc0244b.ts.net"
+          - url: "https://oje-ingress.tailc0244b.ts.net"
