@@ -4,15 +4,6 @@ metadata:
   name: coredns-custom
   namespace: kube-system
 data:
-  tailnet.server: |
-    # Kubernetes Pods must query MagicDNS directly.  Sending this suffix to
-    # AdGuard on the mgmt Tailnet IP can retain obsolete Tailscale Service IPs
-    # after a ProxyGroup is recreated.
-    tailc0244b.ts.net:53 {
-        errors
-        cache 30
-        forward . 100.100.100.100
-    }
   imcherry5778.server: |
     imcherry5778.xyz:53 {
         errors
