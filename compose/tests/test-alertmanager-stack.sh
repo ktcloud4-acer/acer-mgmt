@@ -47,6 +47,7 @@ assert_contains "$alertmanager_config" "slack_api_url_file: /etc/alertmanager/se
 assert_contains "$alertmanager_config" 'severity="test"'
 assert_contains "$alertmanager_config" 'receiver: "null"'
 assert_contains "$alertmanager_config" "receiver: slack-infra-alerts"
+assert_contains "$alertmanager_config" 'channel: "#infra-알림"'
 assert_contains "$alertmanager_config" "repeat_interval: 4h"
 assert_contains "$alertmanager_config" 'demo="true"'
 assert_contains "$alertmanager_config" '대시보드: <{{ .Annotations.dashboard_url }}|Teleport에서 Grafana 열기>'
