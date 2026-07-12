@@ -25,4 +25,12 @@ AIO_SSH_PRIVATE_KEY=/secure/path/acer.pem \
 ```
 
 이 점검은 SSH와 Tailnet IPv4를 읽기만 한다. Operator 설치처럼 상태를 바꾸는
-작업은 별도 중앙 Ansible 플레이북으로 추가한다.
+작업은 다음 중앙 플레이북으로 실행한다.
+
+```bash
+compose/scripts/bootstrap-aio-tailscale-operator.sh nmg
+```
+
+이 작업은 mgmt Vault에서 해당 팀의 Operator OAuth 필드만 읽는다. 값은 AIO의
+`/run/acer-bootstrap` 아래 0600 임시 Helm 값 파일로만 전달되고, 성공·실패와
+관계없이 삭제된다. `ProxyGroupReady=True`가 될 때까지 기다린다.
