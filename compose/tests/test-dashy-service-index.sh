@@ -70,12 +70,16 @@ for setting in \
   assert_contains "$dashy_config" "$setting"
 done
 
-for group in Observability Backup CI/CD Data Infra Security Edge Operations; do
+for group in Observability Backup CI/CD Data Infra Security Edge; do
   assert_contains "$dashy_config" "name: ${group}"
 done
 
-for item in Grafana Prometheus Alertmanager Kibana n8n MinIO Restic "Argo CD" GitLab "GitLab Runner" SonarQube Allure Playwright Semaphore Harbor Kafka Supabase NetBox Keycloak Teleport Vault Traefik "AdGuard Home" "Docker Runtime"; do
+for item in Grafana Prometheus Alertmanager Kibana n8n MinIO "Argo CD" GitLab SonarQube Allure Playwright Semaphore Harbor Kafka Supabase NetBox Keycloak Teleport Vault Wazuh "RedisInsight" Traefik "AdGuard Home"; do
   assert_contains "$dashy_config" "title: ${item}"
+done
+
+for page in Monitor Containers; do
+  assert_contains "$dashy_config" "name: ${page}"
 done
 
 [[ ! -e "$status_config" ]] || fail "service-index-only scope must not contain status.yml"
@@ -83,14 +87,18 @@ assert_not_contains "$dashy_config" "hideFromWorkspace:"
 assert_not_contains "$dashy_config" "Grafana Operations Summary"
 assert_not_contains "$dashy_config" "disableContextMenu: true"
 assert_not_contains "$dashy_config" ".png"
+assert_not_contains "$dashy_config" "Status-Uptime"
+assert_not_contains "$dashy_config" "Status-Container"
+assert_not_contains "$dashy_config" "name: Operations"
+assert_not_contains "$dashy_config" "title: Restic"
+assert_not_contains "$dashy_config" "title: GitLab Runner"
+assert_not_contains "$dashy_config" "title: Docker Runtime"
 assert_not_contains "$middlewares_config" "frameDeny: true"
 assert_contains "$middlewares_config" 'X-Frame-Options: ""'
 assert_contains "$grafana_compose" 'GF_SECURITY_ALLOW_EMBEDDING: "true"'
 
-for item in Grafana Alertmanager Semaphore Vault "Docker Runtime"; do
+for item in Grafana Alertmanager Semaphore Vault; do
   assert_item_target "$item" workspace "$dashy_config"
 done
-
-assert_item_not_contains "Docker Runtime" 'statusCheck:' "$dashy_config"
 
 echo "Dashy service index configuration tests passed"
