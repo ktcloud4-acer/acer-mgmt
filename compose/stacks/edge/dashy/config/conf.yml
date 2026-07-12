@@ -16,6 +16,24 @@ appConfig:
   defaultOpeningMethod: newtab
   layout: masonry
   iconSize: medium
+  theme: acer-ops
+  cssThemes: [acer-ops]
+  externalStyleSheet: /acer-ops.css
+  customColors:
+    acer-ops:
+      primary: '#9ed6df'
+      background: '#172738'
+      background-darker: '#101d2a'
+      heading-text-color: '#ecf6f8'
+      item-text-color: '#dceef2'
+      item-group-outer-background: '#4d8197'
+      item-group-background: '#20394b'
+      item-group-heading-text-color: '#10202c'
+      nav-link-background-color: '#142633'
+      nav-link-border-color: '#385a6a'
+      success: '#4fd48a'
+      warning: '#f0b84d'
+      danger: '#ef6c73'
   statusCheck: true
   statusCheckInterval: 60
   statusCheckAccessibility: true
