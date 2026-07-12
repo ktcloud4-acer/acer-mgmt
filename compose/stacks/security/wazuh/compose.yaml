@@ -45,6 +45,10 @@ services:
       - ${DATA_ROOT:-/home/mgmt-data}/wazuh/config/wazuh_cluster/wazuh_manager.conf:/wazuh-config-mount/etc/ossec.conf:ro,Z
     networks:
       - wazuh
+      # A container attached only to an internal network cannot publish agent
+      # enrollment ports. Keep the data plane internal and add this otherwise
+      # unused ingress network solely for the Tailscale-bound agent ports.
+      - wazuh-ingress
 
   wazuh-indexer:
     image: wazuh/wazuh-indexer:4.14.6
@@ -108,6 +112,8 @@ networks:
   wazuh:
     name: wazuh-internal
     internal: true
+  wazuh-ingress:
+    name: wazuh-ingress
   mgmt-proxy:
     name: ${PROXY_NET:-mgmt-proxy}
     external: true
