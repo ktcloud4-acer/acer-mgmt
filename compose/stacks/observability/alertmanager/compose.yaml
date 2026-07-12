@@ -31,6 +31,13 @@ services:
       - "traefik.http.routers.alertmanager.rule=Host(`alertmanager.${BASE_DOMAIN}`)"
       - "traefik.http.routers.alertmanager.entrypoints=websecure"
       - "traefik.http.routers.alertmanager.middlewares=sso-auth@file,secure-headers@file"
+      # Dashy and Blackbox need a deterministic, read-only health signal;
+      # only Alertmanager's liveness/readiness endpoints bypass browser SSO.
+      - "traefik.http.routers.alertmanager-health.rule=Host(`alertmanager.${BASE_DOMAIN}`) && (Path(`/-/ready`) || Path(`/-/healthy`))"
+      - "traefik.http.routers.alertmanager-health.entrypoints=websecure"
+      - "traefik.http.routers.alertmanager-health.middlewares=secure-headers@file"
+      - "traefik.http.routers.alertmanager-health.priority=100"
+      - "traefik.http.routers.alertmanager-health.service=alertmanager"
       - "traefik.http.services.alertmanager.loadbalancer.server.port=9093"
 
 networks:

@@ -41,6 +41,10 @@ assert_contains "$alertmanager_compose" "--config.file=/etc/alertmanager/alertma
 assert_contains "$alertmanager_compose" "--storage.path=/alertmanager"
 assert_contains "$alertmanager_compose" '${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/alertmanager:/etc/alertmanager/secrets:ro,z'
 assert_contains "$alertmanager_compose" 'traefik.http.routers.alertmanager.rule=Host(`alertmanager.${BASE_DOMAIN}`)'
+assert_contains "$alertmanager_compose" 'traefik.http.routers.alertmanager-health.rule=Host(`alertmanager.${BASE_DOMAIN}`) && (Path(`/-/ready`) || Path(`/-/healthy`))'
+assert_contains "$alertmanager_compose" 'traefik.http.routers.alertmanager-health.middlewares=secure-headers@file'
+assert_contains "$alertmanager_compose" 'traefik.http.routers.alertmanager-health.priority=100'
+assert_contains "$alertmanager_compose" 'traefik.http.routers.alertmanager-health.service=alertmanager'
 assert_contains "$alertmanager_compose" "traefik.http.services.alertmanager.loadbalancer.server.port=9093"
 
 assert_contains "$alertmanager_config" "slack_api_url_file: /etc/alertmanager/secrets/slack_webhook_infra"

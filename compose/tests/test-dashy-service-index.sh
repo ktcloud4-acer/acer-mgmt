@@ -66,6 +66,7 @@ assert_contains "$dashy_config" "url: https://allure.imcherry5778.xyz/allure-doc
 assert_not_contains "$dashy_config" "allure-docker-service/projects/web-service/reports/latest/index.html"
 assert_contains "$dashy_config" "statusCheckUrl: https://prometheus.imcherry5778.xyz/-/ready"
 assert_contains "$dashy_config" "statusCheckAcceptCodes: '200'"
+assert_contains "$dashy_config" "statusCheckUrl: https://alertmanager.imcherry5778.xyz/-/ready"
 assert_not_contains "$dashy_config" "statusCheckUrl: http://prometheus:9090/-/ready"
 assert_contains "$prometheus_compose" 'traefik.http.routers.prometheus-health.rule=Host(`prometheus.${BASE_DOMAIN}`) && (Path(`/-/ready`) || Path(`/-/healthy`))'
 assert_contains "$prometheus_compose" "traefik.http.routers.prometheus-health.entrypoints=websecure"

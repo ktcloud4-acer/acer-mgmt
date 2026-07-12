@@ -116,6 +116,8 @@ sections:
         description: Alert routing, grouping, and silences
         icon: hl-alertmanager
         url: https://alertmanager.imcherry5778.xyz
+        statusCheckUrl: https://alertmanager.imcherry5778.xyz/-/ready
+        statusCheckAcceptCodes: '200'
       - title: Kibana
         description: Central log search and analysis
         icon: https://cdn.simpleicons.org/kibana
