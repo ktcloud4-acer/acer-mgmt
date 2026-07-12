@@ -19,7 +19,6 @@
       - redis
       - n8n
       - teleport
-      - tp-alertmanager
       - supabase-admin
   tasks:
     - name: Query AdGuard service rewrites with dig
