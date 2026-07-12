@@ -38,13 +38,26 @@ jq -c '.[]' "$manifest" | while IFS= read -r entry; do
   base_url="$(printf '%s' "$entry" | jq -r '.base_url')"
   project_id="$(api_get /projects | jq -r --arg name "$project_name" '.[] | select(.name == $name) | .id' | head -n1)"
   [ -n "$project_id" ] && [ "$project_id" != null ] || { echo "missing Semaphore project: $project_name" >&2; exit 1; }
+  none_key_id="$(api_get "/project/$project_id/keys" | jq -r '.[] | select(.type == "none") | .id' | head -n1)"
+  [ -n "$none_key_id" ] && [ "$none_key_id" != null ] || { echo "missing none key: $project_name" >&2; exit 1; }
 
   repository_id="$(api_get "/project/$project_id/repositories" | jq -r '.[] | select(.name == "ScaleCart k6 automation") | .id' | head -n1)"
   if [ -z "$repository_id" ] || [ "$repository_id" = null ]; then
-    none_key_id="$(api_get "/project/$project_id/keys" | jq -r '.[] | select(.type == "none") | .id' | head -n1)"
     jq -n --arg name 'ScaleCart k6 automation' --arg path /opt/acer-mgmt --argjson key "$none_key_id" --argjson project "$project_id" '{name:$name,project_id:$project,git_url:$path,git_branch:"main",ssh_key_id:$key}' >"$tmp_dir/repository.json"
     repository_id="$(api_post "/project/$project_id/repositories" "$tmp_dir/repository.json" | jq -r '.id')"
   fi
+
+  inventory_name='Semaphore localhost'
+  inventory_id="$(api_get "/project/$project_id/inventory" | jq -r --arg name "$inventory_name" '.[] | select(.name == $name) | .id' | head -n1)"
+  inventory_contents=$'all:\n  hosts:\n    localhost:\n      ansible_connection: local\n'
+  jq -n --argjson project "$project_id" --arg name "$inventory_name" --arg inventory "$inventory_contents" --argjson key "$none_key_id" '{name:$name,project_id:$project,inventory:$inventory,ssh_key_id:$key,become_key_id:$key,type:"static-yaml"}' >"$tmp_dir/inventory.json"
+  if [ -z "$inventory_id" ] || [ "$inventory_id" = null ]; then
+    inventory_id="$(api_post "/project/$project_id/inventory" "$tmp_dir/inventory.json" | jq -r '.id')"
+  else
+    jq --argjson id "$inventory_id" '. + {id:$id}' "$tmp_dir/inventory.json" >"$tmp_dir/inventory-update.json"
+    api_put "/project/$project_id/inventory/$inventory_id" "$tmp_dir/inventory-update.json" >/dev/null
+  fi
+  [ -n "$inventory_id" ] && [ "$inventory_id" != null ] || { echo "missing Semaphore localhost inventory: $project_name" >&2; exit 1; }
 
   environment_id="$(api_get "/project/$project_id/environment" | jq -r '.[] | select(.name == "ScaleCart k6 target") | .id' | head -n1)"
   jq -n --arg team "$team" --arg url "$base_url" --argjson project "$project_id" '{name:"ScaleCart k6 target",project_id:$project,json:"{}",env:{K6_TEAM:$team,K6_BASE_URL:$url}|tojson}' >"$tmp_dir/environment.json"
@@ -56,7 +69,7 @@ jq -c '.[]' "$manifest" | while IFS= read -r entry; do
   fi
 
   view_id="$(api_get "/project/$project_id/views" | jq -r '.[] | select(.title == "All") | .id' | head -n1)"
-  jq -n --arg name "$task_name" --argjson project "$project_id" --argjson repository "$repository_id" --argjson environment "$environment_id" --argjson view "$view_id" '{name:$name,project_id:$project,repository_id:$repository,environment_ids:[$environment],view_id:$view,playbook:"compose/scripts/k6/semaphore-scalecart-api-hpa.sh",arguments:"[]",description:"Vault-backed k6 load test for this team\u0027s ScaleCart API HPA.",app:"bash",type:"",allow_parallel_tasks:false,survey_vars:[{name:"K6_RATE",title:"Request rate (RPS)",description:"Optional positive integer; default 150.",type:"int",required:false},{name:"K6_DURATION",title:"Hold duration",description:"Optional duration such as 4m; default 4m.",type:"",required:false}]}' >"$tmp_dir/template.json"
+  jq -n --arg name "$task_name" --argjson project "$project_id" --argjson inventory "$inventory_id" --argjson repository "$repository_id" --argjson environment "$environment_id" --argjson view "$view_id" '{name:$name,project_id:$project,inventory_id:$inventory,repository_id:$repository,environment_ids:[$environment],view_id:$view,playbook:"compose/ansible/run-scalecart-api-hpa-load-test.yml",arguments:"[]",description:"Vault-backed k6 load test for this team\u0027s ScaleCart API HPA.",app:"ansible",type:"",allow_parallel_tasks:false,survey_vars:[{name:"K6_RATE",title:"Request rate (RPS)",description:"Optional positive integer; default 150.",type:"int",required:false},{name:"K6_DURATION",title:"Hold duration",description:"Optional duration such as 4m; default 4m.",type:"",required:false}]}' >"$tmp_dir/template.json"
   template_id="$(api_get "/project/$project_id/templates" | jq -r --arg name "$task_name" '.[] | select(.name == $name) | .id' | head -n1)"
   if [ -z "$template_id" ] || [ "$template_id" = null ]; then
     template_id="$(api_post "/project/$project_id/templates" "$tmp_dir/template.json" | jq -r '.id')"
