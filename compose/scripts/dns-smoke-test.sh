@@ -60,6 +60,7 @@ if has_direct_dns_tool; then
   assert_adguard_answer "n8n.${BASE_DOMAIN}"
   assert_adguard_answer "teleport.${BASE_DOMAIN}"
   assert_adguard_answer "tp-alertmanager.${BASE_DOMAIN}"
+  assert_adguard_answer "supabase-admin.${BASE_DOMAIN}"
 elif is_truthy "$DNS_SMOKE_REQUIRE_DIRECT"; then
   echo "Missing direct DNS query command: dig or nslookup" >&2
   exit 1

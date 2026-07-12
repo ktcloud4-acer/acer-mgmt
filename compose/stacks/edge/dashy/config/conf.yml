@@ -86,6 +86,7 @@ sections:
         description: Source control and CI/CD
         icon: https://cdn.simpleicons.org/gitlab
         url: https://gitlab.imcherry5778.xyz
+        statusCheckAcceptCodes: '302'
       - title: SonarQube
         description: Static analysis and quality
         icon: hl-sonarqube
@@ -118,7 +119,8 @@ sections:
       - title: Supabase
         description: Self-hosted backend platform
         icon: https://cdn.simpleicons.org/supabase
-        url: https://supabase.imcherry5778.xyz
+        url: https://supabase-admin.imcherry5778.xyz
+        statusCheckAcceptCodes: '302'
 
   - name: Infra
     icon: fas fa-server
