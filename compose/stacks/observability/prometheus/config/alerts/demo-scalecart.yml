@@ -1,0 +1,31 @@
+groups:
+  - name: demo-scalecart
+    interval: 5s
+
+    rules:
+      - alert: ScaleCartWorkerAvailabilityDegraded
+        expr: |
+          kube_deployment_status_replicas_available{
+            cluster=~"ggg|khb|ljw|nmg|oje",
+            namespace="scalecart",
+            deployment="scalecart-worker"
+          } < 2
+        for: 5s
+
+        labels:
+          severity: critical
+          demo: "true"
+          channel: infra
+          scope: application
+          service: scalecart-worker
+
+        annotations:
+          title: "[ScaleCart] Worker 가용성 저하"
+          summary: >-
+            {{ $labels.cluster }}/{{ $labels.namespace }} 환경의 사용 가능한
+            Worker가 최소 운영 수량보다 적습니다.
+          description: >-
+            ScaleCart Worker의 가용 replica가 {{ $value }}개입니다.
+            Chaos Mesh 장애 여부, Kubernetes Pod 재생성 상태,
+            Kafka consumer lag를 확인하세요.
+          dashboard_url: "https://grafana.teleport.imcherry5778.xyz:3080"

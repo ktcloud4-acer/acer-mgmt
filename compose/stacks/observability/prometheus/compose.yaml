@@ -12,6 +12,8 @@ services:
       - --storage.tsdb.retention.time=30d
       - --web.enable-lifecycle
       - --web.enable-remote-write-receiver
+    ports:
+      - "100.117.59.96:9090:9090"
     volumes:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro,Z
       - ./config/alerts:/etc/prometheus/alerts:ro,Z
