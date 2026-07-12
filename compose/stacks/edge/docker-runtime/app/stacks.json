@@ -19,7 +19,7 @@
     "projects": ["minio", "restic"]
   },
   "Infra": {
-    "prefixes": ["k3d-mgmt-server-"]
+    "prefixes": ["k3d-mgmt-server"]
   },
   "Operations": {
     "projects": ["docker-runtime", "platform-monitor"]

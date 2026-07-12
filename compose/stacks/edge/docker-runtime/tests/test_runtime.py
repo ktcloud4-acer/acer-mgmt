@@ -41,7 +41,7 @@ class RuntimeModelTests(unittest.TestCase):
 
         self.assertIn("harbor", groups["CI/CD"]["projects"])
         self.assertEqual(groups["Data"]["names"], ["pg-tailnet-proxy"])
-        self.assertEqual(groups["Infra"]["prefixes"], ["k3d-mgmt-server-"])
+        self.assertEqual(groups["Infra"]["prefixes"], ["k3d-mgmt-server"])
         self.assertEqual(
             groups["Operations"]["projects"],
             ["docker-runtime", "platform-monitor"],
