@@ -142,6 +142,14 @@ template {
   perms       = "0640"
 }
 
+# Semaphore reads its Keycloak OIDC client secret from this file. Keep it out
+# of the Compose env file so Docker inspect and task environments cannot expose it.
+template {
+  contents    = "{{ with secret \"kv/data/mgmt/semaphore\" }}{{ .Data.data.oidc_client_secret }}{{ end }}"
+  destination = "/vault/secrets/semaphore_oidc_client_secret"
+  perms       = "0640"
+}
+
 # Central Chaos Dashboard issuer kubeconfig. This file is read only by the
 # Semaphore reconciliation job, which imports it as one encrypted task-scoped
 # environment variable; it is not mounted into every Semaphore task.

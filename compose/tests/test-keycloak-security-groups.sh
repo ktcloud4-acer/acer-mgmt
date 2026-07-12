@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 netbox_extra="$ROOT_DIR/compose/stacks/infra/netbox/config/extra.py"
 bootstrap="$ROOT_DIR/compose/scripts/keycloak-security-groups-bootstrap.sh"
 oauth_bootstrap="$ROOT_DIR/compose/scripts/keycloak-oauth2-proxy-bootstrap.sh"
+semaphore_oidc_bootstrap="$ROOT_DIR/compose/scripts/keycloak-semaphore-oidc-bootstrap.sh"
 
 fail() {
   echo "FAIL: $*" >&2
@@ -49,5 +50,8 @@ assert_not_contains "$oauth_bootstrap" 'head -n1'
 assert_contains "$oauth_bootstrap" '--fields id,clientId'
 assert_contains "$oauth_bootstrap" 'docker exec --user 0 keycloak chmod 0644 /tmp/oauth2-proxy-groups-mapper.json'
 assert_not_contains "$oauth_bootstrap" 'kc update "clients/${CLIENT_UUID}/protocol-mappers/models/${mapper_id}"'
+assert_contains "$semaphore_oidc_bootstrap" 'CLIENT_ID=${SEMAPHORE_OIDC_CLIENT_ID:-semaphore}'
+assert_contains "$semaphore_oidc_bootstrap" '/api/auth/oidc/keycloak/redirect'
+assert_contains "$semaphore_oidc_bootstrap" 'vault kv patch -mount=kv mgmt/semaphore'
 
 echo "keycloak security-group tests passed"
