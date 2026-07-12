@@ -49,7 +49,6 @@ services:
       - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/grafana_oidc_client_secret:/run/secrets/grafana_oidc_client_secret:ro,z
     networks:
       - traefik-grafana-auth
-      - mgmt-proxy
       - grafana-observability
       - elk_default
     healthcheck:
@@ -69,9 +68,6 @@ services:
 networks:
   traefik-grafana-auth:
     name: ${TRAEFIK_GRAFANA_AUTH_NET:-traefik-grafana-auth}
-    external: true
-  mgmt-proxy:
-    name: ${PROXY_NET:-mgmt-proxy}
     external: true
   grafana-observability:
     name: ${GRAFANA_OBSERVABILITY_NET:-grafana-observability}
