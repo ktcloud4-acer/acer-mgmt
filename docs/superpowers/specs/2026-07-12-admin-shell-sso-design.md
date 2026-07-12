@@ -73,7 +73,7 @@ OIDC를 사용한다. 이 라우터에는 `sso-auth`를 적용하지 않는다.
 
 | 서비스 | 목표 방식 | 비고 |
 |---|---|---|
-| Semaphore | Keycloak OIDC | `SEMAPHORE_OIDC_PROVIDERS`를 Vault-rendered client secret file로 구성하고 password login은 비활성화한다. |
+| Semaphore | Keycloak OIDC + oauth2-proxy group gate | OIDC는 Semaphore 세션을 만들고, redirect 없는 `oauth2-auth`는 `platform-admin` admission을 보장한다. |
 | Vault UI | Vault OIDC auth method | OIDC login으로 Vault token과 policy를 발급한다. `/v1/*` API bypass는 유지한다. |
 | Grafana | Generic OAuth / Keycloak OIDC | 현행 auth-proxy header trust를 제거한다. |
 | NetBox | Keycloak OIDC | 기존 group mapping은 유지하고 `platform-admin`만 접근하도록 한다. |
@@ -82,6 +82,13 @@ OIDC를 사용한다. 이 라우터에는 `sso-auth`를 적용하지 않는다.
 | Harbor | Keycloak OIDC | Harbor 자체 role/group mapping을 구성한다. |
 | MinIO Console | Keycloak OIDC | S3 API는 OIDC browser flow와 분리한다. |
 | Teleport | Keycloak OIDC | OIDC connector를 실제 등록하고 local+OTP는 break-glass 전용으로 둔다. |
+
+Semaphore Community는 OIDC group claim으로 로그인 자체를 제한하거나 project role을
+자동 할당하지 않는다. 따라서 Semaphore router는 `oauth2-auth` forward-auth만 적용해
+`platform-admin`을 먼저 검증한다. `oauth2-signin` error middleware는 적용하지 않아
+Semaphore의 자체 API 401을 Keycloak 리다이렉트로 바꾸지 않는다. 이 서비스는 Dashy
+parent에서 시작하는 browser session을 지원 경로로 삼고, direct unauthenticated URL은
+401을 반환한다.
 
 Supabase Studio, Wazuh, Kibana, n8n, Kafka UI, SonarQube는 해당 버전/라이선스의
 native OIDC 또는 remote-user 지원 여부를 검증한 뒤 native OIDC 또는 auth-proxy
@@ -115,8 +122,8 @@ admin UI에 영향을 줄 수 있으므로 Dashy config write, local save, 임�
 
 ## 서비스 라우팅 정책
 
-- **native OIDC UI**: Traefik `secure-headers` + per-service iframe header policy. `sso-auth`
-  없음.
+- **native OIDC UI**: Traefik `secure-headers` + per-service iframe header policy. Semaphore는
+  `platform-admin` admission을 위해 redirect 없는 `oauth2-auth`만 추가한다.
 - **auth-proxy UI**: Traefik `sso-auth` + per-service iframe header policy. oauth2-proxy
   cookie domain은 `.imcherry5778.xyz`로 유지한다.
 - **machine API**: browser `sso-auth` 없음. 서비스 API 인증으로 보호한다.
