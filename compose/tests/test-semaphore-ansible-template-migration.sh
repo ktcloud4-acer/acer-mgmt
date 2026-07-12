@@ -32,6 +32,7 @@ contains "$dns_playbook" 'dig'
 contains "$dns_playbook" 'registry-1.docker.io'
 contains "$dns_playbook" 'kubectl'
 contains "$dns_playbook" 'grafana.'
+contains "$dns_playbook" 'alertmanager'
 
 contains "$k6_playbook" 'hosts: localhost'
 contains "$k6_playbook" 'connection: local'
