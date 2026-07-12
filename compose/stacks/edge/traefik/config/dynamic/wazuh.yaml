@@ -1,12 +1,26 @@
 # Wazuh Dashboard stays private on mgmt-proxy; Traefik is its only browser entry.
 http:
   routers:
-    wazuh-dashboard:
-      rule: "Host(`wazuh.imcherry5778.xyz`)"
+    # The browser entry point redirects an unauthenticated user to Keycloak.
+    # Keep the Dashboard's own internal API 401 responses out of Traefik's
+    # error-redirect middleware; Wazuh handles those after OAuth succeeds.
+    wazuh-sso-entry:
+      rule: "Host(`wazuh.imcherry5778.xyz`) && Path(`/`)"
+      priority: 100
       entryPoints:
         - websecure
       middlewares:
         - sso-auth@file
+        - secure-headers@file
+      service: wazuh-dashboard
+
+    wazuh-dashboard:
+      rule: "Host(`wazuh.imcherry5778.xyz`)"
+      priority: 10
+      entryPoints:
+        - websecure
+      middlewares:
+        - oauth2-auth@file
         - secure-headers@file
       service: wazuh-dashboard
 

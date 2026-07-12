@@ -12,8 +12,8 @@ assert_contains() { grep -Fq -- "$2" "$1" || fail "expected '$2' in $1"; }
 assert_not_contains() { ! grep -Fq -- "$2" "$1" || fail "did not expect '$2' in $1"; }
 
 for team in nmg ggg khb ljw oje; do
-  assert_contains "$vault_agent" "kv/data/mgmt/chaos/dashboard-token-issuers/$team"
-  assert_contains "$vault_agent" "destination = \"/vault/secrets/cicd/chaos-dashboard-token-issuers/$team.env\""
+  assert_not_contains "$vault_agent" "kv/data/mgmt/chaos/dashboard-token-issuers/$team"
+  assert_not_contains "$vault_agent" "destination = \"/vault/secrets/cicd/chaos-dashboard-token-issuers/$team.env\""
   assert_contains "$provisioner" "chaos-dashboard-token-issuers/$team.env"
   assert_contains "$bootstrap" 'mgmt/argocd/clusters/$cluster'
   assert_contains "$bootstrap" 'mgmt/chaos/dashboard-token-issuers/$cluster'

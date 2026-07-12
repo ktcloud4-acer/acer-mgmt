@@ -139,14 +139,14 @@ template {
 
 # --- semaphore (semaphore + common(admin) 두 경로) ---
 template {
-  contents    = "{{ with secret \"kv/data/mgmt/semaphore\" }}SEMAPHORE_DB_PASS={{ .Data.data.db_password }}\nSEMAPHORE_ACCESS_KEY_ENCRYPTION={{ .Data.data.access_key_encryption }}\nSEMAPHORE_COOKIE_HASH={{ .Data.data.cookie_hash }}\nSEMAPHORE_COOKIE_ENCRYPTION={{ .Data.data.cookie_encryption }}\nPOSTGRES_PASSWORD={{ .Data.data.db_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}SEMAPHORE_ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/cicd/semaphore-runner/aio\" }}SEMAPHORE_RUNNER_REGISTRATION_TOKEN={{ .Data.data.runner_registration_token }}\n{{ end }}"
+  contents    = "{{ with secret \"kv/data/mgmt/semaphore\" }}SEMAPHORE_DB_PASS={{ .Data.data.db_password }}\nSEMAPHORE_ACCESS_KEY_ENCRYPTION={{ .Data.data.access_key_encryption }}\nSEMAPHORE_COOKIE_HASH={{ .Data.data.cookie_hash }}\nSEMAPHORE_COOKIE_ENCRYPTION={{ .Data.data.cookie_encryption }}\nPOSTGRES_PASSWORD={{ .Data.data.db_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}SEMAPHORE_ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}"
   destination = "/vault/secrets/semaphore.env"
   perms       = "0640"
 }
 
 # semaphore compose env 파일. compose.yaml 이 기대하는 변수명으로 렌더한다.
 template {
-  contents    = "{{ with secret \"kv/data/mgmt/semaphore\" }}SEMAPHORE_DB_PASS={{ .Data.data.db_password }}\nSEMAPHORE_ACCESS_KEY_ENCRYPTION={{ .Data.data.access_key_encryption }}\nSEMAPHORE_COOKIE_HASH={{ .Data.data.cookie_hash }}\nSEMAPHORE_COOKIE_ENCRYPTION={{ .Data.data.cookie_encryption }}\nPOSTGRES_PASSWORD={{ .Data.data.db_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}SEMAPHORE_ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/cicd/semaphore-runner/aio\" }}SEMAPHORE_RUNNER_REGISTRATION_TOKEN={{ .Data.data.runner_registration_token }}\n{{ end }}"
+  contents    = "{{ with secret \"kv/data/mgmt/semaphore\" }}SEMAPHORE_DB_PASS={{ .Data.data.db_password }}\nSEMAPHORE_ACCESS_KEY_ENCRYPTION={{ .Data.data.access_key_encryption }}\nSEMAPHORE_COOKIE_HASH={{ .Data.data.cookie_hash }}\nSEMAPHORE_COOKIE_ENCRYPTION={{ .Data.data.cookie_encryption }}\nPOSTGRES_PASSWORD={{ .Data.data.db_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/common\" }}SEMAPHORE_ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}"
   destination = "/vault/secrets/cicd/semaphore.env"
   perms       = "0640"
 }
@@ -168,14 +168,10 @@ template {
   perms       = "0640"
 }
 
-# Per-cluster Chaos Dashboard issuers.  Each file is consumed only while the
-# corresponding fixed Semaphore environment is reconciled; task output never
-# includes this long-lived issuer credential.
-template { contents = "CHAOS_TOKEN_ISSUER_KUBECONFIG_B64={{ with secret \"kv/data/mgmt/chaos/dashboard-token-issuers/nmg\" }}{{ .Data.data.kubeconfig_b64 }}{{ end }}\n" destination = "/vault/secrets/cicd/chaos-dashboard-token-issuers/nmg.env" perms = "0640" }
-template { contents = "CHAOS_TOKEN_ISSUER_KUBECONFIG_B64={{ with secret \"kv/data/mgmt/chaos/dashboard-token-issuers/ggg\" }}{{ .Data.data.kubeconfig_b64 }}{{ end }}\n" destination = "/vault/secrets/cicd/chaos-dashboard-token-issuers/ggg.env" perms = "0640" }
-template { contents = "CHAOS_TOKEN_ISSUER_KUBECONFIG_B64={{ with secret \"kv/data/mgmt/chaos/dashboard-token-issuers/khb\" }}{{ .Data.data.kubeconfig_b64 }}{{ end }}\n" destination = "/vault/secrets/cicd/chaos-dashboard-token-issuers/khb.env" perms = "0640" }
-template { contents = "CHAOS_TOKEN_ISSUER_KUBECONFIG_B64={{ with secret \"kv/data/mgmt/chaos/dashboard-token-issuers/ljw\" }}{{ .Data.data.kubeconfig_b64 }}{{ end }}\n" destination = "/vault/secrets/cicd/chaos-dashboard-token-issuers/ljw.env" perms = "0640" }
-template { contents = "CHAOS_TOKEN_ISSUER_KUBECONFIG_B64={{ with secret \"kv/data/mgmt/chaos/dashboard-token-issuers/oje\" }}{{ .Data.data.kubeconfig_b64 }}{{ end }}\n" destination = "/vault/secrets/cicd/chaos-dashboard-token-issuers/oje.env" perms = "0640" }
+# Per-cluster Chaos Dashboard issuers and the AIO Runner registration token
+# belong to feature-local deployment. Keeping their not-yet-provisioned Vault
+# paths out of this always-on Agent prevents one deferred feature from
+# restarting the renderer for every active management service.
 
 # Dedicated API key files for the five fixed k6 demo targets. Semaphore mounts
 # this directory read-only; keys never enter a Semaphore project environment.

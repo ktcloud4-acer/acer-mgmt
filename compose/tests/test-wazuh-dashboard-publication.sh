@@ -16,7 +16,10 @@ for file in "$traefik_config" "$traefik_stack" "$dashy_config" "$groups_script" 
 done
 
 assert_contains "$traefik_config" 'Host(`wazuh.imcherry5778.xyz`)'
+assert_contains "$traefik_config" 'wazuh-sso-entry:'
+assert_contains "$traefik_config" 'Path(`/`)'
 assert_contains "$traefik_config" 'sso-auth@file'
+assert_contains "$traefik_config" 'oauth2-auth@file'
 assert_contains "$traefik_config" 'secure-headers@file'
 assert_contains "$traefik_config" 'https://wazuh-dashboard:5601'
 assert_contains "$traefik_config" 'wazuh-dashboard-tls'
