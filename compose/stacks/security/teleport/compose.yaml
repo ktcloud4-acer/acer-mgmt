@@ -19,7 +19,12 @@ services:
       - ${DATA_ROOT:-/home/mgmt-data}/teleport:/var/lib/teleport:Z
       - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/security/teleport:/run/teleport/tls:ro,Z
     networks:
-      - mgmt-proxy
+      mgmt-proxy: {}
+      # Dedicated Grafana auth network: only Traefik, Grafana, this Teleport
+      # service, and the header bridge can join it.
+      traefik-grafana-auth:
+        ipv4_address: ${TELEPORT_GRAFANA_AUTH_IP:-10.254.254.4}
+      supabase_default: {}
     healthcheck:
       test: ["CMD", "tctl", "status"]
       interval: 30s
@@ -30,4 +35,10 @@ services:
 networks:
   mgmt-proxy:
     name: ${PROXY_NET:-mgmt-proxy}
+    external: true
+  traefik-grafana-auth:
+    name: ${TRAEFIK_GRAFANA_AUTH_NET:-traefik-grafana-auth}
+    external: true
+  supabase_default:
+    name: ${SUPABASE_NET:-supabase_default}
     external: true

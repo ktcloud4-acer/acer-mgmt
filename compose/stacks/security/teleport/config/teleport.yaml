@@ -106,10 +106,13 @@ app_service:
         env: mgmt
         owner: infra
     - name: traefik
-      uri: http://traefik:8080
+      description: Traefik ingress dashboard through Teleport
+      uri: http://traefik:8081/dashboard/
       public_addr: traefik.teleport.imcherry5778.xyz
       rewrite:
         redirect: [traefik.imcherry5778.xyz]
+        headers:
+          - "Host: traefik.teleport.imcherry5778.xyz"
       labels:
         env: mgmt
         owner: platform
@@ -135,3 +138,141 @@ app_service:
       labels:
         env: mgmt
         owner: cicd
+    - name: grafana
+      description: Metrics dashboards through Teleport
+      uri: http://grafana-teleport-proxy:8080
+      public_addr: grafana.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [grafana.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: observability
+    - name: n8n
+      description: Operations automation through Teleport
+      uri: http://n8n:5678
+      public_addr: n8n.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [n8n.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: observability
+    - name: gitlab
+      description: Source control and CI/CD through Teleport
+      uri: http://gitlab:80
+      public_addr: gitlab.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [gitlab.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: cicd
+    - name: sonarqube
+      description: Code quality dashboard through Teleport
+      uri: http://sonarqube:9000
+      public_addr: sonarqube.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [sonar.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: cicd
+    - name: allure
+      description: Test reports through Teleport
+      uri: http://allure:5050
+      public_addr: allure.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [allure.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: cicd
+    - name: playwright
+      description: End-to-end reports through Teleport
+      uri: http://playwright-report:80
+      public_addr: playwright.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [playwright.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: cicd
+    - name: harbor
+      description: OCI registry through Teleport
+      uri: http://nginx:8080
+      public_addr: harbor.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [harbor.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: cicd
+    - name: wazuh
+      description: Security operations dashboard through Teleport
+      uri: https://wazuh-dashboard:5601
+      public_addr: wazuh.teleport.imcherry5778.xyz
+      insecure_skip_verify: true
+      rewrite:
+        redirect: [wazuh.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: security
+    - name: redisinsight
+      description: Redis administration through Teleport
+      uri: http://redisinsight:5540
+      public_addr: redisinsight.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [redis.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: security
+    - name: kafka-ui
+      description: Kafka management through Teleport
+      uri: http://kafka-ui:8080
+      public_addr: kafka-ui.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [kafka.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: data
+    - name: supabase-studio
+      description: Supabase Studio through Teleport
+      uri: http://supabase-studio:3000
+      public_addr: supabase-studio.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [supabase-admin.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: data
+    - name: netbox
+      description: NetBox source of truth through Teleport
+      uri: http://netbox:8080
+      public_addr: netbox.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [netbox.imcherry5778.xyz]
+        headers:
+          - "Host: netbox.imcherry5778.xyz"
+      labels:
+        env: mgmt
+        owner: infra
+    - name: dashy
+      description: ACER service index through Teleport
+      uri: http://dashy:8080
+      public_addr: dashy.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [dash.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: platform
+    - name: platform-monitor
+      description: Platform health monitor through Teleport
+      uri: http://platform-monitor:8080
+      public_addr: platform-monitor.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [monitor.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: platform
+    - name: docker-runtime
+      description: Docker runtime viewer through Teleport
+      uri: http://docker-runtime-viewer:8080
+      public_addr: docker-runtime.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [runtime.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: platform

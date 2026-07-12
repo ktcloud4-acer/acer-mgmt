@@ -21,6 +21,10 @@ entryPoints:
           - main: "imcherry5778.xyz"
             sans:
               - "*.imcherry5778.xyz"
+  # Docker-network-only entrypoint for the Teleport application service.
+  # It is intentionally omitted from compose ports, so the host never exposes it.
+  teleport:
+    address: ":8081"
 
 providers:
   docker:

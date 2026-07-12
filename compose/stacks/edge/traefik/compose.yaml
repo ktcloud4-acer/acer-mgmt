@@ -38,6 +38,11 @@ services:
       - "traefik.http.routers.traefik.entrypoints=websecure"
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.middlewares=sso-auth@file,secure-headers@file"
+      # Teleport reaches this private entrypoint over mgmt-proxy only. Do not
+      # publish port 8081 on the host or attach the public OAuth middleware.
+      - "traefik.http.routers.traefik-teleport.rule=Host(`traefik.teleport.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.traefik-teleport.entrypoints=teleport"
+      - "traefik.http.routers.traefik-teleport.service=api@internal"
 
 networks:
   mgmt-proxy:

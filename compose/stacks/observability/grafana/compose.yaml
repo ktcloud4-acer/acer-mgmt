@@ -25,7 +25,9 @@ services:
       GF_AUTH_PROXY_HEADER_PROPERTY: username
       GF_AUTH_PROXY_AUTO_SIGN_UP: "true"
       GF_AUTH_PROXY_ENABLE_LOGIN_TOKEN: "true"
-      GF_AUTH_PROXY_WHITELIST: ${TRAEFIK_GRAFANA_AUTH_IP:-10.254.254.2}/32
+      # The public OAuth2-Proxy path arrives from Traefik (.2); Teleport
+      # identity headers arrive only through the dedicated bridge (.5).
+      GF_AUTH_PROXY_WHITELIST: ${TRAEFIK_GRAFANA_AUTH_IP:-10.254.254.2}/32,${GRAFANA_TELEPORT_PROXY_IP:-10.254.254.5}/32
       GF_PLUGINS_PREINSTALL_DISABLED: "true"
       SLACK_WEBHOOK_INFRA: ${SLACK_WEBHOOK_INFRA:?SLACK_WEBHOOK_INFRA must be set}
     volumes:
@@ -52,6 +54,18 @@ services:
       - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.routers.grafana.middlewares=sso-auth@file,secure-headers@file"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+  # Adapts Teleport's protected X-Teleport-User header to Grafana's existing
+  # trusted auth-proxy header. It is not on mgmt-proxy or any host port.
+  grafana-teleport-proxy:
+    image: nginx:1.27-alpine
+    container_name: grafana-teleport-proxy
+    restart: unless-stopped
+    volumes:
+      - ./teleport-proxy/nginx.conf:/etc/nginx/nginx.conf:ro,Z
+    networks:
+      traefik-grafana-auth:
+        ipv4_address: ${GRAFANA_TELEPORT_PROXY_IP:-10.254.254.5}
 
 networks:
   traefik-grafana-auth:
