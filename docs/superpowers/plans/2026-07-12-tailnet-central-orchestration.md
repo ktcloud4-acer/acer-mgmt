@@ -61,7 +61,7 @@ git commit -m "feat: AIO Tailnet 팀 정책 정의"
 
 **Interfaces:**
 - Consumes: externally supplied `TAILSCALE_AIO_ENROLLMENT_CLIENT_ID` and `TAILSCALE_AIO_ENROLLMENT_CLIENT_SECRET` once, then Vault path `mgmt/tailscale/aio-enrollment`.
-- Produces: one one-use, non-ephemeral, pre-authorized auth key for an explicit manifest team on standard output; the key is never logged or written to disk by mgmt.
+- Produces: one one-use, non-ephemeral, pre-authorized auth key for a manifest team on standard output; the key is never logged or written to disk by mgmt.
 
 - [ ] **Step 1: Extend the contract test.**
 
@@ -73,13 +73,13 @@ Use the existing `/tmp/.vt` pattern inside the Vault container. Validate team-in
 
 - [ ] **Step 3: Implement one-use key issuance.**
 
-The script accepts exactly one team argument. It loads the matching tag from `aio-teams.json`, retrieves the OAuth pair from Vault in a temporary shell scope, exchanges them at `https://api.tailscale.com/api/v2/oauth/token`, and posts:
+The script accepts zero or one team argument. With no argument it prompts only for one of `ggg`, `khb`, `ljw`, `nmg`, or `oje`; it never prompts for a tag, hostname, Vault path, or OAuth field. It loads the matching tag and machine name from `aio-teams.json`, retrieves the OAuth pair from Vault in a temporary shell scope, exchanges them at `https://api.tailscale.com/api/v2/oauth/token`, and posts:
 
 ```json
 {"capabilities":{"devices":{"create":{"reusable":false,"ephemeral":false,"preauthorized":true,"tags":["tag:aio-nmg"]}}}}
 ```
 
-It writes only the returned `key` field to stdout; diagnostics go to stderr and all temporary JSON/token files are removed by an EXIT trap.
+It writes only the returned `key` field to stdout; diagnostics go to stderr and all temporary JSON/token files are removed by an EXIT trap. The script starts with `set -euo pipefail`; an invalid selection, missing Vault field, OAuth error, API error, or output-pipe failure exits nonzero.
 
 - [ ] **Step 4: Run tests and shell validation, then commit.**
 
