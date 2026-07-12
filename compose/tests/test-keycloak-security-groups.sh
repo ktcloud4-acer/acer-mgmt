@@ -45,5 +45,6 @@ assert_contains "$oauth_bootstrap" '"id.token.claim": "true"'
 assert_contains "$oauth_bootstrap" '"access.token.claim": "true"'
 assert_contains "$oauth_bootstrap" '"userinfo.token.claim": "true"'
 assert_not_contains "$oauth_bootstrap" 'head -n1'
+assert_contains "$oauth_bootstrap" '--fields id,clientId'
 
 echo "keycloak security-group tests passed"

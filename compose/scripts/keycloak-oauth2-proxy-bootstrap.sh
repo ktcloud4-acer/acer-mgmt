@@ -53,7 +53,7 @@ kc get "realms/${REALM}" >/dev/null 2>&1 || {
 }
 
 client_uuid() {
-  kc get clients -r "$REALM" -q clientId="$CLIENT_ID" |
+  kc get clients -r "$REALM" -q clientId="$CLIENT_ID" --fields id,clientId |
     sed -n 's/.*"id" *: *"\([^"]*\)".*/\1/p'
 }
 
