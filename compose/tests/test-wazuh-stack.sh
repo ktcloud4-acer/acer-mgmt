@@ -34,6 +34,7 @@ assert_contains "$bootstrap" "wazuh/wazuh-certs-generator:0.0.4"
 assert_contains "$bootstrap" "v4.14.6"
 assert_contains "$bootstrap" "internal_users.yml"
 assert_contains "$bootstrap" 'WAZUH_REGISTRATION_PASSWORD'
+assert_contains "$bootstrap" 'WAZUH_AGENT_SECRETS_FILE'
 assert_contains "$bootstrap" 'authd.pass'
 assert_contains "$bootstrap" '<use_password>yes</use_password>'
 assert_contains "$bootstrap" 'chown -R 1000:1000 "$WAZUH_ROOT/indexer"'
