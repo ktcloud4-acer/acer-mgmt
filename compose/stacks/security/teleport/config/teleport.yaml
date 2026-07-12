@@ -144,6 +144,10 @@ app_service:
       public_addr: grafana.teleport.imcherry5778.xyz
       rewrite:
         redirect: [grafana.imcherry5778.xyz]
+        # Teleport only forwards its signed JWT by default. Pass the
+        # authenticated login trait through the isolated Grafana bridge.
+        headers:
+          - "X-Auth-Request-User: {{internal.logins}}"
       labels:
         env: mgmt
         owner: observability
