@@ -23,9 +23,10 @@ services:
     networks:
       - default
     healthcheck:
-      # 보안 활성 시 상태조회도 인증 필요. ELASTIC_PASSWORD 는 컨테이너 내부 env 라
-      # compose 파일 노출면이 추가되지 않는다.
-      test: ["CMD-SHELL", "curl -fsS -u \"elastic:${ELASTIC_PASSWORD}\" http://localhost:9200/_cluster/health?wait_for_status=yellow >/dev/null"]
+      # 보안 활성 시 상태조회도 인증 필요. $$ 로 이스케이프해야 compose 가 리터럴
+      # $ELASTIC_PASSWORD 를 넘기고, 컨테이너 셸이 런타임에 env 로 확장한다($ 하나면
+      # compose 가 parse 타임에 빈 값으로 보간 → healthcheck 401 로 고장).
+      test: ["CMD-SHELL", "curl -fsS -u \"elastic:$$ELASTIC_PASSWORD\" http://localhost:9200/_cluster/health?wait_for_status=yellow >/dev/null"]
       interval: 20s
       timeout: 10s
       retries: 30
