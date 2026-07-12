@@ -98,7 +98,7 @@ assert_not_contains "$grafana_stack" "grafana-teleport-proxy"
 assert_not_contains "$grafana_stack" "GF_AUTH_PROXY_WHITELIST"
 assert_not_contains "$grafana_stack" "GRAFANA_TELEPORT_PROXY_IP"
 assert_not_contains "$middlewares" "redirect-to-teleport"
-assert_contains "$dns_script" "for app in kibana prometheus alertmanager vault adguard traefik minio semaphore keycloak-admin"
+assert_contains "$dns_script" "for app in kibana prometheus grafana alertmanager vault adguard traefik minio semaphore keycloak-admin"
 assert_contains "$tls_script" "*.teleport."
 assert_contains "$tls_script" "vault kv put -mount=kv mgmt/teleport"
 if grep -Fq '"teleport.$BASE_DOMAIN"' "$tls_script"; then
