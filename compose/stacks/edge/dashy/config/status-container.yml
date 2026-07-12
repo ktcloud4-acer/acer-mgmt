@@ -1,0 +1,13 @@
+pageInfo:
+  title: ACER Status — Container
+  description: Live stack and container lifecycle state
+
+sections:
+  - name: Docker Runtime
+    icon: fab fa-docker
+    items:
+      - title: Open Container Status
+        description: Stack summary and expandable live container state
+        icon: fab fa-docker
+        url: https://runtime.imcherry5778.xyz
+        target: workspace

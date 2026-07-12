@@ -5,9 +5,22 @@ pageInfo:
     - title: Runbooks
       path: https://gitlab.imcherry5778.xyz/acer-group/acer-docs/-/tree/main/acer-mgmt/docs/runbooks
 
+pages:
+  - name: Monitor
+    path: monitor.yml
+  - name: Status-Uptime
+    path: status-uptime.yml
+  - name: Status-Container
+    path: status-container.yml
+
 appConfig:
   startingView: home
   defaultOpeningMethod: newtab
+  layout: masonry
+  iconSize: medium
+  statusCheck: true
+  statusCheckInterval: 60
+  statusCheckAccessibility: true
   disableConfiguration: true
   preventWriteToDisk: true
   preventLocalSave: true
@@ -138,12 +151,3 @@ sections:
         description: Internal DNS wildcard management
         icon: fas fa-shield-alt
         url: https://adguard.imcherry5778.xyz
-
-  - name: Operations
-    icon: fas fa-cubes
-    items:
-      - title: Docker Runtime
-        description: Live read-only Compose stack and container state
-        icon: fab fa-docker
-        url: https://runtime.imcherry5778.xyz
-        target: workspace
