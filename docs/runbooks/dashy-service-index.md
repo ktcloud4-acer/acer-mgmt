@@ -14,6 +14,12 @@ Semaphore, Kafka UI, AdGuard Home, Traefik, Vault, Homepage, and Dashy.
 Vault `/v1/*`, MinIO S3, Supabase APIs, Teleport, and service APIs used by
 automation retain their native authentication flows.
 
+For the current demo/simple-access profile, any successfully authenticated
+`mgmt` Keycloak user can pass this shared browser gateway. The `auth` host is
+callback-only: its root redirects to Dashy, while `/oauth2/*` keeps the signed
+return URL and sends a successful login back to the requested service.
+Application-native permissions still apply after the gateway.
+
 Grafana additionally uses Auth Proxy and accepts the user header only from
 Traefik's fixed `/32` address on the isolated `traefik-grafana-auth` Docker
 network. Create the two required isolated networks before starting Traefik,

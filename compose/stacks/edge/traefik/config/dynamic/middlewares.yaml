@@ -39,6 +39,12 @@ http:
           "401": 302
           "403": 302
 
+    auth-root-redirect:
+      redirectRegex:
+        regex: "^https://auth\\.imcherry5778\\.xyz/?$"
+        replacement: "https://dash.imcherry5778.xyz/"
+        permanent: false
+
     keycloak-headers:
       headers:
         # DEMO MODE: an expired oauth2-proxy session must be able to complete
