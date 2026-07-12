@@ -14,7 +14,7 @@ for file in "$traefik_config" "$traefik_stack" "$dashy_config" "$groups_script";
   [[ -f "$file" ]] || fail "missing file: $file"
 done
 
-assert_contains "$traefik_config" 'Host(`wazuh.${BASE_DOMAIN}`)'
+assert_contains "$traefik_config" 'Host(`wazuh.imcherry5778.xyz`)'
 assert_contains "$traefik_config" 'sso-auth@file'
 assert_contains "$traefik_config" 'secure-headers@file'
 assert_contains "$traefik_config" 'https://wazuh-dashboard:5601'

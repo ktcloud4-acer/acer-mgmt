@@ -2,7 +2,7 @@
 http:
   routers:
     wazuh-dashboard:
-      rule: "Host(`wazuh.${BASE_DOMAIN}`)"
+      rule: "Host(`wazuh.imcherry5778.xyz`)"
       entryPoints:
         - websecure
       middlewares:
