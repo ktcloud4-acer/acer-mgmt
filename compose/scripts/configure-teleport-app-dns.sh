@@ -17,11 +17,9 @@ add_rewrite() {
   sed -i "/^  safe_fs_patterns:/i\\    - domain: ${domain}\\n      answer: ${TAILSCALE_IP}\\n      enabled: true" "$CONFIG_FILE"
 }
 
-for app in kibana prometheus alertmanager vault adguard traefik minio semaphore keycloak-admin n8n gitlab sonarqube allure playwright harbor wazuh redisinsight kafka-ui supabase-studio netbox dashy platform-monitor docker-runtime; do
+for app in kibana prometheus alertmanager vault adguard traefik minio semaphore keycloak-admin n8n gitlab sonarqube allure playwright harbor wazuh redisinsight kafka-ui supabase-studio netbox dashy platform-monitor docker-runtime grafana; do
   add_rewrite "${app}.teleport.${BASE_DOMAIN}"
 done
-
-sed -i -E "/^[[:space:]]+- domain: grafana\\.teleport\\.${BASE_DOMAIN//./\\.}$/,+2d" "$CONFIG_FILE"
 
 # The former sibling tp-* names cannot work with Teleport's proxy-domain rule.
 sed -i -E '/^[[:space:]]+- domain: tp-(kibana|prometheus|alertmanager|keycloak|vault|netbox)\./,+2d' "$CONFIG_FILE"
