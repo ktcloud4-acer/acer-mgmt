@@ -1,0 +1,20 @@
+{
+  "policy": {
+    "_meta": {
+      "managed_by": "acer-mgmt",
+      "description": "보안 감사(acer-audit-*) 보존정책: 일반 로그(14d)보다 길게 ES에 90일 보존 후 삭제. 장기 보존은 MinIO 스냅샷(SLM)으로 별도 보관. 보존일은 조직 요구에 맞게 delete.min_age 로 조정."
+    },
+    "phases": {
+      "hot": {
+        "min_age": "0ms",
+        "actions": {
+          "set_priority": { "priority": 50 }
+        }
+      },
+      "delete": {
+        "min_age": "90d",
+        "actions": { "delete": {} }
+      }
+    }
+  }
+}
