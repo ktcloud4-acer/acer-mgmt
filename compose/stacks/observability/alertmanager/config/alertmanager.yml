@@ -55,6 +55,7 @@ receivers:
   - name: slack-infra-alerts
     slack_configs:
       - send_resolved: true
+        channel: "#infra-알림"
         title: '{{ if eq .CommonLabels.source "falco" }}[Falco][{{ if eq .Status "firing" }}발생{{ else }}복구{{ end }}] {{ .CommonLabels.rule }}{{ else }}{{ if eq .Status "firing" }}[긴급]{{ else }}[복구]{{ end }} {{ if .CommonAnnotations.title }}{{ .CommonAnnotations.title }}{{ else }}{{ .CommonLabels.alertname }}{{ end }}{{ end }}'
         text: |-
           {{ range .Alerts }}
