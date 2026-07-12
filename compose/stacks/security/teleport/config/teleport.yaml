@@ -74,6 +74,17 @@ app_service:
       labels:
         env: mgmt
         owner: observability
+    # Supplemental admin entry only. The direct keycloak.${BASE_DOMAIN}
+    # hostname remains the canonical OIDC issuer for platform clients.
+    - name: keycloak-admin
+      description: Keycloak administration console through Teleport
+      uri: http://keycloak:8080
+      public_addr: keycloak-admin.teleport.imcherry5778.xyz
+      rewrite:
+        redirect: [keycloak.imcherry5778.xyz]
+      labels:
+        env: mgmt
+        owner: security
     - name: vault
       uri: https://vault:8200
       public_addr: vault.teleport.imcherry5778.xyz
