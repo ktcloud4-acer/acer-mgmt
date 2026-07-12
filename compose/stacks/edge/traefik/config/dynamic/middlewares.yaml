@@ -104,3 +104,20 @@ http:
       basicAuth:
         users:
           - "admin:$apr1$9k2at2og$Ch6IDREzEbaYgIsWhs2dK1"
+
+    # Teleport must redirect before Grafana creates an OAuth state cookie.
+    grafana-teleport-launch:
+      redirectRegex:
+        regex: "^http://grafana-teleport-launch\\.internal/(.*)"
+        replacement: "https://grafana.${BASE_DOMAIN}/$1"
+        permanent: false
+
+  routers:
+    # Docker-network-only entrypoint; no public DNS resolves this host.
+    grafana-teleport-launch:
+      rule: "Host(`grafana-teleport-launch.internal`)"
+      entryPoints:
+        - teleport
+      middlewares:
+        - grafana-teleport-launch
+      service: noop@internal

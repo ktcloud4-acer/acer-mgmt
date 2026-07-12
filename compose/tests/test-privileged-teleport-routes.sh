@@ -46,6 +46,9 @@ assert_contains "$traefik_config" "address: \":8081\""
 assert_contains "$traefik_stack" 'traefik.http.routers.traefik-teleport.rule=Host(`traefik.teleport.${BASE_DOMAIN}`)'
 assert_contains "$traefik_stack" "traefik.http.routers.traefik-teleport.entrypoints=teleport"
 assert_contains "$traefik_stack" "traefik.http.routers.traefik-teleport.service=api@internal"
+assert_contains "$middlewares" "grafana-teleport-launch:"
+assert_contains "$middlewares" "Host(`grafana-teleport-launch.internal`)"
+assert_contains "$middlewares" 'replacement: "https://grafana.${BASE_DOMAIN}/$1"'
 assert_not_contains "$traefik_stack" '"8081:8081"'
 assert_contains "$teleport_config" "name: minio-console"
 assert_contains "$teleport_config" "name: semaphore"
@@ -61,9 +64,9 @@ for app in n8n gitlab sonarqube allure playwright harbor wazuh redisinsight kafk
 done
 
 assert_contains "$teleport_config" "name: grafana"
-assert_contains "$teleport_config" "uri: http://grafana:3000"
+assert_contains "$teleport_config" "uri: http://traefik:8081"
 assert_contains "$teleport_config" "public_addr: grafana.teleport.imcherry5778.xyz"
-assert_contains "$teleport_config" 'Host: grafana.teleport.imcherry5778.xyz"'
+assert_contains "$teleport_config" 'Host: grafana-teleport-launch.internal"'
 assert_not_contains "$teleport_config" "grafana-teleport-proxy"
 assert_not_contains "$teleport_config" "X-Auth-Request-User: {{internal.logins}}"
 assert_contains "$dns_script" "grafana"
@@ -91,8 +94,6 @@ assert_not_contains "$teleport_stack" 'TELEPORT_GRAFANA_AUTH_IP'
 assert_contains "$teleport_stack" "supabase_default:"
 
 grafana_stack="$ROOT_DIR/compose/stacks/observability/grafana/compose.yaml"
-assert_contains "$grafana_stack" "- mgmt-proxy"
-assert_contains "$grafana_stack" "mgmt-proxy:"
 assert_contains "$grafana_stack" "traefik-grafana-auth:"
 assert_not_contains "$grafana_stack" "grafana-teleport-proxy"
 assert_not_contains "$grafana_stack" "GF_AUTH_PROXY_WHITELIST"

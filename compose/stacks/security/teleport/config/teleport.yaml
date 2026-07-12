@@ -67,12 +67,12 @@ app_service:
         env: mgmt
         owner: observability
     - name: grafana
-      description: Metrics dashboards through Teleport
-      uri: http://grafana:3000
+      description: Metrics dashboards launcher; Grafana signs in on its native Keycloak OIDC address
+      uri: http://traefik:8081
       public_addr: grafana.teleport.imcherry5778.xyz
       rewrite:
         headers:
-          - "Host: grafana.teleport.imcherry5778.xyz"
+          - "Host: grafana-teleport-launch.internal"
       labels:
         env: mgmt
         owner: observability
