@@ -32,6 +32,7 @@ assert_contains "$provisioner" 'for cluster in nmg ggg khb ljw oje; do'
 assert_contains "$provisioner" 'issuer_b64=""'
 assert_contains "$bootstrap" 'vault kv put -mount=kv'
 assert_contains "$bootstrap" 'CHAOS_DASHBOARD_CLUSTERS'
+assert_contains "$bootstrap" '"current-context":'
 assert_not_contains "$bootstrap" 'cluster-admin'
 
 tmp="$(mktemp -d)"

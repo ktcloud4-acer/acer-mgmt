@@ -49,12 +49,12 @@ for cluster in $CHAOS_DASHBOARD_CLUSTERS; do
   config="$(jq -er '.data.data.config | fromjson' <<<"$source_json")"
   bootstrap_kubeconfig="$tmp_dir/$cluster-bootstrap.kubeconfig"
   jq -n --arg server "$server" --argjson config "$config" '
-    {apiVersion:"v1",kind:"Config",clusters:[{name:"target",cluster:{server:$server,"certificate-authority-data":$config.tlsClientConfig.caData,"insecure-skip-tls-verify":($config.tlsClientConfig.insecure // false)}}],contexts:[{name:"issuer",context:{cluster:"target",namespace:"chaos-mesh",user:"bootstrap"}}],current-context:"issuer",users:[{name:"bootstrap",user:{token:$config.bearerToken}}]}' >"$bootstrap_kubeconfig"
+    {apiVersion:"v1",kind:"Config",clusters:[{name:"target",cluster:{server:$server,"certificate-authority-data":$config.tlsClientConfig.caData,"insecure-skip-tls-verify":($config.tlsClientConfig.insecure // false)}}],contexts:[{name:"issuer",context:{cluster:"target",namespace:"chaos-mesh",user:"bootstrap"}}],"current-context":"issuer",users:[{name:"bootstrap",user:{token:$config.bearerToken}}]}' >"$bootstrap_kubeconfig"
   token_b64="$(KUBECONFIG="$bootstrap_kubeconfig" kubectl -n "$namespace" get secret "$issuer_service_account" -o jsonpath='{.data.token}')"
   [ -n "$token_b64" ] || { echo "issuer Secret is not ready for $cluster; wait for Argo CD sync" >&2; exit 1; }
   issuer_kubeconfig="$tmp_dir/$cluster-issuer.kubeconfig"
   jq -n --arg server "$server" --argjson config "$config" --arg token "$(printf '%s' "$token_b64" | base64 -d)" --arg cluster "$cluster" '
-    {apiVersion:"v1",kind:"Config",clusters:[{name:$cluster,cluster:{server:$server,"certificate-authority-data":$config.tlsClientConfig.caData,"insecure-skip-tls-verify":($config.tlsClientConfig.insecure // false)}}],contexts:[{name:($cluster+"-issuer"),context:{cluster:$cluster,namespace:"chaos-mesh",user:"issuer"}}],current-context:($cluster+"-issuer"),users:[{name:"issuer",user:{token:$token}}]}' >"$issuer_kubeconfig"
+    {apiVersion:"v1",kind:"Config",clusters:[{name:$cluster,cluster:{server:$server,"certificate-authority-data":$config.tlsClientConfig.caData,"insecure-skip-tls-verify":($config.tlsClientConfig.insecure // false)}}],contexts:[{name:($cluster+"-issuer"),context:{cluster:$cluster,namespace:"chaos-mesh",user:"issuer"}}],"current-context":($cluster+"-issuer"),users:[{name:"issuer",user:{token:$token}}]}' >"$issuer_kubeconfig"
   payload="$tmp_dir/$cluster-payload.json"
   jq -n --arg kubeconfig_b64 "$(base64 <"$issuer_kubeconfig" | tr -d '\n')" '{kubeconfig_b64:$kubeconfig_b64}' >"$payload"
   vault_put_issuer "mgmt/chaos/dashboard-token-issuers/$cluster" "$payload"
