@@ -64,7 +64,7 @@ services:
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
       - "traefik.http.routers.kafka-ui.rule=Host(`kafka.${BASE_DOMAIN}`)"
       - "traefik.http.routers.kafka-ui.entrypoints=websecure"
-      - "traefik.http.routers.kafka-ui.middlewares=secure-headers@file"
+      - "traefik.http.routers.kafka-ui.middlewares=sso-auth@file,secure-headers@file"
       - "traefik.http.services.kafka-ui.loadbalancer.server.port=8080"
 
 networks:

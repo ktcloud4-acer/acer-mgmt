@@ -41,62 +41,15 @@ http:
 
     keycloak-headers:
       headers:
+        # DEMO MODE: an expired oauth2-proxy session must be able to complete
+        # its Keycloak login inside Dashy's Workspace iframe.
+        customResponseHeaders:
+          X-Frame-Options: ""
+          Content-Security-Policy: "frame-src 'self'; frame-ancestors https://dash.imcherry5778.xyz; object-src 'none';"
         contentTypeNosniff: true
         browserXssFilter: true
         stsSeconds: 31536000
         stsIncludeSubdomains: true
-
-    # Canonical browser addresses for privileged tools. Their service backends
-    # stay on internal Docker networks; human UI access is recorded by
-    # Teleport at the target address. API/DNS endpoints intentionally do not
-    # use these middlewares.
-    redirect-to-teleport-adguard:
-      redirectRegex:
-        regex: "^https?://adguard\\.([^/]+)/(.*)$"
-        replacement: "https://adguard.teleport.${1}:3080/${2}"
-        permanent: true
-
-    redirect-to-teleport-traefik:
-      redirectRegex:
-        regex: "^https?://traefik\\.([^/]+)/(.*)$"
-        replacement: "https://traefik.teleport.${1}:3080/${2}"
-        permanent: true
-
-    redirect-to-teleport-minio:
-      redirectRegex:
-        regex: "^https?://minio\\.([^/]+)/(.*)$"
-        replacement: "https://minio.teleport.${1}:3080/${2}"
-        permanent: true
-
-    redirect-to-teleport-semaphore:
-      redirectRegex:
-        regex: "^https?://semaphore\\.([^/]+)/(.*)$"
-        replacement: "https://semaphore.teleport.${1}:3080/${2}"
-        permanent: true
-
-    redirect-to-teleport-kibana:
-      redirectRegex:
-        regex: "^https?://kibana\\.([^/]+)/(.*)$"
-        replacement: "https://kibana.teleport.${1}:3080/${2}"
-        permanent: true
-
-    redirect-to-teleport-prometheus:
-      redirectRegex:
-        regex: "^https?://prometheus\\.([^/]+)/(.*)$"
-        replacement: "https://prometheus.teleport.${1}:3080/${2}"
-        permanent: true
-
-    redirect-to-teleport-alertmanager:
-      redirectRegex:
-        regex: "^https?://alertmanager\\.([^/]+)/(.*)$"
-        replacement: "https://alertmanager.teleport.${1}:3080/${2}"
-        permanent: true
-
-    redirect-to-teleport-vault:
-      redirectRegex:
-        regex: "^https?://vault\\.([^/]+)/(.*)$"
-        replacement: "https://vault.teleport.${1}:3080/${2}"
-        permanent: true
 
     # 내부 도구 보호용 기본 인증 (사용 시 .env/secrets 의 해시로 교체)
     basic-auth:

@@ -46,7 +46,7 @@ services:
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
       - "traefik.http.routers.semaphore.rule=Host(`semaphore.${BASE_DOMAIN}`)"
       - "traefik.http.routers.semaphore.entrypoints=websecure"
-      - "traefik.http.routers.semaphore.middlewares=redirect-to-teleport-semaphore@file"
+      - "traefik.http.routers.semaphore.middlewares=sso-auth@file,secure-headers@file"
       - "traefik.http.services.semaphore.loadbalancer.server.port=3000"
 
   semaphore-db:

@@ -24,13 +24,6 @@ auto_auth {
   }
 }
 
-# grafana OAuth 시크릿 (GF_ 변수 → __FILE 로 소비).
-template {
-  contents    = "{{ with secret \"kv/data/mgmt/grafana\" }}{{ .Data.data.oauth_client_secret }}{{ end }}"
-  destination = "/vault/secrets/grafana_oauth_client_secret"
-  perms       = "0640"
-}
-
 # grafana admin 비밀번호 (공유값 kv/mgmt/common, GF_ 변수 → __FILE).
 template {
   contents    = "{{ with secret \"kv/data/mgmt/common\" }}{{ .Data.data.admin_password }}{{ end }}"
@@ -45,9 +38,10 @@ template {
   perms       = "0640"
 }
 
-# grafana compose env 파일. 루트 .env 에는 공개 설정만 남기고 시크릿은 여기서 주입한다.
+# grafana compose env 파일. OAuth 클라이언트 시크릿은 더 이상 렌더하지 않고,
+# oauth2-proxy identity header로 Grafana Auth Proxy 로그인을 통일한다.
 template {
-  contents    = "{{ with secret \"kv/data/mgmt/common\" }}ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/grafana\" }}GRAFANA_OAUTH_CLIENT_SECRET={{ .Data.data.oauth_client_secret }}\nSLACK_WEBHOOK_INFRA={{ .Data.data.slack_webhook_infra }}\n{{ end }}"
+  contents    = "{{ with secret \"kv/data/mgmt/common\" }}ADMIN_PASSWORD={{ .Data.data.admin_password }}\n{{ end }}{{ with secret \"kv/data/mgmt/grafana\" }}SLACK_WEBHOOK_INFRA={{ .Data.data.slack_webhook_infra }}\n{{ end }}"
   destination = "/vault/secrets/observability/grafana.env"
   perms       = "0640"
 }

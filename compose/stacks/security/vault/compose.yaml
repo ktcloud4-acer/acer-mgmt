@@ -63,7 +63,15 @@ services:
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
       - "traefik.http.routers.vault.rule=Host(`vault.${BASE_DOMAIN}`)"
       - "traefik.http.routers.vault.entrypoints=websecure"
-      - "traefik.http.routers.vault.middlewares=redirect-to-teleport-vault@file"
+      - "traefik.http.routers.vault.priority=10"
+      - "traefik.http.routers.vault.middlewares=sso-auth@file,secure-headers@file"
+      # Vault API clients authenticate with Vault tokens; do not send API
+      # requests through the browser-oriented oauth2-proxy login flow.
+      - "traefik.http.routers.vault-api.rule=Host(`vault.${BASE_DOMAIN}`) && PathPrefix(`/v1`)"
+      - "traefik.http.routers.vault-api.entrypoints=websecure"
+      - "traefik.http.routers.vault-api.priority=100"
+      - "traefik.http.routers.vault-api.middlewares=secure-headers@file"
+      - "traefik.http.routers.vault-api.service=vault"
       - "traefik.http.services.vault.loadbalancer.server.port=8200"
       - "traefik.http.services.vault.loadbalancer.server.scheme=https"
       - "traefik.http.services.vault.loadbalancer.serversTransport=vault-tls@file"

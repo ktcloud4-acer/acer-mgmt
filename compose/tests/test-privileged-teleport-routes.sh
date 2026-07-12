@@ -19,6 +19,13 @@ assert_contains() {
   grep -Fq -- "$expected" "$file" || fail "$file does not contain: $expected"
 }
 
+assert_not_contains() {
+  local file="$1"
+  local unwanted="$2"
+  [[ -f "$file" ]] || fail "missing file: $file"
+  ! grep -Fq -- "$unwanted" "$file" || fail "$file must not contain: $unwanted"
+}
+
 assert_contains "$teleport_config" "name: adguard"
 assert_contains "$teleport_config" "public_addr: adguard.teleport.imcherry5778.xyz"
 if sed -n '/^  apps:/,$p' "$teleport_config" | grep -Eq '^[[:space:]]+public_addr: .*:3080'; then
@@ -27,8 +34,7 @@ fi
 assert_contains "$teleport_config" "name: traefik"
 assert_contains "$teleport_config" "name: minio-console"
 assert_contains "$teleport_config" "name: semaphore"
-assert_contains "$middlewares" "redirect-to-teleport-adguard"
-assert_contains "$middlewares" "redirect-to-teleport-vault"
+assert_not_contains "$middlewares" "redirect-to-teleport"
 assert_contains "$dns_script" "for app in kibana prometheus alertmanager vault adguard traefik minio semaphore"
 assert_contains "$tls_script" "*.teleport."
 assert_contains "$tls_script" "vault kv put -mount=kv mgmt/teleport"
@@ -44,7 +50,7 @@ for stack in \
   "$ROOT_DIR/compose/stacks/edge/traefik/compose.yaml" \
   "$ROOT_DIR/compose/stacks/backup/minio/compose.yaml" \
   "$ROOT_DIR/compose/stacks/cicd/semaphore/compose.yaml"; do
-  assert_contains "$stack" "redirect-to-teleport"
+  assert_contains "$stack" "sso-auth@file,secure-headers@file"
 done
 
 echo "privileged Teleport route tests passed"

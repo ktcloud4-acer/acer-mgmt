@@ -29,7 +29,7 @@ services:
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
       - "traefik.http.routers.playwright.rule=Host(`playwright.${BASE_DOMAIN}`)"
       - "traefik.http.routers.playwright.entrypoints=websecure"
-      - "traefik.http.routers.playwright.middlewares=secure-headers@file"
+      - "traefik.http.routers.playwright.middlewares=sso-auth@file,secure-headers@file"
       - "traefik.http.services.playwright.loadbalancer.server.port=80"
 
 networks:

@@ -12,8 +12,6 @@ services:
       - --storage.tsdb.retention.time=30d
       - --web.enable-lifecycle
       - --web.enable-remote-write-receiver
-    ports:
-      - "9090:9090"
     volumes:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro,Z
       - ./config/alerts:/etc/prometheus/alerts:ro,Z
@@ -21,6 +19,7 @@ services:
     networks:
       - default
       - mgmt-proxy
+      - grafana-observability
     depends_on:
       - node-exporter
       - blackbox-exporter
@@ -35,7 +34,7 @@ services:
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
       - "traefik.http.routers.prometheus.rule=Host(`prometheus.${BASE_DOMAIN}`)"
       - "traefik.http.routers.prometheus.entrypoints=websecure"
-      - "traefik.http.routers.prometheus.middlewares=redirect-to-teleport-prometheus@file"
+      - "traefik.http.routers.prometheus.middlewares=sso-auth@file,secure-headers@file"
       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
 
   node-exporter:
@@ -76,4 +75,7 @@ services:
 networks:
   mgmt-proxy:
     name: ${PROXY_NET:-mgmt-proxy}
+    external: true
+  grafana-observability:
+    name: ${GRAFANA_OBSERVABILITY_NET:-grafana-observability}
     external: true

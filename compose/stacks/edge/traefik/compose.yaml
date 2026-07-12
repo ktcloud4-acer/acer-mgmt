@@ -27,15 +27,20 @@ services:
       - ${DATA_ROOT:-/home/mgmt-data}/vault-tls/ca.crt:/etc/traefik/vault-ca/ca.crt:ro,z
       - ${DATA_ROOT:-/home/mgmt-data}/traefik:/acme        # acme.json 영속
     networks:
-      - mgmt-proxy
+      mgmt-proxy: {}
+      traefik-grafana-auth:
+        ipv4_address: ${TRAEFIK_GRAFANA_AUTH_IP:-172.31.254.2}
     labels:
       - "traefik.enable=true"
       # ── 다른 서비스에 이 패턴 복사 (Host 규칙만 교체) ──
       - "traefik.http.routers.traefik.rule=Host(`traefik.${BASE_DOMAIN}`)"
       - "traefik.http.routers.traefik.entrypoints=websecure"
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.middlewares=redirect-to-teleport-traefik@file"
+      - "traefik.http.routers.traefik.middlewares=sso-auth@file,secure-headers@file"
 
 networks:
   mgmt-proxy:
+    external: true
+  traefik-grafana-auth:
+    name: ${TRAEFIK_GRAFANA_AUTH_NET:-traefik-grafana-auth}
     external: true

@@ -15,7 +15,9 @@ services:
       KEEP_HISTORY: 1
       KEEP_HISTORY_LATEST: 25
     ports:
-      - "5050:5050"   # tailnet 직결(100.117.59.96:5050) — DNS/cert 불필요
+      # CI result upload API only. Browser UI uses the oauth2-proxy-protected
+      # https://allure.${BASE_DOMAIN} route exposed through Traefik.
+      - "${TAILSCALE_IP:?TAILSCALE_IP must be set}:5050:5050"
     volumes:
       - ${DATA_ROOT:-/home/mgmt-data}/allure/projects:/app/projects:Z
     networks:
@@ -31,7 +33,7 @@ services:
       - "traefik.docker.network=${PROXY_NET:-mgmt-proxy}"
       - "traefik.http.routers.allure.rule=Host(`allure.${BASE_DOMAIN}`)"
       - "traefik.http.routers.allure.entrypoints=websecure"
-      - "traefik.http.routers.allure.middlewares=secure-headers@file"
+      - "traefik.http.routers.allure.middlewares=sso-auth@file,secure-headers@file"
       - "traefik.http.services.allure.loadbalancer.server.port=5050"
 
 networks:

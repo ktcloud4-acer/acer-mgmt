@@ -24,6 +24,7 @@ services:
     networks:
       - default
       - mgmt-proxy
+      - grafana-observability
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:3200/ready"]
       interval: 15s
@@ -34,4 +35,7 @@ services:
 networks:
   mgmt-proxy:
     name: ${PROXY_NET:-mgmt-proxy}
+    external: true
+  grafana-observability:
+    name: ${GRAFANA_OBSERVABILITY_NET:-grafana-observability}
     external: true

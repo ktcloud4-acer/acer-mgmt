@@ -22,6 +22,17 @@ assert_not_contains() {
   ! grep -Fq -- "$2" "$1" || fail "did not expect '$2' in $1"
 }
 
+assert_item_target() {
+  local title="$1"
+  local target="$2"
+  awk -v title="$title" -v target="$target" '
+    $0 == "      - title: " title { found=1; next }
+    found && $0 == "        target: " target { success=1; exit }
+    found && $0 ~ /^      - title:/ { exit }
+  END { exit success ? 0 : 1 }
+  ' "$3" || fail "expected ${title} target ${target} in $3"
+}
+
 dashy_compose="${DASHY_ROOT}/compose.yaml"
 dashy_config="${DASHY_ROOT}/config/conf.yml"
 status_config="${DASHY_ROOT}/config/status.yml"
@@ -57,7 +68,6 @@ for item in Grafana Prometheus Alertmanager Kibana n8n MinIO Restic "Argo CD" Gi
 done
 
 [[ ! -e "$status_config" ]] || fail "service-index-only scope must not contain status.yml"
-assert_not_contains "$dashy_config" "target:"
 assert_not_contains "$dashy_config" "hideFromWorkspace:"
 assert_not_contains "$dashy_config" "Grafana Operations Summary"
 assert_not_contains "$dashy_config" "disableContextMenu: true"
@@ -65,5 +75,9 @@ assert_not_contains "$dashy_config" ".png"
 assert_not_contains "$middlewares_config" "frameDeny: true"
 assert_contains "$middlewares_config" 'X-Frame-Options: ""'
 assert_contains "$grafana_compose" 'GF_SECURITY_ALLOW_EMBEDDING: "true"'
+
+for item in Grafana Alertmanager Semaphore Vault; do
+  assert_item_target "$item" workspace "$dashy_config"
+done
 
 echo "Dashy service index configuration tests passed"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Keycloak realm 'mgmt' 에 NetBox 용 OIDC 클라이언트를 등록/갱신한다.
-# keycloak-grafana-bootstrap.sh 와 동일한 패턴. NetBox 는 social-auth OIDC 로
+# NetBox 는 social-auth OIDC 로
 # SSO 하며 콜백 URL 은 https://netbox.<domain>/oauth/complete/oidc/ 이다.
 set -euo pipefail
 

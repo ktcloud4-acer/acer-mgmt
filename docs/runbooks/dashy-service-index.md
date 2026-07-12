@@ -8,6 +8,26 @@ be demonstrated. This is not a production security profile; restore
 `frameDeny: true`, remove the `X-Frame-Options` response override, and remove
 `GF_SECURITY_ALLOW_EMBEDDING` before production exposure.
 
+The shared oauth2-proxy session protects the browser-only UI routes for
+Grafana, Prometheus, Alertmanager, Kibana, MinIO Console, Allure, Playwright,
+Semaphore, Kafka UI, AdGuard Home, Traefik, Vault, Homepage, and Dashy.
+Vault `/v1/*`, MinIO S3, Supabase APIs, Teleport, and service APIs used by
+automation retain their native authentication flows.
+
+Grafana additionally uses Auth Proxy and accepts the user header only from
+Traefik's fixed `/32` address on the isolated `traefik-grafana-auth` Docker
+network. Create the two required isolated networks before starting Traefik,
+Grafana, or Prometheus:
+
+```bash
+bash compose/scripts/reconcile-dashy-sso-networks.sh
+```
+
+Allure `:5050` and Playwright `:8099` remain Tailnet-bound machine upload
+compatibility endpoints. They serve the same applications as the browser UI,
+so operators must use the SSO-protected HTTPS hostnames for browser access;
+do not treat those machine endpoints as an authentication boundary.
+
 Run `bash compose/tests/test-dashy-service-index.sh` from the repository root
 before deployment.
 
@@ -39,6 +59,19 @@ After signing in as `platform-admin`, verify the seven service groups and that
 a normal left-click opens a service in a new tab. Dashy's built-in right-click
 context menu remains enabled so operators can choose another supported opening
 method, including modal or Workspace. Grafana must render in both iframe modes.
+
+Vault is split at Traefik: its UI uses the shared oauth2-proxy session, while
+`/v1/*` retains Vault-token authentication. To reconcile the Vault UI CSP and
+remove only the explicit legacy `dashy-embed-ui-headers` policy, first create the management token
+inside the Vault container and then run:
+
+```bash
+docker exec -it vault sh -c 'vault login -method=userpass -token-only username=mgmt > /tmp/.vt'
+bash compose/scripts/reconcile-vault-dashy-embed.sh
+```
+
+The script does not print or copy the token. It requires a Vault token that
+can write `sys/config/ui/headers/Content-Security-Policy` with `sudo`.
 
 ## Rollback
 
