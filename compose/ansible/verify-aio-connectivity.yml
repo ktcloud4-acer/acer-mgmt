@@ -1,0 +1,17 @@
+---
+- name: Verify central mgmt to AIO Tailnet connectivity
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Verify Ansible SSH transport
+      ansible.builtin.ping:
+      changed_when: false
+
+    - name: Read AIO Tailnet IPv4 address
+      ansible.builtin.command: tailscale ip -4
+      register: tailscale_ipv4
+      changed_when: false
+
+    - name: Show verified AIO Tailnet address
+      ansible.builtin.debug:
+        var: tailscale_ipv4.stdout

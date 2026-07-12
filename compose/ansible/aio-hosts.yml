@@ -1,0 +1,27 @@
+---
+# Team AIOs join the Tailnet as user-owned <team>-aio machines; they do not use
+# per-team device tags. Each host resolves through MagicDNS from acer-mgmt.
+all:
+  vars:
+    ansible_user: ubuntu
+  children:
+    aio_ggg:
+      hosts:
+        ggg-aio:
+          ansible_host: ggg-aio.tailc0244b.ts.net
+    aio_khb:
+      hosts:
+        khb-aio:
+          ansible_host: khb-aio.tailc0244b.ts.net
+    aio_ljw:
+      hosts:
+        ljw-aio:
+          ansible_host: ljw-aio.tailc0244b.ts.net
+    aio_nmg:
+      hosts:
+        nmg-aio:
+          ansible_host: nmg-aio.tailc0244b.ts.net
+    aio_oje:
+      hosts:
+        oje-aio:
+          ansible_host: oje-aio.tailc0244b.ts.net
