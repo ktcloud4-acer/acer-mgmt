@@ -1,0 +1,146 @@
+---
+- name: Bootstrap Tailscale Kubernetes Operator from central mgmt
+  hosts: all
+  gather_facts: false
+  vars:
+    tailscale_operator_chart_version: "1.98.4"
+    tailscale_kubeconfig: /home/ubuntu/.kube/acer-kubeadm.yaml
+    tailscale_operator_values: /run/acer-bootstrap/tailscale-operator-values.yaml
+    tailscale_proxy_manifest: /run/acer-bootstrap/tailscale-proxygroup.yaml
+  pre_tasks:
+    - name: Validate selected team and target group
+      ansible.builtin.assert:
+        that:
+          - tailnet_team is defined
+          - tailnet_team in ['ggg', 'khb', 'ljw', 'nmg', 'oje']
+          - ('aio_' ~ tailnet_team) in group_names
+        fail_msg: Run this play with one matching aio_<team> inventory group.
+
+    - name: Verify target Kubernetes tools and kubeconfig
+      ansible.builtin.command: "{{ item }}"
+      loop:
+        - helm version --short
+        - kubectl --kubeconfig={{ tailscale_kubeconfig }} version --client
+      changed_when: false
+
+  tasks:
+    - name: Read team Operator OAuth fields from mgmt Vault
+      ansible.builtin.shell: |
+        docker exec vault sh -ceu '
+          export VAULT_ADDR=https://127.0.0.1:8200
+          export VAULT_CACERT=/vault/tls/ca.crt
+          export VAULT_TOKEN="$(cat /tmp/.vt)"
+          vault kv get -field=oauth_client_id -mount=kv "mgmt/tailscale/operators/{{ tailnet_team }}"
+          echo
+          vault kv get -field=oauth_client_secret -mount=kv "mgmt/tailscale/operators/{{ tailnet_team }}"
+        '
+      args:
+        executable: /bin/bash
+      delegate_to: localhost
+      register: operator_vault_fields
+      changed_when: false
+      no_log: true
+
+    - name: Validate Vault Operator OAuth fields
+      ansible.builtin.assert:
+        that:
+          - operator_vault_fields.stdout_lines | length == 2
+          - operator_vault_fields.stdout_lines[0] | length > 0
+          - operator_vault_fields.stdout_lines[1] | length > 0
+      no_log: true
+
+    - name: Keep Operator OAuth fields in transient Ansible facts
+      ansible.builtin.set_fact:
+        tailscale_operator_client_id: "{{ operator_vault_fields.stdout_lines[0] }}"
+        tailscale_operator_client_secret: "{{ operator_vault_fields.stdout_lines[1] }}"
+      no_log: true
+
+    - name: Install Operator and API ProxyGroup
+      block:
+        - name: Create root-only bootstrap directory
+          ansible.builtin.file:
+            path: /run/acer-bootstrap
+            state: directory
+            owner: root
+            group: root
+            mode: "0700"
+          become: true
+
+        - name: Write root-only Helm values
+          ansible.builtin.copy:
+            dest: "{{ tailscale_operator_values }}"
+            owner: root
+            group: root
+            mode: "0600"
+            content: |
+              oauth:
+                clientId: {{ tailscale_operator_client_id | to_json }}
+                clientSecret: {{ tailscale_operator_client_secret | to_json }}
+              apiServerProxyConfig:
+                allowImpersonation: true
+          become: true
+          no_log: true
+
+        - name: Install or upgrade Tailscale Operator
+          ansible.builtin.shell: |
+            set -euo pipefail
+            helm repo add tailscale https://pkgs.tailscale.com/helmcharts >/dev/null
+            helm repo update tailscale >/dev/null
+            helm upgrade --install tailscale-operator tailscale/tailscale-operator \
+              --kubeconfig "{{ tailscale_kubeconfig }}" \
+              --namespace tailscale --create-namespace \
+              --version "{{ tailscale_operator_chart_version }}" \
+              -f "{{ tailscale_operator_values }}" \
+              --wait --timeout 180s
+            kubectl --kubeconfig "{{ tailscale_kubeconfig }}" -n tailscale \
+              rollout status deployment/operator --timeout=180s
+          args:
+            executable: /bin/bash
+          become: true
+          no_log: true
+
+        - name: Write API ProxyGroup manifest
+          ansible.builtin.copy:
+            dest: "{{ tailscale_proxy_manifest }}"
+            owner: root
+            group: root
+            mode: "0644"
+            content: |
+              apiVersion: tailscale.com/v1alpha1
+              kind: ProxyGroup
+              metadata:
+                name: {{ tailnet_team }}-operator
+              spec:
+                type: kube-apiserver
+                replicas: 1
+                tags: ["tag:k8s"]
+                kubeAPIServer:
+                  hostname: {{ tailnet_team }}-operator
+                  mode: noauth
+          become: true
+
+        - name: Apply API ProxyGroup
+          ansible.builtin.command: >-
+            kubectl --kubeconfig {{ tailscale_kubeconfig }}
+            apply -f {{ tailscale_proxy_manifest }}
+          become: true
+
+        - name: Wait for API ProxyGroup readiness
+          ansible.builtin.command: >-
+            kubectl --kubeconfig {{ tailscale_kubeconfig }}
+            wait proxygroup/{{ tailnet_team }}-operator
+            --for=condition=ProxyGroupReady=true --timeout=240s
+          become: true
+      always:
+        - name: Remove temporary Helm values containing OAuth credentials
+          ansible.builtin.file:
+            path: "{{ tailscale_operator_values }}"
+            state: absent
+          become: true
+          no_log: true
+
+        - name: Remove temporary ProxyGroup manifest
+          ansible.builtin.file:
+            path: "{{ tailscale_proxy_manifest }}"
+            state: absent
+          become: true
