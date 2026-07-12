@@ -28,14 +28,14 @@ services:
       SEMAPHORE_DB_USER: semaphore
       SEMAPHORE_ADMIN: ${SEMAPHORE_ADMIN_USER:-admin}
       SEMAPHORE_ADMIN_NAME: Administrator
-      SEMAPHORE_ADMIN_EMAIL: admin@${BASE_DOMAIN}
+      SEMAPHORE_ADMIN_EMAIL: admin@${BASE_DOMAIN:-imcherry5778.xyz}
       SEMAPHORE_SCHEDULE_TIMEZONE: ${TZ:-Asia/Seoul}
       SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore
       # Semaphore owns the user session through Keycloak OIDC. The client
       # secret stays in the mounted file, never in the container environment.
       SEMAPHORE_PASSWORD_LOGIN_DISABLED: "true"
       SEMAPHORE_OIDC_PROVIDERS: >-
-        {"keycloak":{"display_name":"Keycloak","provider_url":"https://keycloak.${BASE_DOMAIN}/realms/${KEYCLOAK_REALM:-mgmt}","client_id":"${SEMAPHORE_OIDC_CLIENT_ID:-semaphore}","client_secret_file":"/run/secrets/semaphore_oidc_client_secret","redirect_url":"https://semaphore.${BASE_DOMAIN}/api/auth/oidc/keycloak/redirect","scopes":["openid","profile","email"],"username_claim":"preferred_username","email_claim":"email","name_claim":"name"}}
+        {"keycloak":{"display_name":"Keycloak","provider_url":"https://keycloak.${BASE_DOMAIN:-imcherry5778.xyz}/realms/${KEYCLOAK_REALM:-mgmt}","client_id":"${SEMAPHORE_OIDC_CLIENT_ID:-semaphore}","client_secret_file":"/run/secrets/semaphore_oidc_client_secret","redirect_url":"https://semaphore.${BASE_DOMAIN:-imcherry5778.xyz}/api/auth/oidc/keycloak/redirect","scopes":["openid","profile","email"],"username_claim":"preferred_username","email_claim":"email","name_claim":"name"}}
     volumes:
       - ${MGMT_REPO_ROOT:-/home/user1/acer-mgmt}:/opt/acer-mgmt:ro
       - ${DATA_ROOT:-/home/mgmt-data}/vault-agent/secrets/cicd/k6:/run/vault-k6:ro
@@ -57,11 +57,11 @@ services:
       # First navigation must start platform SSO. Keep Semaphore's own API
       # (including its native OIDC callback) on the non-redirecting router
       # below, so an application 401 is never rewritten into a login loop.
-      - "traefik.http.routers.semaphore.rule=Host(`semaphore.${BASE_DOMAIN}`) && !PathPrefix(`/api`)"
+      - "traefik.http.routers.semaphore.rule=Host(`semaphore.${BASE_DOMAIN:-imcherry5778.xyz}`) && !PathPrefix(`/api`)"
       - "traefik.http.routers.semaphore.entrypoints=websecure"
       - "traefik.http.routers.semaphore.middlewares=sso-auth@file,semaphore-iframe@file"
       - "traefik.http.routers.semaphore.service=semaphore"
-      - "traefik.http.routers.semaphore-api.rule=Host(`semaphore.${BASE_DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.semaphore-api.rule=Host(`semaphore.${BASE_DOMAIN:-imcherry5778.xyz}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.semaphore-api.entrypoints=websecure"
       - "traefik.http.routers.semaphore-api.priority=100"
       - "traefik.http.routers.semaphore-api.middlewares=oauth2-auth@file,semaphore-iframe@file"
