@@ -52,10 +52,6 @@ template {
   contents    = "{{ with secret \"kv/data/mgmt/grafana\" }}{{ .Data.data.oidc_client_secret }}{{ end }}"
   destination = "/vault/secrets/grafana_oidc_client_secret"
   perms       = "0640"
-  # Grafana's official image runs as UID/GID 472. Keep the secret
-  # owner-readable only and grant its runtime group read access after every
-  # render, including renewals and secret rotation.
-  command = "chgrp 472 /vault/secrets/grafana_oidc_client_secret && chmod 0640 /vault/secrets/grafana_oidc_client_secret"
 }
 
 # Alertmanager Slack 웹훅 (Alertmanager slack_api_url_file 로 직접 소비).

@@ -5,6 +5,9 @@ services:
     image: grafana/grafana:13.0.2
     container_name: grafana
     restart: unless-stopped
+    # Vault Agent renders secrets as UID 100 / GID 1000 with mode 0640.
+    # Keep Grafana's non-root UID and join only that mounted-secret group.
+    user: "472:1000"
     environment:
       TZ: ${TZ:-Asia/Seoul}
       GF_SERVER_DOMAIN: grafana.${BASE_DOMAIN}

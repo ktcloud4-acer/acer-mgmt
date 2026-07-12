@@ -66,8 +66,8 @@ assert_template_block_contains "$vault_agent_config" \
   '/vault/secrets/grafana_oidc_client_secret' \
   'kv/data/mgmt/grafana' \
   '.Data.data.oidc_client_secret' \
-  'perms       = "0640"' \
-  'command = "chgrp 472 /vault/secrets/grafana_oidc_client_secret && chmod 0640 /vault/secrets/grafana_oidc_client_secret"'
+  'perms       = "0640"'
+assert_not_contains "$vault_agent_config" 'chgrp 472 /vault/secrets/grafana_oidc_client_secret'
 
 assert_contains "$bootstrap" 'CLIENT_ID=${GRAFANA_OIDC_CLIENT_ID:-grafana}'
 assert_contains "$bootstrap" 'REDIRECT_URI="https://grafana.${BASE_DOMAIN}/login/generic_oauth"'
@@ -89,6 +89,7 @@ assert_contains "$bootstrap" 'docker exec "$VAULT_CONTAINER" test -s "$VAULT_TOK
 assert_not_contains "$bootstrap" 'sh -c "test -s'
 
 assert_contains "$grafana_compose" 'GF_AUTH_GENERIC_OAUTH_ENABLED: "true"'
+assert_contains "$grafana_compose" 'user: "472:1000"'
 assert_contains "$grafana_compose" 'GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN: "true"'
 assert_contains "$grafana_compose" 'GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"'
 assert_contains "$grafana_compose" 'GF_AUTH_GENERIC_OAUTH_CLIENT_ID: ${GRAFANA_OIDC_CLIENT_ID:-grafana}'
