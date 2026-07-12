@@ -6,7 +6,7 @@ set -euo pipefail
 # always runs locally on mgmt and reaches the team's AIO via Tailnet SSH.
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 manifest=${CHAOS_DASHBOARD_TOKEN_MANIFEST:-"$root_dir/compose/config/semaphore/chaos-dashboard-token-projects.json"}
-container_manifest=${SEMAPHORE_MANIFEST_PATH:-/opt/acer-mgmt/compose/config/semaphore/chaos-dashboard-token-projects.json}
+container_manifest=${SEMAPHORE_MANIFEST_PATH:-/tmp/chaos-dashboard-token-projects.json}
 repository_path=${SEMAPHORE_REPOSITORY_PATH:-/opt/acer-mgmt}
 semaphore_container=${SEMAPHORE_CONTAINER:-semaphore}
 task_name='Chaos Dashboard token'
