@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Docker Runtime Viewer</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <p class="eyebrow">Read-only runtime</p>
+          <h1>Docker Runtime Viewer</h1>
+        </div>
+        <p id="freshness" role="status">Loading runtime data…</p>
+      </header>
+      <section id="summary" class="summary-grid" aria-label="Stack summary"></section>
+      <section id="stacks" aria-label="Runtime stacks"></section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>

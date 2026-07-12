@@ -1,0 +1,21 @@
+:root { color-scheme: dark; font-family: system-ui, sans-serif; background: #111827; color: #f8fafc; }
+body { margin: 0; }
+main { max-width: 1080px; margin: 0 auto; padding: 2rem; }
+header { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; }
+h1, h2, p { margin: 0; }
+.eyebrow { color: #94a3b8; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; }
+#freshness { color: #86efac; }
+#freshness.stale { color: #fbbf24; font-weight: 700; }
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; margin: 2rem 0; }
+.summary-card, .stack-toggle, #stacks section { border: 1px solid #334155; border-radius: .6rem; background: #1e293b; }
+.summary-card { padding: 1rem; }
+.summary-card p { color: #cbd5e1; margin-top: .4rem; }
+.stack-toggle { color: inherit; cursor: pointer; display: block; font: inherit; margin-top: .8rem; padding: .9rem 1rem; text-align: left; width: 100%; }
+.stack-toggle::after { content: "▸"; float: right; }
+.stack-toggle[aria-expanded="true"]::after { content: "▾"; }
+#stacks section { border-top: 0; border-radius: 0 0 .6rem .6rem; padding: .5rem 1rem; }
+.container { display: grid; grid-template-columns: minmax(10rem, 2fr) 1fr 1fr; gap: 1rem; padding: .7rem 0; border-bottom: 1px solid #334155; }
+.container:last-child { border-bottom: 0; }
+.status { font-weight: 700; text-transform: capitalize; }
+.healthy { color: #86efac; }.running, .completed { color: #bfdbfe; }.starting, .unhealthy, .stopped { color: #fbbf24; }
+@media (max-width: 600px) { header { align-items: flex-start; flex-direction: column; }.container { grid-template-columns: 1fr; gap: .25rem; } }
