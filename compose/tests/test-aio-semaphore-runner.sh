@@ -21,5 +21,6 @@ absent "$task" 'ssh -i'
 absent "$task" '16443'
 contains "$reconciler" 'git@gitlab.imcherry5778.xyz:acer-group/acer-mgmt.git'
 contains "$reconciler" 'AIO Runner GitLab deploy key'
+contains "$reconciler" 'gitlab_deploy_key_private_b64'
 
 echo 'AIO_SEMAPHORE_RUNNER_CONTRACT=PASS'

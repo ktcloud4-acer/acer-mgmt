@@ -31,12 +31,10 @@ for team in "${teams[@]}"; do
   ' sh "mgmt/tailscale/task-credentials/$team" | jq -cer --arg team "$team" '{team:$team,role_id:(.data.data.role_id // ""),secret_id:(.data.data.secret_id // "")}' >>"$credential_file"
 done
 credentials_b64="$(base64 -w0 "$credential_file")"
-runner_deploy_key="$(docker exec vault sh -ceu '
+runner_deploy_key_b64="$(docker exec vault sh -ceu '
   export VAULT_ADDR=https://127.0.0.1:8200 VAULT_CACERT=/vault/tls/ca.crt VAULT_TOKEN="$(cat /tmp/.vt)"
-  vault kv get -field=gitlab_deploy_key_private -mount=kv mgmt/cicd/semaphore-runner/aio
+  vault kv get -field=gitlab_deploy_key_private_b64 -mount=kv mgmt/cicd/semaphore-runner/aio
 ')"
-runner_deploy_key_b64="$(printf '%s' "$runner_deploy_key" | base64 -w0)"
-unset runner_deploy_key
 docker exec -e "TAILSCALE_CREDENTIALS_B64=$credentials_b64" -e "AIO_RUNNER_GITLAB_DEPLOY_KEY_B64=$runner_deploy_key_b64" -i semaphore sh -s -- "$container_manifest" "$task_name" "$selected_teams" <<'CONTAINER_SCRIPT'
 set -eu
 manifest="$1"; task_name="$2"; selected_teams="$3"; tmp="$(mktemp -d)"; credentials="$tmp/credentials.jsonl"; runner_deploy_key="$tmp/aio-runner-gitlab-deploy-key"
