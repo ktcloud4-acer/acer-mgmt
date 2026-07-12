@@ -31,6 +31,7 @@ assert_contains "$agent_config" "<ignore>"
 assert_contains "$bootstrap" "wazuh/wazuh-certs-generator:0.0.4"
 assert_contains "$bootstrap" "v4.14.6"
 assert_contains "$bootstrap" "internal_users.yml"
+assert_contains "$bootstrap" 'chown -R 1000:1000 "$WAZUH_ROOT/indexer"'
 assert_contains "$secrets_bootstrap" "openssl rand -hex 32"
 assert_contains "$secrets_bootstrap" "vault kv put -mount=kv mgmt/wazuh -"
 assert_contains "$secrets_bootstrap" "-field=indexer_password mgmt/wazuh"
