@@ -29,7 +29,7 @@ services:
     networks:
       mgmt-proxy: {}
       traefik-grafana-auth:
-        ipv4_address: ${TRAEFIK_GRAFANA_AUTH_IP:-172.31.254.2}
+        ipv4_address: ${TRAEFIK_GRAFANA_AUTH_IP:-10.254.254.2}
     labels:
       - "traefik.enable=true"
       # ── 다른 서비스에 이 패턴 복사 (Host 규칙만 교체) ──

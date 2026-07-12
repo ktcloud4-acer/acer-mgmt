@@ -5,9 +5,9 @@ set -euo pipefail
 # on this isolated network. Keep Grafana's data-source traffic on a separate
 # private network so no shared mgmt-proxy peer can forge that header.
 AUTH_NETWORK=${TRAEFIK_GRAFANA_AUTH_NET:-traefik-grafana-auth}
-AUTH_SUBNET=${TRAEFIK_GRAFANA_AUTH_SUBNET:-172.31.254.0/29}
+AUTH_SUBNET=${TRAEFIK_GRAFANA_AUTH_SUBNET:-10.254.254.0/29}
 OBS_NETWORK=${GRAFANA_OBSERVABILITY_NET:-grafana-observability}
-OBS_SUBNET=${GRAFANA_OBSERVABILITY_SUBNET:-172.31.253.0/29}
+OBS_SUBNET=${GRAFANA_OBSERVABILITY_SUBNET:-10.254.253.0/29}
 
 command -v docker >/dev/null 2>&1 || {
   echo 'docker is required' >&2
