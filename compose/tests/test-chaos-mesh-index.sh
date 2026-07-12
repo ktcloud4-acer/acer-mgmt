@@ -36,7 +36,7 @@ for router in k3d-chaos-dashboard ggg-chaos-dashboard khb-chaos-dashboard ljw-ch
   assert_router_uses_sso "$router"
 done
 
-chaos_icon='https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/static/logo-white.svg'
+chaos_icon='https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/ui/app/src/images/logo-mini-white.svg'
 assert_chaos_card 'Mgmt Chaos' 'https://chaos.imcherry5778.xyz' 'http://platform-monitor:8080/api/status/chaos/mgmt' "$chaos_icon"
 assert_chaos_card 'ggg Chaos' 'https://ggg-chaos.imcherry5778.xyz' 'http://platform-monitor:8080/api/status/chaos/ggg' "$chaos_icon"
 assert_chaos_card 'khb Chaos' 'https://khb-chaos.imcherry5778.xyz' 'http://platform-monitor:8080/api/status/chaos/khb' "$chaos_icon"
