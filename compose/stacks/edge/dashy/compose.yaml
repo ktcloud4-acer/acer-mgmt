@@ -12,6 +12,10 @@ services:
     environment:
       TZ: ${TZ:-Asia/Seoul}
       DISABLE_CONFIG_BACKUPS: "true"
+    extra_hosts:
+      # GitLab's Docker hostname otherwise resolves to its container IP, where
+      # HTTPS is not exposed. Status checks must traverse Traefik like users do.
+      - "gitlab.${BASE_DOMAIN}:${TAILSCALE_IP:-100.117.59.96}"
     volumes:
       - ./config:/app/user-data:ro,Z
     networks:

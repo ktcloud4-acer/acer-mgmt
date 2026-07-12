@@ -2,8 +2,8 @@ pageInfo:
   title: ACER Operations
   description: Central infrastructure service index
   navLinks:
-    - title: Runbooks
-      path: https://gitlab.imcherry5778.xyz/acer-group/acer-docs/-/tree/main/acer-mgmt/docs/runbooks
+    - title: Home
+      path: /
 
 pages:
   - name: Monitor
@@ -14,142 +14,192 @@ pages:
 appConfig:
   startingView: home
   defaultOpeningMethod: newtab
-  layout: masonry
+  layout: auto
   iconSize: medium
+  theme: acer-ops
+  cssThemes: [acer-ops]
+  externalStyleSheet: /acer-ops.css
+  customColors:
+    acer-ops:
+      primary: '#9ed6df'
+      background: '#172738'
+      background-darker: '#101d2a'
+      heading-text-color: '#ecf6f8'
+      item-text-color: '#dceef2'
+      item-group-outer-background: '#4d8197'
+      item-group-background: '#20394b'
+      item-group-heading-text-color: '#10202c'
+      nav-link-background-color: '#142633'
+      nav-link-border-color: '#385a6a'
+      success: '#4fd48a'
+      warning: '#f0b84d'
+      danger: '#ef6c73'
   statusCheck: true
   statusCheckInterval: 60
-  statusCheckAccessibility: true
+  statusCheckAccessibility: false
   disableConfiguration: true
   preventWriteToDisk: true
   preventLocalSave: true
 
 sections:
-  - name: Observability
-    icon: fas fa-chart-line
-    items:
-      - title: Grafana
-        description: Metrics dashboards
-        icon: fas fa-chart-line
-        url: https://grafana.imcherry5778.xyz
-        target: workspace
-      - title: Prometheus
-        description: Metrics collection and queries
-        icon: fas fa-fire
-        url: https://prometheus.imcherry5778.xyz
-      - title: Alertmanager
-        description: Alert routing, grouping, and silences
-        icon: fas fa-bell
-        url: https://alertmanager.imcherry5778.xyz
-        target: workspace
-      - title: Kibana
-        description: Central log search and analysis
-        icon: fas fa-magnifying-glass
-        url: https://kibana.imcherry5778.xyz
-      - title: n8n
-        description: Platform operations-digest automation
-        icon: fas fa-project-diagram
-        url: https://n8n.imcherry5778.xyz
-
-  - name: Backup
-    icon: fas fa-box-archive
-    items:
-      - title: MinIO
-        description: S3-compatible backup storage
-        icon: fas fa-hard-drive
-        url: https://minio.imcherry5778.xyz
-      - title: Restic
-        description: Daily encrypted host-volume backup
-        icon: fas fa-archive
-
   - name: CI/CD
     icon: fas fa-code-branch
     items:
       - title: Argo CD
         description: GitOps delivery on the k3d management cluster
-        icon: fas fa-code-branch
+        icon: https://cdn.simpleicons.org/argo
         url: https://argocd.imcherry5778.xyz
       - title: GitLab
         description: Source control and CI/CD
-        icon: fab fa-gitlab
+        icon: https://cdn.simpleicons.org/gitlab
         url: https://gitlab.imcherry5778.xyz
-      - title: GitLab Runner
-        description: Registered Docker CI executor
-        icon: fas fa-running
+        statusCheckAcceptCodes: '302'
       - title: SonarQube
         description: Static analysis and quality
-        icon: fas fa-wave-square
+        icon: hl-sonarqube
         url: https://sonar.imcherry5778.xyz
       - title: Allure
         description: Test reports (unit/integration/e2e)
-        icon: fas fa-flask
+        icon: https://raw.githubusercontent.com/allure-framework/allure2/main/allure-generator/src/main/javascript/features/shell/allure_logo.svg
         url: https://allure.imcherry5778.xyz/allure-docker-service/projects/web-service/reports/latest/index.html
       - title: Playwright
         description: e2e (Playwright) HTML report
-        icon: fas fa-theater-masks
+        icon: https://playwright.dev/img/playwright-logo.svg
         url: https://playwright.imcherry5778.xyz/
       - title: Semaphore
         description: Ansible automation
-        icon: fas fa-tasks
+        icon: https://cdn.simpleicons.org/semaphoreci
         url: https://semaphore.imcherry5778.xyz
-        target: workspace
       - title: Harbor
         description: OCI image registry
-        icon: fas fa-box
+        icon: hl-harbor
         url: https://harbor.imcherry5778.xyz
 
-  - name: Data
-    icon: fas fa-database
-    items:
-      - title: Kafka
-        description: Event streaming and broker UI
-        icon: fas fa-stream
-        url: https://kafka.imcherry5778.xyz
-      - title: Supabase
-        description: Self-hosted backend platform
-        icon: fas fa-database
-        url: https://supabase.imcherry5778.xyz
-
-  - name: Infra
-    icon: fas fa-server
-    items:
-      - title: NetBox
-        description: IPAM / CMDB — infrastructure source of truth
-        icon: fas fa-server
-        url: https://netbox.imcherry5778.xyz
-
   - name: Security
-    icon: fas fa-shield-halved
+    icon: fas fa-shield-alt
     items:
       - title: Keycloak
         description: Central SSO identity provider
-        icon: fas fa-key
+        icon: https://cdn.simpleicons.org/keycloak
         url: https://keycloak.imcherry5778.xyz
       - title: Teleport
         description: SSH, Kubernetes, and internal app access plane
-        icon: fas fa-terminal
+        icon: hl-teleport
         url: https://teleport.imcherry5778.xyz:3080
       - title: Vault
         description: Secrets management
-        icon: fas fa-lock
+        icon: https://cdn.simpleicons.org/vault
         url: https://vault.imcherry5778.xyz
-        target: workspace
       - title: Wazuh
         description: Endpoint security alerts and agent health
-        icon: fas fa-shield-virus
+        icon: hl-wazuh
         url: https://wazuh.imcherry5778.xyz
       - title: RedisInsight
         description: OAuth2 Proxy session store administration
-        icon: fas fa-database
+        icon: https://cdn.simpleicons.org/redis
         url: https://redis.imcherry5778.xyz
+
+  - name: Observability
+    icon: fas fa-chart-line
+    items:
+      - title: Grafana
+        description: Metrics dashboards
+        icon: https://cdn.simpleicons.org/grafana
+        url: https://grafana.imcherry5778.xyz
+      - title: Prometheus
+        description: Metrics collection and queries
+        icon: https://cdn.simpleicons.org/prometheus
+        url: https://prometheus.imcherry5778.xyz
+      - title: Alertmanager
+        description: Alert routing, grouping, and silences
+        icon: hl-alertmanager
+        url: https://alertmanager.imcherry5778.xyz
+      - title: Kibana
+        description: Central log search and analysis
+        icon: https://cdn.simpleicons.org/kibana
+        url: https://kibana.imcherry5778.xyz
+      - title: n8n
+        description: Platform operations-digest automation
+        icon: https://cdn.simpleicons.org/n8n
+        url: https://n8n.imcherry5778.xyz
 
   - name: Edge
     icon: fas fa-network-wired
     items:
       - title: Traefik
         description: Internal ingress dashboard
-        icon: fas fa-network-wired
+        icon: https://cdn.simpleicons.org/traefikproxy
         url: https://traefik.imcherry5778.xyz
       - title: AdGuard Home
         description: Internal DNS wildcard management
-        icon: fas fa-shield-alt
+        icon: https://cdn.simpleicons.org/adguard
         url: https://adguard.imcherry5778.xyz
+
+  - name: Data
+    icon: fas fa-database
+    items:
+      - title: Kafka
+        description: Event streaming and broker UI
+        icon: https://cdn.simpleicons.org/apachekafka
+        url: https://kafka.imcherry5778.xyz
+      - title: Supabase
+        description: Self-hosted backend platform
+        icon: https://cdn.simpleicons.org/supabase
+        url: https://supabase-admin.imcherry5778.xyz
+        statusCheckAcceptCodes: '302'
+
+  - name: Infra
+    icon: fas fa-server
+    items:
+      - title: NetBox
+        description: IPAM / CMDB — infrastructure source of truth
+        icon: hl-netbox
+        url: https://netbox.imcherry5778.xyz
+
+  - name: Backup
+    icon: fas fa-archive
+    items:
+      - title: MinIO
+        description: S3-compatible backup storage
+        icon: https://cdn.simpleicons.org/minio
+        url: https://minio.imcherry5778.xyz
+
+  - name: Chaos Mesh
+    icon: fas fa-biohazard
+    items:
+      - title: Mgmt Chaos
+        description: Chaos Mesh dashboard for the management k3d cluster
+        icon: https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/ui/app/src/images/logo-mini-white.svg
+        url: https://chaos.imcherry5778.xyz
+        statusCheckUrl: http://platform-monitor:8080/api/status/chaos/mgmt
+        statusCheckAcceptCodes: '200'
+      - title: ggg Chaos
+        description: Chaos Mesh dashboard for the ggg cluster
+        icon: https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/ui/app/src/images/logo-mini-white.svg
+        url: https://ggg-chaos.imcherry5778.xyz
+        statusCheckUrl: http://platform-monitor:8080/api/status/chaos/ggg
+        statusCheckAcceptCodes: '200'
+      - title: khb Chaos
+        description: Chaos Mesh dashboard for the khb cluster
+        icon: https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/ui/app/src/images/logo-mini-white.svg
+        url: https://khb-chaos.imcherry5778.xyz
+        statusCheckUrl: http://platform-monitor:8080/api/status/chaos/khb
+        statusCheckAcceptCodes: '200'
+      - title: ljw Chaos
+        description: Chaos Mesh dashboard for the ljw cluster
+        icon: https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/ui/app/src/images/logo-mini-white.svg
+        url: https://ljw-chaos.imcherry5778.xyz
+        statusCheckUrl: http://platform-monitor:8080/api/status/chaos/ljw
+        statusCheckAcceptCodes: '200'
+      - title: nmg Chaos
+        description: Chaos Mesh dashboard for the nmg cluster
+        icon: https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/ui/app/src/images/logo-mini-white.svg
+        url: https://nmg-chaos.imcherry5778.xyz
+        statusCheckUrl: http://platform-monitor:8080/api/status/chaos/nmg
+        statusCheckAcceptCodes: '200'
+      - title: oje Chaos
+        description: Chaos Mesh dashboard for the oje cluster
+        icon: https://raw.githubusercontent.com/chaos-mesh/chaos-mesh/master/ui/app/src/images/logo-mini-white.svg
+        url: https://oje-chaos.imcherry5778.xyz
+        statusCheckUrl: http://platform-monitor:8080/api/status/chaos/oje
+        statusCheckAcceptCodes: '200'

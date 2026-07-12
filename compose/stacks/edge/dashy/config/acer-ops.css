@@ -1,0 +1,15 @@
+html[data-theme='acer-ops'] {
+  --curve-factor: 6px;
+  --curve-factor-navbar: 6px;
+  --item-group-padding: 7px;
+  --item-shadow: 0 2px 8px #09131d99;
+  --item-hover-shadow: 0 4px 16px #07101aaa;
+}
+
+html[data-theme='acer-ops'] .item-group {
+  border: 1px solid #6aa6b5;
+}
+
+html[data-theme='acer-ops'] .item {
+  border: 1px solid #36596a;
+}

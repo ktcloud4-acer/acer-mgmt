@@ -86,6 +86,7 @@ http:
         stsSeconds: 31536000
         stsIncludeSubdomains: true
 
+
     # 내부 도구 보호용 기본 인증 (사용 시 .env/secrets 의 해시로 교체)
     basic-auth:
       basicAuth:

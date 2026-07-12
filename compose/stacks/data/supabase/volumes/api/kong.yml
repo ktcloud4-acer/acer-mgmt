@@ -424,6 +424,22 @@ services:
       #      - ::1
       #    deny: []
 
+  ## Keycloak-protected administrator dashboard. This host-specific route has
+  ## higher specificity than the legacy catch-all route below, so Studio can
+  ## use the shared OAuth2-proxy session without exposing the API host.
+  - name: dashboard-keycloak
+    _comment: 'Studio via supabase-admin host -> http://studio:3000/*'
+    url: http://studio:3000/
+    routes:
+      - name: dashboard-keycloak-all
+        strip_path: true
+        hosts:
+          - $SUPABASE_ADMIN_HOST
+        paths:
+          - /
+    plugins:
+      - name: cors
+
   ## Protected Dashboard - catch all remaining routes
   - name: dashboard
     _comment: 'Studio: /* -> http://studio:3000/*'
