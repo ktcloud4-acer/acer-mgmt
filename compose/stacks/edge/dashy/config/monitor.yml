@@ -1,30 +1,14 @@
 pageInfo:
   title: ACER Monitor
-  description: Platform health, capacity, cluster and alert drill-down
-
+  description: Live platform health from Prometheus and Alertmanager
 sections:
-  - name: Platform Monitor
-    icon: fas fa-chart-line
+  - name: Platform Health
+    icon: fas fa-heart-pulse
     displayData:
-      itemCountX: 2
-    items:
-      - title: Platform Health
-        description: Service availability and active alerts
-        icon: si-grafana
-        url: https://grafana.imcherry5778.xyz/d/sre-scalecart-landing
-        target: workspace
-      - title: Mgmt Host
-        description: CPU, memory, disk and network
-        icon: fas fa-server
-        url: https://grafana.imcherry5778.xyz/d/mgmt-node-exporter
-        target: workspace
-      - title: Active Clusters
-        description: Kubernetes nodes and workloads
-        icon: fas fa-cubes
-        url: https://grafana.imcherry5778.xyz/d/kubernetes-nodes
-        target: workspace
-      - title: Alerts
-        description: Firing, silenced and routed alerts
-        icon: fas fa-bell
-        url: https://alertmanager.imcherry5778.xyz
-        target: workspace
+      cols: 5
+      rows: 5
+    widgets:
+      - type: iframe
+        options:
+          url: https://monitor.imcherry5778.xyz
+          frameHeight: 860
