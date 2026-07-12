@@ -4,11 +4,11 @@
   connection: local
   gather_facts: false
   vars:
-    k6_team: "{{ K6_TEAM }}"
-    k6_base_url: "{{ K6_BASE_URL }}"
+    k6_team: "{{ lookup('ansible.builtin.env', 'K6_TEAM') }}"
+    k6_base_url: "{{ lookup('ansible.builtin.env', 'K6_BASE_URL') }}"
     k6_rate: "{{ K6_RATE | default(lookup('ansible.builtin.env', 'K6_RATE') | default('150', true), true) }}"
     k6_duration: "{{ K6_DURATION | default(lookup('ansible.builtin.env', 'K6_DURATION') | default('4m', true), true) }}"
-    k6_key_file: "{{ lookup('ansible.builtin.env', 'K6_KEY_FILE_ROOT') | default('/run/vault-k6', true) }}/{{ K6_TEAM }}.env"
+    k6_key_file: "{{ lookup('ansible.builtin.env', 'K6_KEY_FILE_ROOT') | default('/run/vault-k6', true) }}/{{ k6_team }}.env"
   pre_tasks:
     - name: Validate the fixed team and k6 overrides
       ansible.builtin.assert:

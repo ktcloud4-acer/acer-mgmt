@@ -42,6 +42,8 @@ contains "$k6_playbook" 'no_log: true'
 contains "$k6_playbook" 'scalecart-api-hpa.js'
 contains "$k6_playbook" 'K6_RATE'
 contains "$k6_playbook" 'K6_DURATION'
+contains "$k6_playbook" "lookup('ansible.builtin.env', 'K6_TEAM')"
+contains "$k6_playbook" "lookup('ansible.builtin.env', 'K6_BASE_URL')"
 
 contains "$dns_reconciler" 'check:dns'
 contains "$dns_reconciler" 'compose/ansible/dns-smoke-test.yml'
