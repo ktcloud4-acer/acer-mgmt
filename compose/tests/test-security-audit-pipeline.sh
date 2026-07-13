@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 filebeat="$ROOT_DIR/compose/stacks/observability/elk/config/filebeat/mgmt-docker-logstash/filebeat.yml"
 filters="$ROOT_DIR/compose/stacks/observability/elk/config/pipeline/20-filters.conf"
 outputs="$ROOT_DIR/compose/stacks/observability/elk/config/pipeline-consumer/90-outputs.conf"
-dashboard="$ROOT_DIR/compose/stacks/observability/elk/config/kibana/security-audit.ndjson"
+dashboard="$ROOT_DIR/compose/stacks/observability/elk/config/kibana/security-audit.dashboard.json"
 keycloak="$ROOT_DIR/compose/stacks/security/keycloak/compose.yaml"
 elk="$ROOT_DIR/compose/stacks/observability/elk"
 compose="$elk/compose.yaml"
@@ -29,6 +29,13 @@ assert_contains() {
   grep -Fq -- "$expected" "$file" || fail "$file does not contain: $expected"
 }
 
+assert_dashboard_contract() {
+  local file="$1"
+  [[ -f "$file" ]] || fail "missing file: $file"
+  command -v node >/dev/null 2>&1 || fail "node is required to validate dashboard JSON"
+  node "$ROOT_DIR/compose/tests/validate-security-audit-dashboard.mjs" "$file"
+}
+
 assert_contains "$filebeat" "id: mgmt-vault-audit"
 assert_contains "$filebeat" "/home/mgmt-data/vault-audit/vault-audit.log"
 assert_contains "$filebeat" "/home/mgmt-data/wazuh/logs/alerts/alerts.json"
@@ -36,7 +43,26 @@ assert_contains "$filters" "[labels][audit_source]"
 assert_contains "$filters" "[app][request][id]"
 assert_contains "$filters" "[app][request][data]"
 assert_contains "$outputs" "acer-audit-%{[labels][team]}"
-assert_contains "$dashboard" "Security Audit Overview"
+assert_dashboard_contract "$dashboard"
+assert_contains "$dashboard" '"title": "Security Audit Overview"'
+assert_contains "$dashboard" '"type": "options_list_control"'
+assert_contains "$dashboard" '"field_name": "labels.audit_source.keyword"'
+assert_contains "$dashboard" '"field_name": "labels.team.keyword"'
+assert_contains "$dashboard" '"field_name": "labels.audit_alert.keyword"'
+assert_contains "$dashboard" '"field_name": "user.name.keyword"'
+assert_contains "$dashboard" '"field_name": "host.name.keyword"'
+assert_contains "$dashboard" 'SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index'
+assert_contains "$dashboard" "Current situation"
+assert_contains "$dashboard" "Source freshness"
+assert_contains "$dashboard" "Recent high-signal events"
+assert_contains "$dashboard" "Full audit timeline"
+assert_contains "$dashboard" 'NOT (_index LIKE \"acer-audit-alerts-*\")'
+assert_contains "$dashboard" '"id": "audit-kpi-total"'
+assert_contains "$apply" "acer-audit-*,-acer-audit-alerts-*"
+assert_contains "$apply" '\"allowNoIndex\":true'
+assert_contains "$apply" "/api/dashboards/security-audit-overview"
+assert_contains "$apply" "security-audit.dashboard.json"
+assert_contains "$apply" "dashboard verification failed"
 assert_contains "$keycloak" "KC_SPI_EVENTS_LISTENER__JBOSS_LOGGING__SUCCESS_LEVEL: info"
 
 # ── W0 P1: ES security + 최소권한 RBAC ───────────────────────────────────────

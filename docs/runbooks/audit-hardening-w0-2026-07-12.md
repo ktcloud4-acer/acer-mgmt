@@ -8,6 +8,7 @@
 | P2 | 감사 전용 ILM(90일) + replica0 템플릿 (보존·yellow 해소) | `config/ilm/acer-audit-*`, `apply-observability.sh` |
 | P2b | MinIO 스냅샷 백업 (SLM 일일) | `config/snapshot/*`, `elk-snapshot-bootstrap.sh` |
 | P3 | 고신호 감사 탐지 + 전용 알림 인덱스 | `pipeline/50-audit-alerts.conf`, 알림 라우팅 |
+| P4 | 통합 감사 관제 화면 | `security-audit.dashboard.json`, `apply-observability.sh` |
 
 > 적용 대상은 라이브 mgmt 호스트다. **아래 순서를 지키지 않으면 로그 파이프라인이 잠깐
 > 끊긴다.** 특히 P1 은 kibana_system 패스워드를 부트스트랩한 뒤에 Kibana 를 올려야 한다.
@@ -46,7 +47,7 @@ make up s=observability/elk            # 또는 docker compose up -d elasticsear
 # 3) Kibana / logstash-consumer 를 자격증명과 함께 (재)기동
 docker compose up -d kibana logstash logstash-consumer
 
-# 4) 보존정책/템플릿/기존 인덱스 보정 (P2 포함)
+# 4) 보존정책/템플릿/기존 인덱스 보정 + 감사 대시보드(P2/P4)
 ES_USER=elastic ES_PASSWORD="$ELK_ELASTIC_PASSWORD" ./scripts/apply-observability.sh
 ```
 
@@ -61,7 +62,21 @@ curl -s -o /dev/null -w '%{http_code}\n' -u "logstash_ingest:$ELK_LOGSTASH_PASSW
   -X DELETE http://127.0.0.1:9200/acer-audit-mgmt-*                    # 403
 # 로그 유입 지속 확인
 curl -s -u "elastic:$ELK_ELASTIC_PASSWORD" 'http://127.0.0.1:9200/acer-audit-mgmt-*/_count'
+
+# 감사 data view: 알림 라우팅 복제본을 제외해야 함
+curl -sf -u "elastic:$ELK_ELASTIC_PASSWORD" \
+  http://127.0.0.1:5601/api/data_views/data_view/acer-audit \
+  | jq -e '.data_view.title == "acer-audit-*,-acer-audit-alerts-*"'
+
+# 선언형 대시보드가 고정 ID/제목으로 저장됐는지 확인
+curl -sf -u "elastic:$ELK_ELASTIC_PASSWORD" \
+  http://127.0.0.1:5601/api/dashboards/security-audit-overview \
+  | jq -e '.id == "security-audit-overview" and .data.title == "Security Audit Overview"'
 ```
+
+Kibana default Space에서 `Security Audit Overview`를 열고 최근 24시간/60초 새로고침,
+상단 5개 필터, 소스별 마지막 수집 시각, 고신호 이벤트 표를 확인한다. KPI는
+`acer-audit-alerts-*` 복제본을 제외한 원본 감사 이벤트 기준이다.
 
 **롤백**: `compose.yaml` 의 `xpack.security.enabled` 를 `false` 로 되돌리고
 `90-outputs.conf` 의 `user/password` 라인을 제거 후 재기동. (보안 인덱스는 남지만
