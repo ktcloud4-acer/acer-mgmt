@@ -11,6 +11,7 @@ elk="$ROOT_DIR/compose/stacks/observability/elk"
 compose="$elk/compose.yaml"
 audit_policy="$elk/config/ilm/acer-audit-retention.policy.json"
 audit_template="$elk/config/ilm/acer-audit.template.json"
+logs_template="$elk/config/elasticsearch/acer-logs-template.json"
 apply="$elk/scripts/apply-observability.sh"
 sec_bootstrap="$elk/scripts/elk-security-bootstrap.sh"
 snap_bootstrap="$elk/scripts/elk-snapshot-bootstrap.sh"
@@ -39,9 +40,13 @@ assert_dashboard_contract() {
 assert_contains "$filebeat" "id: mgmt-vault-audit"
 assert_contains "$filebeat" "/home/mgmt-data/vault-audit/vault-audit.log"
 assert_contains "$filebeat" "/home/mgmt-data/wazuh/logs/alerts/alerts.json"
+assert_contains "$filebeat" "drop_event:"
+assert_contains "$filebeat" "container.name: logstash"
+assert_contains "$filebeat" "container.name: logstash-consumer"
 assert_contains "$filters" "[labels][audit_source]"
 assert_contains "$filters" "[app][request][id]"
 assert_contains "$filters" "[app][request][data]"
+assert_contains "$filters" 'if [host][name] == "acer-mgmt" and [container][name] in ["logstash", "logstash-consumer"]'
 assert_contains "$outputs" "acer-audit-%{[labels][team]}"
 assert_dashboard_contract "$dashboard"
 assert_contains "$dashboard" '"title": "Security Audit Overview"'
@@ -87,6 +92,11 @@ assert_contains "$audit_template" '"acer-audit-*"'
 assert_contains "$audit_template" '"number_of_replicas": 0'
 assert_contains "$apply" "acer-audit-retention"
 assert_contains "$apply" "_index_template/acer-audit"
+assert_contains "$logs_template" '"logs-docker-*"'
+assert_contains "$logs_template" '"priority": 250'
+assert_contains "$apply" '$CFG/elasticsearch/acer-logs-template.json'
+grep -Fq '$CFG/ilm/acer-logs.template.json' "$apply" \
+  && fail "apply-observability must not deploy the legacy acer-logs template" || true
 
 # ── W0 P2b: 스냅샷 ───────────────────────────────────────────────────────────
 assert_contains "$slm" '"repository": "acer-audit-minio"'

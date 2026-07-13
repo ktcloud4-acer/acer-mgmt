@@ -29,8 +29,9 @@ bash compose/stacks/observability/elk/scripts/apply-observability.sh
 
 1. **ILM 정책 `logs-retention-14d`** (`config/ilm/logs-retention-14d.policy.json`)
    — 인덱스 생성 **14일 후 자동 삭제**. 보존 기간 변경은 이 파일의 `min_age` 만 수정 후 재실행.
-2. **인덱스 템플릿 `acer-logs`** (`config/ilm/acer-logs.template.json`)
-   — `k8s-logs-*`, `infra-logs-*` 신규 인덱스에 `number_of_replicas: 0`(단일노드 → green) + 위 ILM 자동 부착.
+2. **인덱스 템플릿 `acer-logs`** (`config/elasticsearch/acer-logs-template.json`)
+   — `logs-docker-*`, `logs-k3d-*`, `logs-kubernetes-*`, `logs-openstack-*`, `logs-service-*` 신규 인덱스에
+   `number_of_replicas: 0`(단일노드 → green) + 위 ILM 자동 부착.
 3. **기존 인덱스 보정** — 이미 존재하는 `k8s-logs-*`/`infra-logs-*` 에 replica0 + ILM 소급 적용.
 4. **Kibana 팀원별 Space** (`ggg`/`khb`/`ljw`/`nmg`/`oje`) + Space별 **data view**
    (`k8s-logs-<user>-*`, `infra-logs-<user>-*`) + **`errors` 저장검색**(ERROR/FATAL/CRITICAL).

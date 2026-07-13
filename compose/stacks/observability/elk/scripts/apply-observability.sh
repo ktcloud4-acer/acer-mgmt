@@ -36,9 +36,9 @@ curl -sf "${AUTH[@]}" -X PUT "$ES/_ilm/policy/logs-retention-14d" \
   -H 'Content-Type: application/json' -d @"$CFG/ilm/logs-retention-14d.policy.json" >/dev/null \
   && echo "  ok" || echo "  FAIL"
 
-say "인덱스 템플릿 acer-logs (k8s-logs-*, infra-logs-*)"
+say "인덱스 템플릿 acer-logs (Logstash 일별 로그 인덱스)"
 curl -sf "${AUTH[@]}" -X PUT "$ES/_index_template/acer-logs" \
-  -H 'Content-Type: application/json' -d @"$CFG/ilm/acer-logs.template.json" >/dev/null \
+  -H 'Content-Type: application/json' -d @"$CFG/elasticsearch/acer-logs-template.json" >/dev/null \
   && echo "  ok" || echo "  FAIL"
 
 say "기존 k8s-logs-*/infra-logs-* 인덱스에 replica0 + lifecycle 적용 (yellow→green + 보존 소급)"
