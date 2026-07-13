@@ -68,7 +68,7 @@
       "config": {
         "title": "Alert signature",
         "data_view_id": "acer-audit",
-        "field_name": "labels.audit_alert.keyword",
+        "field_name": "labels.audit_alert",
         "use_global_filters": true,
         "single_select": false,
         "search_technique": "wildcard",
@@ -86,7 +86,7 @@
       "config": {
         "title": "User",
         "data_view_id": "acer-audit",
-        "field_name": "user.name.keyword",
+        "field_name": "user.keyword",
         "use_global_filters": true,
         "single_select": false,
         "search_technique": "wildcard",
@@ -191,8 +191,8 @@
           },
           "config": {
             "type": "metric",
-            "title": "Wazuh alerts",
-            "description": "Endpoint and host alerts supplied by Wazuh.",
+            "title": "Wazuh audit events",
+            "description": "Normalized endpoint and host audit events supplied by Wazuh.",
             "data_source": {
               "type": "esql",
               "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND labels.audit_source.keyword == \"wazuh\" | STATS events = COUNT(*)"
@@ -203,7 +203,7 @@
               {
                 "type": "primary",
                 "column": "events",
-                "label": "Wazuh alerts"
+                "label": "Wazuh audit events"
               }
             ]
           }
@@ -387,7 +387,7 @@
             "description": "Newest canonical events matched by Vault or Wazuh high-signal rules.",
             "data_source": {
               "type": "esql",
-              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND labels.audit_alert IS NOT NULL | SORT @timestamp DESC | KEEP @timestamp, event.severity, labels.audit_alert, labels.audit_source, labels.team, user.name, host.name, event.action, event.code, url.path | LIMIT 100"
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND labels.audit_alert IS NOT NULL | SORT @timestamp DESC | KEEP @timestamp, event.severity, labels.audit_alert, labels.audit_source, labels.team, user, host.name, event.action, event.code, url.path | LIMIT 100"
             },
             "sampling": 1,
             "ignore_global_filters": false,
@@ -418,7 +418,7 @@
                 "width": 80
               },
               {
-                "column": "user.name",
+                "column": "user",
                 "label": "User",
                 "width": 130
               },
@@ -509,7 +509,7 @@
                 "type": "bar_horizontal",
                 "data_source": {
                   "type": "esql",
-                  "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND user.name IS NOT NULL | STATS events = COUNT(*) BY user = user.name.keyword | SORT events DESC | LIMIT 10"
+                  "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND user IS NOT NULL | STATS events = COUNT(*) BY user = user.keyword | SORT events DESC | LIMIT 10"
                 },
                 "sampling": 1,
                 "ignore_global_filters": false,
@@ -588,7 +588,7 @@
             "description": "Newest canonical audit events for the current time range and filters.",
             "data_source": {
               "type": "esql",
-              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") | SORT @timestamp DESC | KEEP @timestamp, labels.audit_source, labels.team, labels.service, event.severity, labels.audit_alert, user.name, host.name, event.action, event.code, url.path, message | LIMIT 200"
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") | SORT @timestamp DESC | KEEP @timestamp, labels.audit_source, labels.team, labels.service, event.severity, labels.audit_alert, user, host.name, event.action, event.code, url.path, message | LIMIT 200"
             },
             "sampling": 1,
             "ignore_global_filters": false,
@@ -624,7 +624,7 @@
                 "width": 190
               },
               {
-                "column": "user.name",
+                "column": "user",
                 "label": "User",
                 "width": 130
               },

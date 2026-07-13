@@ -67,6 +67,13 @@ curl -sf "${AUTH[@]}" -X PUT "$ES/acer-audit-*/_settings" \
   -d '{"index":{"number_of_replicas":0,"lifecycle":{"name":"acer-audit-retention"}}}' >/dev/null \
   && echo "  ok" || echo "  (대상 인덱스 없음 or 부분실패 — 신규 인덱스는 템플릿으로 커버됨)"
 
+say "기존 acer-audit-* 인덱스에 감사 알림 서명 keyword 매핑 적용"
+curl -sf "${AUTH[@]}" -X PUT \
+  "$ES/acer-audit-*/_mapping?allow_no_indices=true&ignore_unavailable=true" \
+  -H 'Content-Type: application/json' \
+  -d '{"properties":{"labels":{"properties":{"audit_alert":{"type":"keyword"}}}}}' >/dev/null \
+  && echo "  ok" || die "기존 감사 인덱스 audit_alert 매핑 적용 실패"
+
 # ── 2) Kibana: 팀원별 Space + data view + 저장검색 ─────────────────────────
 KBH=(-H 'kbn-xsrf: true' -H 'Content-Type: application/json' "${AUTH[@]}")
 
