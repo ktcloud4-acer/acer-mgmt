@@ -1,0 +1,20 @@
+[ req ]
+distinguished_name = dn
+prompt = no
+x509_extensions = v3_root_ca
+
+[ dn ]
+CN = Acer Lab Root CA 2026
+O = Acer Lab
+
+[ v3_root_ca ]
+basicConstraints = critical,CA:true,pathlen:1
+keyUsage = critical,keyCertSign,cRLSign
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always
+
+[ v3_intermediate_ca ]
+basicConstraints = critical,CA:true,pathlen:0
+keyUsage = critical,keyCertSign,cRLSign
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
