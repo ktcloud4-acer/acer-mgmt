@@ -86,7 +86,7 @@
       "config": {
         "title": "User",
         "data_view_id": "acer-audit",
-        "field_name": "user.keyword",
+        "field_name": "actor.name",
         "use_global_filters": true,
         "single_select": false,
         "search_technique": "wildcard",
@@ -139,7 +139,7 @@
             "description": "Canonical audit events in the selected time range and filters.",
             "data_source": {
               "type": "esql",
-              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") | STATS events = COUNT(*)"
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) | STATS events = COUNT(*)"
             },
             "sampling": 1,
             "ignore_global_filters": false,
@@ -167,7 +167,7 @@
             "description": "Canonical events stamped by a high-signal audit rule.",
             "data_source": {
               "type": "esql",
-              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND labels.audit_alert IS NOT NULL | STATS events = COUNT(*)"
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) AND labels.audit_alert IS NOT NULL | STATS events = COUNT(*)"
             },
             "sampling": 1,
             "ignore_global_filters": false,
@@ -195,7 +195,7 @@
             "description": "Normalized endpoint and host audit events supplied by Wazuh.",
             "data_source": {
               "type": "esql",
-              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND labels.audit_source.keyword == \"wazuh\" | STATS events = COUNT(*)"
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) AND labels.audit_source.keyword == \"wazuh\" | STATS events = COUNT(*)"
             },
             "sampling": 1,
             "ignore_global_filters": false,
@@ -223,7 +223,7 @@
             "description": "Distinct audit sources observed in the selected time range.",
             "data_source": {
               "type": "esql",
-              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") | STATS sources = COUNT_DISTINCT(labels.audit_source.keyword)"
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) | STATS sources = COUNT_DISTINCT(labels.audit_source.keyword)"
             },
             "sampling": 1,
             "ignore_global_filters": false,
@@ -264,7 +264,7 @@
                 "type": "line",
                 "data_source": {
                   "type": "esql",
-                  "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") | STATS events = COUNT(*) BY bucket = BUCKET(@timestamp, 75, ?_tstart, ?_tend), source = labels.audit_source.keyword | SORT bucket ASC"
+                  "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) | STATS events = COUNT(*) BY bucket = BUCKET(@timestamp, 75, ?_tstart, ?_tend), source = labels.audit_source.keyword | SORT bucket ASC"
                 },
                 "sampling": 1,
                 "ignore_global_filters": false,
@@ -304,7 +304,7 @@
                 "type": "bar_horizontal",
                 "data_source": {
                   "type": "esql",
-                  "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") | STATS events = COUNT(*) BY source = labels.audit_source.keyword | SORT events DESC | LIMIT 10"
+                  "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) | STATS events = COUNT(*) BY source = labels.audit_source.keyword | SORT events DESC | LIMIT 10"
                 },
                 "sampling": 1,
                 "ignore_global_filters": false,
@@ -337,7 +337,7 @@
             "description": "Oldest last-seen source is shown first so collection gaps stand out.",
             "data_source": {
               "type": "esql",
-              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") | STATS events = COUNT(*), last_seen = MAX(@timestamp) BY source = labels.audit_source.keyword | SORT last_seen ASC"
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) | STATS events = COUNT(*), last_seen = MAX(@timestamp) BY source = labels.audit_source.keyword | SORT last_seen ASC"
             },
             "sampling": 1,
             "ignore_global_filters": false,
@@ -387,7 +387,7 @@
             "description": "Newest canonical events matched by Vault or Wazuh high-signal rules.",
             "data_source": {
               "type": "esql",
-              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND labels.audit_alert IS NOT NULL | SORT @timestamp DESC | KEEP @timestamp, event.severity, labels.audit_alert, labels.audit_source, labels.team, user, host.name, event.action, event.code, url.path | LIMIT 100"
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) AND labels.audit_alert IS NOT NULL | SORT @timestamp DESC | KEEP @timestamp, event.severity, labels.audit_alert, labels.audit_source, labels.team, actor.name, host.name, event.action, event.outcome, event.code, url.path | LIMIT 100"
             },
             "sampling": 1,
             "ignore_global_filters": false,
@@ -418,8 +418,8 @@
                 "width": 80
               },
               {
-                "column": "user",
-                "label": "User",
+                "column": "actor.name",
+                "label": "Actor",
                 "width": 130
               },
               {
@@ -431,6 +431,11 @@
                 "column": "event.action",
                 "label": "Action",
                 "width": 260
+              },
+              {
+                "column": "event.outcome",
+                "label": "Outcome",
+                "width": 100
               },
               {
                 "column": "event.code",
@@ -448,110 +453,146 @@
       ]
     },
     {
-      "id": "audit-section-pivots",
-      "title": "Behavioral pivots",
+      "id": "audit-section-access",
+      "title": "Access and authentication",
       "collapsed": false,
       "grid": {
         "y": 45
       },
       "panels": [
         {
-          "id": "audit-pivot-actions",
+          "id": "audit-table-proxy-access",
           "type": "vis",
           "grid": {
             "x": 0,
             "y": 0,
-            "w": 24,
-            "h": 13
+            "w": 32,
+            "h": 16
+          },
+          "config": {
+            "type": "data_table",
+            "title": "Recent proxy access",
+            "description": "Newest normalized Traefik and oauth2-proxy requests. Actor is populated only when the source reports an authenticated identity.",
+            "data_source": {
+              "type": "esql",
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) AND labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\") AND http.request.method IS NOT NULL | SORT @timestamp DESC | KEEP @timestamp, labels.audit_source, actor.name, source.ip, http.request.method, http.response.status_code, event.outcome, url.domain, url.path | LIMIT 100"
+            },
+            "sampling": 1,
+            "ignore_global_filters": false,
+            "rows": [
+              {
+                "column": "@timestamp",
+                "label": "Time",
+                "width": 190
+              },
+              {
+                "column": "labels.audit_source",
+                "label": "Source",
+                "width": 110
+              },
+              {
+                "column": "actor.name",
+                "label": "Actor (if authenticated)",
+                "width": 170
+              },
+              {
+                "column": "source.ip",
+                "label": "Client IP",
+                "width": 130
+              },
+              {
+                "column": "http.request.method",
+                "label": "Method",
+                "width": 80
+              },
+              {
+                "column": "http.response.status_code",
+                "label": "Status",
+                "width": 80
+              },
+              {
+                "column": "event.outcome",
+                "label": "Outcome",
+                "width": 90
+              },
+              {
+                "column": "url.domain",
+                "label": "Domain",
+                "width": 180
+              },
+              {
+                "column": "url.path",
+                "label": "Path",
+                "width": 260
+              }
+            ]
+          }
+        },
+        {
+          "id": "audit-chart-auth-failures",
+          "type": "vis",
+          "grid": {
+            "x": 32,
+            "y": 0,
+            "w": 16,
+            "h": 8
           },
           "config": {
             "type": "xy",
-            "title": "Top actions",
-            "description": "Most frequent normalized Teleport, Vault, and Wazuh actions.",
+            "title": "Authentication failures",
+            "description": "Failed oauth2-proxy and Keycloak authentication events by source and status.",
             "layers": [
               {
                 "type": "bar_horizontal",
                 "data_source": {
                   "type": "esql",
-                  "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND event.action IS NOT NULL | STATS events = COUNT(*) BY action = event.action.keyword | SORT events DESC | LIMIT 15"
+                  "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) AND labels.audit_source.keyword IN (\"oauth2-proxy\", \"keycloak\") AND event.outcome == \"failure\" | STATS events = COUNT(*) BY source = labels.audit_source.keyword, status = http.response.status_code | SORT events DESC"
                 },
                 "sampling": 1,
                 "ignore_global_filters": false,
                 "x": {
-                  "column": "action",
-                  "label": "Action"
+                  "column": "source",
+                  "label": "Source"
                 },
                 "y": [
                   {
                     "column": "events",
                     "label": "Events"
                   }
-                ]
+                ],
+                "breakdown_by": {
+                  "column": "status",
+                  "label": "HTTP status"
+                }
               }
             ]
           }
         },
         {
-          "id": "audit-pivot-users",
+          "id": "audit-chart-top-paths",
           "type": "vis",
           "grid": {
-            "x": 24,
-            "y": 0,
-            "w": 12,
-            "h": 13
+            "x": 32,
+            "y": 8,
+            "w": 16,
+            "h": 8
           },
           "config": {
             "type": "xy",
-            "title": "Top users",
-            "description": "Most active normalized Teleport and Vault users.",
+            "title": "Top requested paths",
+            "description": "Most requested normalized proxy paths in the selected range.",
             "layers": [
               {
                 "type": "bar_horizontal",
                 "data_source": {
                   "type": "esql",
-                  "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND user IS NOT NULL | STATS events = COUNT(*) BY user = user.keyword | SORT events DESC | LIMIT 10"
+                  "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) AND labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\") AND url.path IS NOT NULL | STATS events = COUNT(*) BY path = url.path.keyword | SORT events DESC | LIMIT 10"
                 },
                 "sampling": 1,
                 "ignore_global_filters": false,
                 "x": {
-                  "column": "user",
-                  "label": "User"
-                },
-                "y": [
-                  {
-                    "column": "events",
-                    "label": "Events"
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "id": "audit-pivot-hosts",
-          "type": "vis",
-          "grid": {
-            "x": 36,
-            "y": 0,
-            "w": 12,
-            "h": 13
-          },
-          "config": {
-            "type": "xy",
-            "title": "Top hosts",
-            "description": "Most active Wazuh hosts in the selected range.",
-            "layers": [
-              {
-                "type": "bar_horizontal",
-                "data_source": {
-                  "type": "esql",
-                  "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND host.name IS NOT NULL | STATS events = COUNT(*) BY host = host.name.keyword | SORT events DESC | LIMIT 10"
-                },
-                "sampling": 1,
-                "ignore_global_filters": false,
-                "x": {
-                  "column": "host",
-                  "label": "Host"
+                  "column": "path",
+                  "label": "Path"
                 },
                 "y": [
                   {
@@ -566,11 +607,80 @@
       ]
     },
     {
+      "id": "audit-section-domains",
+      "title": "Security domains",
+      "collapsed": false,
+      "grid": {
+        "y": 64
+      },
+      "panels": [
+        {
+          "id": "audit-table-identity-privileged",
+          "type": "vis",
+          "grid": {
+            "x": 0,
+            "y": 0,
+            "w": 24,
+            "h": 14
+          },
+          "config": {
+            "type": "data_table",
+            "title": "Identity and privileged activity",
+            "description": "Keycloak authentication plus Vault and Teleport privileged activity.",
+            "data_source": {
+              "type": "esql",
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) AND labels.audit_source.keyword IN (\"keycloak\", \"vault\", \"teleport\") | SORT @timestamp DESC | KEEP @timestamp, labels.audit_source, actor.name, source.ip, event.action, event.outcome, url.path | LIMIT 100"
+            },
+            "sampling": 1,
+            "ignore_global_filters": false,
+            "rows": [
+              { "column": "@timestamp", "label": "Time", "width": 190 },
+              { "column": "labels.audit_source", "label": "Source", "width": 100 },
+              { "column": "actor.name", "label": "Actor", "width": 140 },
+              { "column": "source.ip", "label": "Client IP", "width": 130 },
+              { "column": "event.action", "label": "Action", "width": 190 },
+              { "column": "event.outcome", "label": "Outcome", "width": 90 },
+              { "column": "url.path", "label": "Resource path", "width": 220 }
+            ]
+          }
+        },
+        {
+          "id": "audit-table-wazuh-host",
+          "type": "vis",
+          "grid": {
+            "x": 24,
+            "y": 0,
+            "w": 24,
+            "h": 14
+          },
+          "config": {
+            "type": "data_table",
+            "title": "Wazuh host security",
+            "description": "Newest normalized Wazuh endpoint and host security events.",
+            "data_source": {
+              "type": "esql",
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) AND labels.audit_source.keyword == \"wazuh\" | SORT @timestamp DESC | KEEP @timestamp, event.severity, host.name, event.action, event.code, observer.name | LIMIT 100"
+            },
+            "sampling": 1,
+            "ignore_global_filters": false,
+            "rows": [
+              { "column": "@timestamp", "label": "Time", "width": 190 },
+              { "column": "event.severity", "label": "Severity", "width": 90 },
+              { "column": "host.name", "label": "Endpoint", "width": 140 },
+              { "column": "event.action", "label": "Rule", "width": 280 },
+              { "column": "event.code", "label": "Rule ID", "width": 90 },
+              { "column": "observer.name", "label": "Collector", "width": 120 }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "id": "audit-section-timeline",
       "title": "Full audit timeline",
       "collapsed": false,
       "grid": {
-        "y": 61
+        "y": 81
       },
       "panels": [
         {
@@ -588,7 +698,7 @@
             "description": "Newest canonical audit events for the current time range and filters.",
             "data_source": {
               "type": "esql",
-              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") | SORT @timestamp DESC | KEEP @timestamp, labels.audit_source, labels.team, labels.service, event.severity, labels.audit_alert, user, host.name, event.action, event.code, url.path, message | LIMIT 200"
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) | SORT @timestamp DESC | KEEP @timestamp, labels.audit_source, labels.service, actor.name, host.name, event.action, event.outcome, message | LIMIT 200"
             },
             "sampling": 1,
             "ignore_global_filters": false,
@@ -604,28 +714,13 @@
                 "width": 110
               },
               {
-                "column": "labels.team",
-                "label": "Team",
-                "width": 80
-              },
-              {
                 "column": "labels.service",
                 "label": "Service",
                 "width": 110
               },
               {
-                "column": "event.severity",
-                "label": "Severity",
-                "width": 90
-              },
-              {
-                "column": "labels.audit_alert",
-                "label": "Alert signature",
-                "width": 190
-              },
-              {
-                "column": "user",
-                "label": "User",
+                "column": "actor.name",
+                "label": "Actor",
                 "width": 130
               },
               {
@@ -639,14 +734,9 @@
                 "width": 260
               },
               {
-                "column": "event.code",
-                "label": "Code",
+                "column": "event.outcome",
+                "label": "Outcome",
                 "width": 90
-              },
-              {
-                "column": "url.path",
-                "label": "Resource path",
-                "width": 220
               },
               {
                 "column": "message",

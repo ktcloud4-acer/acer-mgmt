@@ -14,7 +14,8 @@
 | 고신호 감사 복제본 | `acer-audit-alerts-<team>-YYYY.MM.dd` |
 | (그 외)  | `service-logs-mgmt-v2-YYYY.MM.dd` |
 
-`<user>` = 테넌트 식별자(팀원 클러스터명). Filebeat 가 `fields.user` 로 주입.
+`<user>` = 테넌트 식별자(팀원 클러스터명). 팀 라우팅은 Filebeat의
+`fields.team`/`labels.team`을 사용하며, 실제 행위자와 분리한다.
 
 ## 보존정책 / 시각화 프로비저닝 — `scripts/apply-observability.sh`
 
@@ -37,7 +38,8 @@ bash compose/stacks/observability/elk/scripts/apply-observability.sh
    (`k8s-logs-<user>-*`, `infra-logs-<user>-*`) + **`errors` 저장검색**(ERROR/FATAL/CRITICAL).
    default(admin) Space 에는 전체 조회용 `k8s-logs-*,infra-logs-*` / `service-logs-mgmt-*` data view.
 5. **보안 감사 data view + 대시보드** — default Space에 고정 ID `acer-audit` /
-   `security-audit-overview`를 생성 또는 전체 교체하고 GET으로 재검증한다.
+   `security-audit-overview`를 생성 또는 전체 교체하고 GET으로 재검증한다. 감사 필드
+   매핑은 신규 인덱스 템플릿과 기존 인덱스에 동일하게 적용한다.
 
 ## Security Audit Overview
 
@@ -46,15 +48,22 @@ Kibana default Space에서 `Security Audit Overview`를 연다. 기본 범위는
 
 관제 순서는 다음과 같다.
 
-1. 상단 고정 컨트롤에서 감사 소스, 팀, 탐지 시그니처, 사용자, 호스트를 좁힌다.
-2. `Current situation`의 전체 이벤트, 고신호 이벤트, Wazuh 알림, 활성 소스 수를 본다.
+1. 상단 고정 컨트롤에서 감사 소스, 팀, 탐지 시그니처, 실제 행위자, 호스트를 좁힌다.
+2. `Current situation`의 전체 이벤트, 고신호 이벤트, Wazuh 감사 이벤트, 활성 소스 수를 본다.
 3. `Trend and collection coverage`에서 소스별 추세와 마지막 수집 시각을 확인한다.
 4. `Immediate investigation`에서 최신 고신호 이벤트를 우선 조사한다.
-5. 행위/사용자/호스트 피벗 후 전체 감사 타임라인에서 원문 맥락을 확인한다.
+5. `Access and authentication`에서 프록시 접근·인증 실패·요청 경로를 조사한다.
+6. `Security domains`에서 Keycloak/Vault/Teleport와 Wazuh를 소스별 필드로 조사한다.
+7. 공통 필드만 남긴 전체 감사 타임라인에서 원문 맥락을 확인한다.
 
 분석용 data view는 `acer-audit-*,-acer-audit-alerts-*`다. 고신호 이벤트는 원본 감사
 인덱스와 알림 라우팅 인덱스에 함께 기록되므로, 복제본을 제외하지 않으면 KPI가 이중
 집계된다. 고신호 여부는 원본 문서의 `labels.audit_alert`로 판단한다.
+
+Traefik·oauth2-proxy·Keycloak 컨테이너의 모든 stdout을 감사 이벤트로 취급하지 않는다.
+실제 접근 또는 Keycloak 이벤트 형식으로 파싱된 행만 `acer-audit-*`로 승격하며, 내부
+서비스 로그와 스택 트레이스는 일반 Docker 로그에 남긴다. 팀은 `labels.team`, 실제
+행위자는 `actor.name`, 수집기는 `observer.name`으로 구분한다.
 
 대시보드는 저장 객체 내부 구조를 직접 수정하지 않고 Kibana 9.4 Dashboards API로
 선언적으로 적용한다. 이 API는 9.4에서 Technical Preview이므로 현재 스택은 9.4.3에

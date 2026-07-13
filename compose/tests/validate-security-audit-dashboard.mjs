@@ -6,15 +6,16 @@ const expectedSections = [
   ["Current situation", 0],
   ["Trend and collection coverage", 9],
   ["Immediate investigation", 26],
-  ["Behavioral pivots", 45],
-  ["Full audit timeline", 61],
+  ["Access and authentication", 45],
+  ["Security domains", 64],
+  ["Full audit timeline", 81],
 ];
 
 const expectedControlFields = [
   "labels.audit_source.keyword",
   "labels.team.keyword",
   "labels.audit_alert",
-  "user.keyword",
+  "actor.name",
   "host.name.keyword",
 ];
 
@@ -31,10 +32,14 @@ const expectedLayouts = {
     [32, 7, 16, 7],
   ],
   "Immediate investigation": [[0, 0, 48, 16]],
-  "Behavioral pivots": [
-    [0, 0, 24, 13],
-    [24, 0, 12, 13],
-    [36, 0, 12, 13],
+  "Access and authentication": [
+    [0, 0, 32, 16],
+    [32, 0, 16, 8],
+    [32, 8, 16, 8],
+  ],
+  "Security domains": [
+    [0, 0, 24, 14],
+    [24, 0, 24, 14],
   ],
   "Full audit timeline": [[0, 0, 48, 20]],
 };
@@ -48,9 +53,11 @@ const expectedPanelTitles = new Set([
   "Events by source",
   "Source freshness",
   "Recent high-signal events",
-  "Top actions",
-  "Top users",
-  "Top hosts",
+  "Recent proxy access",
+  "Authentication failures",
+  "Top requested paths",
+  "Identity and privileged activity",
+  "Wazuh host security",
   "Full audit timeline",
 ]);
 
@@ -177,12 +184,20 @@ function validate(path) {
   );
   assert(
     !serializedDashboard.includes("user.name"),
-    "dashboard must use the live scalar user field contract",
+    "dashboard must not use the incompatible ECS user object",
+  );
+  assert(
+    !serializedDashboard.includes("user.keyword"),
+    "dashboard must not present the collection team as an actor",
+  );
+  assert(
+    serializedDashboard.includes("actor.name"),
+    "dashboard must use the normalized actor field",
   );
 
   const queries = [];
   collectEsqlQueries(dashboard, queries);
-  assert(queries.length === 12, `expected 12 ES|QL queries, received ${queries.length}`);
+  assert(queries.length === 14, `expected 14 ES|QL queries, received ${queries.length}`);
   for (const query of queries) {
     assert(
       query.startsWith('SET unmapped_fields="NULLIFY"; FROM acer-audit-* METADATA _index'),
@@ -196,11 +211,15 @@ function validate(path) {
       query.includes('NOT (_index LIKE "acer-audit-alerts-*")'),
       `query can double count alert-routing copies: ${query}`,
     );
+    assert(
+      query.includes('event.action IS NULL'),
+      `query does not exclude historical unnormalized proxy/identity rows: ${query}`,
+    );
     const unsafeAggregations = [
       /COUNT_DISTINCT\(labels\.audit_source\)/,
       /BY source = labels\.audit_source(?:\s|,|\|)/,
       /BY action = event\.action(?:\s|,|\|)/,
-      /BY user = user\.name(?:\s|,|\|)/,
+      /BY actor = actor\.name\.keyword(?:\s|,|\|)/,
       /BY host = host\.name(?:\s|,|\|)/,
     ];
     assert(
@@ -208,14 +227,11 @@ function validate(path) {
       `query aggregates a non-keyword text field: ${query}`,
     );
   }
-  assert(
-    queries.some((query) => query.includes("BY user = user.keyword")),
-    "Top users must aggregate the scalar user keyword multi-field",
-  );
-  assert(
-    queries.filter((query) => query.includes("| KEEP ") && query.includes(", user,")).length === 2,
-    "both investigation tables must display the scalar user field",
-  );
+  assert(queries.some((query) => query.includes('labels.audit_source.keyword IN ("traefik", "oauth2-proxy")') && query.includes("http.request.method")), "missing proxy access query");
+  assert(queries.some((query) => query.includes('event.outcome == "failure"')), "missing authentication failure query");
+  assert(queries.some((query) => query.includes("url.path.keyword")), "missing requested-path aggregation");
+  assert(queries.some((query) => query.includes('labels.audit_source.keyword IN ("keycloak", "vault", "teleport")')), "missing identity and privileged query");
+  assert(queries.some((query) => query.includes('labels.audit_source.keyword == "wazuh"') && query.includes("event.code")), "missing Wazuh investigation query");
 }
 
 if (process.argv.length !== 3) {
