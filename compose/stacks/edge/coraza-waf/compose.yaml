@@ -16,7 +16,7 @@ services:
     environment:
       - BACKEND=k3d-mgmt-serverlb:80
       - PORT=8080
-      - CORAZA_RULE_ENGINE=DetectionOnly
+      - CORAZA_RULE_ENGINE=On
     networks:
       - mgmt-proxy
 
