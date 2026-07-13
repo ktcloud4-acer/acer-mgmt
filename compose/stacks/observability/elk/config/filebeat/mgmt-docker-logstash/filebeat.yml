@@ -17,6 +17,16 @@ filebeat.inputs:
         log_track: docker
     processors:
       - add_docker_metadata: ~
+      # Logstash가 자신의 출력 오류를 다시 수집하면
+      # Filebeat -> Logstash -> Kafka -> Logstash 순환이 증폭된다.
+      # 내부 로그는 Docker의 50m x 3 로컬 회전 로그로만 보존한다.
+      - drop_event:
+          when:
+            or:
+              - equals:
+                  container.name: logstash
+              - equals:
+                  container.name: logstash-consumer
 
   - type: filestream
     id: mgmt-harbor-files
