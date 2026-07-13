@@ -30,6 +30,14 @@ assert_contains() {
   grep -Fq -- "$expected" "$file" || fail "$file does not contain: $expected"
 }
 
+assert_not_contains() {
+  local file="$1"
+  local unexpected="$2"
+  [[ -f "$file" ]] || fail "missing file: $file"
+  grep -Fq -- "$unexpected" "$file" && fail "$file contains obsolete value: $unexpected"
+  return 0
+}
+
 assert_dashboard_contract() {
   local file="$1"
   [[ -f "$file" ]] || fail "missing file: $file"
@@ -53,9 +61,14 @@ assert_contains "$dashboard" '"title": "Security Audit Overview"'
 assert_contains "$dashboard" '"type": "options_list_control"'
 assert_contains "$dashboard" '"field_name": "labels.audit_source.keyword"'
 assert_contains "$dashboard" '"field_name": "labels.team.keyword"'
-assert_contains "$dashboard" '"field_name": "labels.audit_alert.keyword"'
-assert_contains "$dashboard" '"field_name": "user.name.keyword"'
+assert_contains "$dashboard" '"field_name": "labels.audit_alert"'
+assert_contains "$dashboard" '"field_name": "user.keyword"'
 assert_contains "$dashboard" '"field_name": "host.name.keyword"'
+assert_not_contains "$dashboard" 'labels.audit_alert.keyword'
+assert_not_contains "$dashboard" 'user.name'
+assert_contains "$dashboard" 'BY user = user.keyword'
+assert_contains "$dashboard" '"column": "user"'
+assert_contains "$dashboard" '"title": "Wazuh audit events"'
 assert_contains "$dashboard" 'SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index'
 assert_contains "$dashboard" "Current situation"
 assert_contains "$dashboard" "Source freshness"
@@ -90,8 +103,16 @@ assert_contains "$audit_policy" '"min_age": "90d"'
 assert_contains "$audit_policy" '"delete"'
 assert_contains "$audit_template" '"acer-audit-*"'
 assert_contains "$audit_template" '"number_of_replicas": 0'
+node -e '
+  const fs = require("node:fs");
+  const template = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  if (template.template?.mappings?.properties?.labels?.properties?.audit_alert?.type !== "keyword") {
+    throw new Error("labels.audit_alert must be mapped as keyword");
+  }
+' "$audit_template"
 assert_contains "$apply" "acer-audit-retention"
 assert_contains "$apply" "_index_template/acer-audit"
+assert_contains "$apply" 'acer-audit-*/_mapping'
 assert_contains "$logs_template" '"logs-docker-*"'
 assert_contains "$logs_template" '"priority": 250'
 assert_contains "$apply" '$CFG/elasticsearch/acer-logs-template.json'

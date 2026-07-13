@@ -13,8 +13,8 @@ const expectedSections = [
 const expectedControlFields = [
   "labels.audit_source.keyword",
   "labels.team.keyword",
-  "labels.audit_alert.keyword",
-  "user.name.keyword",
+  "labels.audit_alert",
+  "user.keyword",
   "host.name.keyword",
 ];
 
@@ -42,7 +42,7 @@ const expectedLayouts = {
 const expectedPanelTitles = new Set([
   "Total audit events",
   "High-signal events",
-  "Wazuh alerts",
+  "Wazuh audit events",
   "Active audit sources",
   "Audit events over time",
   "Events by source",
@@ -101,6 +101,7 @@ function collectEsqlQueries(value, queries) {
 
 function validate(path) {
   const dashboard = JSON.parse(readFileSync(path, "utf8"));
+  const serializedDashboard = JSON.stringify(dashboard);
 
   assert(dashboard.title === "Security Audit Overview", "unexpected dashboard title");
   assert(
@@ -170,6 +171,14 @@ function validate(path) {
     sameJson([...panelTitles].sort(), [...expectedPanelTitles].sort()),
     "operational panel titles changed",
   );
+  assert(
+    !serializedDashboard.includes("labels.audit_alert.keyword"),
+    "alert signature must use the explicitly mapped keyword field",
+  );
+  assert(
+    !serializedDashboard.includes("user.name"),
+    "dashboard must use the live scalar user field contract",
+  );
 
   const queries = [];
   collectEsqlQueries(dashboard, queries);
@@ -199,6 +208,14 @@ function validate(path) {
       `query aggregates a non-keyword text field: ${query}`,
     );
   }
+  assert(
+    queries.some((query) => query.includes("BY user = user.keyword")),
+    "Top users must aggregate the scalar user keyword multi-field",
+  );
+  assert(
+    queries.filter((query) => query.includes("| KEEP ") && query.includes(", user,")).length === 2,
+    "both investigation tables must display the scalar user field",
+  );
 }
 
 if (process.argv.length !== 3) {
