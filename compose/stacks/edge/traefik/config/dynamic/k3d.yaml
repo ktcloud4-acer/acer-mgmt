@@ -7,7 +7,9 @@ http:
         - websecure
       middlewares:
         - dashy-iframe
-      service: k3d-ingress
+      # WAF 파일럿: argocd 트래픽을 standalone Coraza(CRS) WAF 경유로 보낸다.
+      # coraza-waf → k3d-mgmt-serverlb:80 (DetectionOnly). 다른 라우터는 k3d-ingress 유지.
+      service: coraza-waf
     k3d-chaos-dashboard:
       rule: "Host(`chaos.imcherry5778.xyz`)"
       entryPoints:
@@ -63,6 +65,12 @@ http:
         passHostHeader: true
         servers:
           - url: "http://k3d-mgmt-serverlb:80"
+    # standalone Coraza(CRS) WAF — argocd 라우터 전용 업스트림. DetectionOnly.
+    coraza-waf:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://coraza-waf:8080"
     nmg-chaos-dashboard:
       loadBalancer:
         # 스포크 traefik(nmg-ingress) 경유: 원본 Host(nmg-chaos.imcherry5778.xyz)를 보존해야
