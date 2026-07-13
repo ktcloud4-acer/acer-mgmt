@@ -206,14 +206,21 @@ function validate(path) {
   assert(immediate, "missing Recent high-signal events panel");
   assert(
     immediate.data_source.query.includes("labels.alert_severity") &&
-      immediate.data_source.query.includes("app.rule.level"),
+      immediate.data_source.query.includes("app.rule.level >= 11") &&
+      immediate.data_source.query.includes("EVAL priority = CASE"),
     "Immediate investigation must show priority and Wazuh level",
   );
   assert(
     immediate.rows.some(
-      (row) => row.column === "labels.alert_severity" && row.label === "Priority",
+      (row) => row.column === "priority" && row.label === "Priority",
     ),
     "Immediate investigation is missing the Priority column",
+  );
+  assert(
+    immediate.rows.some(
+      (row) => row.column === "alert_signature" && row.label === "Alert signature",
+    ),
+    "Immediate investigation is missing the derived Alert signature column",
   );
   assert(
     immediate.rows.some((row) => row.column === "app.rule.level" && row.label === "Wazuh Level"),

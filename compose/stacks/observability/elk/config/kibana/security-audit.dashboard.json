@@ -164,10 +164,10 @@
           "config": {
             "type": "metric",
             "title": "High-signal events",
-            "description": "Canonical events stamped by a high-signal audit rule.",
+            "description": "Canonical alerts plus Wazuh level 11+ events in the selected time range.",
             "data_source": {
               "type": "esql",
-              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) AND labels.audit_alert IS NOT NULL | STATS events = COUNT(*)"
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) AND (labels.audit_alert IS NOT NULL OR (labels.audit_source.keyword == \"wazuh\" AND app.rule.level >= 11)) | STATS events = COUNT(*)"
             },
             "sampling": 1,
             "ignore_global_filters": false,
@@ -384,10 +384,10 @@
           "config": {
             "type": "data_table",
             "title": "Recent high-signal events",
-            "description": "Newest canonical events matched by Vault or Wazuh high-signal rules.",
+            "description": "Newest canonical alerts plus Wazuh level 11+ events; historical rows are classified at query time without rewriting audit documents.",
             "data_source": {
               "type": "esql",
-              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) AND labels.audit_alert IS NOT NULL | SORT @timestamp DESC | KEEP @timestamp, labels.alert_severity, app.rule.level, labels.audit_alert, labels.audit_source, labels.team, actor.name, host.name, event.action, event.outcome, event.code, url.path | LIMIT 100"
+              "query": "SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index | WHERE @timestamp >= ?_tstart AND @timestamp < ?_tend AND NOT (_index LIKE \"acer-audit-alerts-*\") AND NOT (labels.audit_source.keyword IN (\"traefik\", \"oauth2-proxy\", \"keycloak\") AND event.action IS NULL) AND (labels.audit_alert IS NOT NULL OR (labels.audit_source.keyword == \"wazuh\" AND app.rule.level >= 11)) | EVAL priority = CASE(labels.alert_severity IS NOT NULL, labels.alert_severity, app.rule.level >= 14, \"critical\", app.rule.level >= 12, \"high\", app.rule.level >= 11, \"medium\", \"unclassified\"), alert_signature = CASE(labels.audit_alert IS NOT NULL, labels.audit_alert, app.rule.level >= 14, \"wazuh-critical\", app.rule.level >= 12, \"wazuh-high-severity\", \"wazuh-investigation-required\") | SORT @timestamp DESC | KEEP @timestamp, priority, app.rule.level, alert_signature, labels.audit_source, labels.team, actor.name, host.name, event.action, event.outcome, event.code, url.path | LIMIT 100"
             },
             "sampling": 1,
             "ignore_global_filters": false,
@@ -398,7 +398,7 @@
                 "width": 190
               },
               {
-                "column": "labels.alert_severity",
+                "column": "priority",
                 "label": "Priority",
                 "width": 90
               },
@@ -408,7 +408,7 @@
                 "width": 100
               },
               {
-                "column": "labels.audit_alert",
+                "column": "alert_signature",
                 "label": "Alert signature",
                 "width": 190
               },
