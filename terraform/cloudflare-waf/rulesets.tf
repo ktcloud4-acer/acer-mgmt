@@ -51,7 +51,7 @@ resource "cloudflare_ruleset" "managed_fw" {
   }
 }
 
-# 간단 rate limit (Free 1 rule)
+# 간단 rate limit (Free 1 rule). Free 플랜은 period/mitigation_timeout=10 만 허용.
 resource "cloudflare_ruleset" "ratelimit" {
   zone_id     = var.zone_id
   name        = "acer-waf-ratelimit"
@@ -61,24 +61,18 @@ resource "cloudflare_ruleset" "ratelimit" {
 
   rules {
     action      = "block"
-    description = "IP당 분당 100요청 초과 차단"
+    description = "IP당 10초당 50요청 초과 차단(Free 플랜 고정 window 10s)"
     expression  = "true"
     enabled     = true
     ratelimit {
       characteristics     = ["ip.src", "cf.colo.id"]
-      period              = 60
-      requests_per_period = 100
-      mitigation_timeout  = 60
+      period              = 10
+      requests_per_period = 50
+      mitigation_timeout  = 10
     }
   }
 }
 
-# NOTE: `terraform validate` 통과 확인됨(provider v4.52.8, 스키마상 fight_mode
-# 존재). 단, Free 플랜에서 이 리소스가 실제 apply 시에도 지원되는지는 본
-# 작업(init/validate only, plan/apply 금지)에서 확인하지 못했다. apply 단계에서
-# Free 플랜 미지원 오류가 발생하면 이 리소스를 제거하고 Cloudflare 대시보드
-# Security > Bots > Bot Fight Mode 토글로 대체한다.
-resource "cloudflare_bot_management" "bfm" {
-  zone_id    = var.zone_id
-  fight_mode = true
-}
+# Bot Fight Mode: Free 플랜에서는 cloudflare_bot_management API(Auth error 10000)로
+# 관리 불가 → Cloudflare 대시보드 Security > Bots > Bot Fight Mode 토글로 수동 활성.
+# (apply 검증 2026-07-13: Free 미지원 확인되어 IaC에서 제외.)
