@@ -32,6 +32,20 @@ docker run --rm --network "$MINIO_NETWORK" \
     mc alias set local "$MINIO_ALIAS_URL" "$MINIO_ROOT_USER" "$ADMIN_PASSWORD" >/dev/null
     mc alias set aws "https://s3.${AWS_REGION}.amazonaws.com" "$AWS_ACCESS_KEY_ID" "$AWS_SECRET_ACCESS_KEY" >/dev/null
 
+    if ! encryption_info="$(mc encrypt info "aws/${AWS_S3_BUCKET}")"; then
+      echo "Unable to verify default encryption for AWS S3 bucket ${AWS_S3_BUCKET}" >&2
+      exit 1
+    fi
+    if printf "%s\n" "$encryption_info" | grep -Eqi "(^|[^[:alnum:]])(disabled|not[[:space:]-]+enabled)([^[:alnum:]]|$)"; then
+      echo "AWS S3 bucket ${AWS_S3_BUCKET} has no verified SSE-S3 or SSE-KMS default encryption" >&2
+      exit 1
+    fi
+    printf "%s\n" "$encryption_info" | grep -Eqi \
+      "((^|[^[:alnum:]-])SSE-(S3|KMS)([^[:alnum:]-]|$).*(^|[^[:alnum:]])enabled([^[:alnum:]]|$))|((^|[^[:alnum:]])enabled([^[:alnum:]]|$).*(^|[^[:alnum:]-])SSE-(S3|KMS)([^[:alnum:]-]|$))" || {
+        echo "AWS S3 bucket ${AWS_S3_BUCKET} has no verified SSE-S3 or SSE-KMS default encryption" >&2
+        exit 1
+      }
+
     mc mirror local/db-backup "aws/${AWS_S3_BUCKET}/db-backup"
     mc mirror local/etcd "aws/${AWS_S3_BUCKET}/etcd"
     mc mirror local/velero "aws/${AWS_S3_BUCKET}/velero"
