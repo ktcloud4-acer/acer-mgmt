@@ -11,12 +11,15 @@ elk="$ROOT_DIR/compose/stacks/observability/elk"
 compose="$elk/compose.yaml"
 audit_policy="$elk/config/ilm/acer-audit-retention.policy.json"
 audit_template="$elk/config/ilm/acer-audit.template.json"
+audit_mapping="$elk/config/ilm/acer-audit.fields.mapping.json"
 logs_template="$elk/config/elasticsearch/acer-logs-template.json"
 apply="$elk/scripts/apply-observability.sh"
 sec_bootstrap="$elk/scripts/elk-security-bootstrap.sh"
 snap_bootstrap="$elk/scripts/elk-snapshot-bootstrap.sh"
 slm="$elk/config/snapshot/acer-audit-snapshot.slm.json"
 alerts="$elk/config/pipeline/50-audit-alerts.conf"
+normalization_test="$ROOT_DIR/compose/tests/test-audit-normalization-logstash.sh"
+normalization_fixture="$ROOT_DIR/compose/tests/fixtures/audit-normalization.generator.conf"
 
 fail() {
   echo "FAIL: $*" >&2
@@ -51,10 +54,22 @@ assert_contains "$filebeat" "/home/mgmt-data/wazuh/logs/alerts/alerts.json"
 assert_contains "$filebeat" "drop_event:"
 assert_contains "$filebeat" "container.name: logstash"
 assert_contains "$filebeat" "container.name: logstash-consumer"
+assert_not_contains "$filebeat" "      user: mgmt"
 assert_contains "$filters" "[labels][audit_source]"
 assert_contains "$filters" "[app][request][id]"
 assert_contains "$filters" "[app][request][data]"
 assert_contains "$filters" 'if [host][name] == "acer-mgmt" and [container][name] in ["logstash", "logstash-consumer"]'
+assert_contains "$filters" 'if [container][name] =~ /^\/?traefik$/ and [message] =~ /HTTP\/[0-9.]+" [0-9]{3} /'
+assert_contains "$filters" 'if [container][name] =~ /^\/?oauth2-proxy$/ and [message] =~ /HTTP\/[0-9.]+/'
+assert_contains "$filters" 'if [container][name] =~ /^\/?keycloak$/ and [message] =~ /\[org\.keycloak\.events\]/'
+assert_contains "$filters" '"[actor][name]"'
+assert_contains "$filters" '"[observer][name]"'
+assert_contains "$filters" '[http][request][method]'
+assert_contains "$filters" '"[http][response][status_code]"'
+assert_contains "$filters" '"[event][outcome]"'
+assert_not_contains "$filters" 'if [container][name] =~ /^\/?(keycloak|oauth2-proxy|traefik)$/'
+assert_contains "$normalization_test" "audit normalization Logstash fixture tests passed"
+assert_contains "$normalization_fixture" '"fixture_id":"traefik-internal"'
 assert_contains "$outputs" "acer-audit-%{[labels][team]}"
 assert_dashboard_contract "$dashboard"
 assert_contains "$dashboard" '"title": "Security Audit Overview"'
@@ -62,17 +77,24 @@ assert_contains "$dashboard" '"type": "options_list_control"'
 assert_contains "$dashboard" '"field_name": "labels.audit_source.keyword"'
 assert_contains "$dashboard" '"field_name": "labels.team.keyword"'
 assert_contains "$dashboard" '"field_name": "labels.audit_alert"'
-assert_contains "$dashboard" '"field_name": "user.keyword"'
+assert_contains "$dashboard" '"field_name": "actor.name"'
 assert_contains "$dashboard" '"field_name": "host.name.keyword"'
 assert_not_contains "$dashboard" 'labels.audit_alert.keyword'
 assert_not_contains "$dashboard" 'user.name'
-assert_contains "$dashboard" 'BY user = user.keyword'
-assert_contains "$dashboard" '"column": "user"'
+assert_not_contains "$dashboard" 'user.keyword'
+assert_contains "$dashboard" '"column": "actor.name"'
 assert_contains "$dashboard" '"title": "Wazuh audit events"'
 assert_contains "$dashboard" 'SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index'
 assert_contains "$dashboard" "Current situation"
 assert_contains "$dashboard" "Source freshness"
 assert_contains "$dashboard" "Recent high-signal events"
+assert_contains "$dashboard" "Access and authentication"
+assert_contains "$dashboard" "Recent proxy access"
+assert_contains "$dashboard" "Authentication failures"
+assert_contains "$dashboard" "Top requested paths"
+assert_contains "$dashboard" "Security domains"
+assert_contains "$dashboard" "Identity and privileged activity"
+assert_contains "$dashboard" "Wazuh host security"
 assert_contains "$dashboard" "Full audit timeline"
 assert_contains "$dashboard" 'NOT (_index LIKE \"acer-audit-alerts-*\")'
 assert_contains "$dashboard" '"id": "audit-kpi-total"'
@@ -110,9 +132,31 @@ node -e '
     throw new Error("labels.audit_alert must be mapped as keyword");
   }
 ' "$audit_template"
+node -e '
+  const fs = require("node:fs");
+  const template = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  const mapping = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+  const expected = mapping.properties;
+  const actual = template.template?.mappings?.properties;
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    throw new Error("audit template mappings and existing-index mapping must match");
+  }
+  const required = {
+    "actor.name": actual?.actor?.properties?.name?.type,
+    "observer.name": actual?.observer?.properties?.name?.type,
+    "source.ip": actual?.source?.properties?.ip?.type,
+    "http.request.method": actual?.http?.properties?.request?.properties?.method?.type,
+    "http.response.status_code": actual?.http?.properties?.response?.properties?.status_code?.type,
+    "event.outcome": actual?.event?.properties?.outcome?.type,
+  };
+  for (const [field, type] of Object.entries(required)) {
+    if (!type) throw new Error(`missing explicit mapping for ${field}`);
+  }
+' "$audit_template" "$audit_mapping"
 assert_contains "$apply" "acer-audit-retention"
 assert_contains "$apply" "_index_template/acer-audit"
 assert_contains "$apply" 'acer-audit-*/_mapping'
+assert_contains "$apply" '$CFG/ilm/acer-audit.fields.mapping.json'
 assert_contains "$logs_template" '"logs-docker-*"'
 assert_contains "$logs_template" '"priority": 250'
 assert_contains "$apply" '$CFG/elasticsearch/acer-logs-template.json'

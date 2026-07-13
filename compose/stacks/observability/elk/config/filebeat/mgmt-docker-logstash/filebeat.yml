@@ -7,7 +7,6 @@ filebeat.inputs:
       - container: ~
     fields_under_root: true
     fields:
-      user: mgmt
       log_type: docker
       labels:
         team: mgmt
@@ -37,7 +36,6 @@ filebeat.inputs:
     file_identity.fingerprint: ~
     fields_under_root: true
     fields:
-      user: mgmt
       log_type: docker
       labels:
         team: mgmt
@@ -57,7 +55,6 @@ filebeat.inputs:
           add_error_key: true
     fields_under_root: true
     fields:
-      user: mgmt
       log_type: access
       labels:
         team: mgmt
@@ -81,7 +78,6 @@ filebeat.inputs:
           add_error_key: true
     fields_under_root: true
     fields:
-      user: mgmt
       log_type: audit
       labels:
         team: mgmt
@@ -104,7 +100,6 @@ filebeat.inputs:
           add_error_key: true
     fields_under_root: true
     fields:
-      user: mgmt
       log_type: audit
       labels:
         team: mgmt
@@ -138,7 +133,6 @@ filebeat.autodiscover:
                 - container: ~
               fields_under_root: true
               fields:
-                user: mgmt
                 log_type: docker
                 labels:
                   team: mgmt

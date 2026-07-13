@@ -1,0 +1,90 @@
+{
+  "properties": {
+    "actor": {
+      "properties": {
+        "id": { "type": "keyword" },
+        "name": { "type": "keyword" }
+      }
+    },
+    "event": {
+      "properties": {
+        "category": { "type": "keyword" },
+        "outcome": { "type": "keyword" },
+        "sequence": { "type": "long" }
+      }
+    },
+    "http": {
+      "properties": {
+        "request": {
+          "properties": {
+            "method": { "type": "keyword" },
+            "referrer": { "type": "wildcard" }
+          }
+        },
+        "response": {
+          "properties": {
+            "body": {
+              "properties": {
+                "bytes": { "type": "long" }
+              }
+            },
+            "status_code": { "type": "integer" }
+          }
+        },
+        "version": { "type": "keyword" }
+      }
+    },
+    "labels": {
+      "properties": {
+        "audit_alert": { "type": "keyword" }
+      }
+    },
+    "observer": {
+      "properties": {
+        "name": { "type": "keyword" }
+      }
+    },
+    "source": {
+      "properties": {
+        "ip": { "type": "ip" }
+      }
+    },
+    "trace": {
+      "properties": {
+        "id": { "type": "keyword" }
+      }
+    },
+    "traefik": {
+      "properties": {
+        "backend": {
+          "properties": {
+            "address": { "type": "keyword", "ignore_above": 1024 }
+          }
+        },
+        "router": {
+          "properties": {
+            "name": { "type": "keyword" }
+          }
+        }
+      }
+    },
+    "url": {
+      "properties": {
+        "domain": { "type": "keyword" },
+        "original": { "type": "wildcard" },
+        "path": {
+          "type": "text",
+          "fields": {
+            "keyword": { "type": "keyword", "ignore_above": 1024 }
+          }
+        },
+        "query": { "type": "wildcard" }
+      }
+    },
+    "user_agent": {
+      "properties": {
+        "original": { "type": "wildcard" }
+      }
+    }
+  }
+}
