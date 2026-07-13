@@ -1,0 +1,125 @@
+groups:
+  - name: vault-pki
+    interval: 1m
+    rules:
+      - alert: VaultRaftSnapshotStale
+        expr: absent(vault_raft_snapshot_last_success_timestamp_seconds{job="mgmt-node"}) or (time() - vault_raft_snapshot_last_success_timestamp_seconds{job="mgmt-node"} > 93600)
+        for: 30m
+        labels:
+          severity: critical
+          team: platform
+          channel: infra
+          service: vault
+          scope: backup
+          cluster: mgmt
+          runbook: "docs/runbooks/vault-pki-operations.md"
+        annotations:
+          title: "[vault] Raft snapshot이 26시간 이상 갱신되지 않음"
+          summary: "일일 Vault Raft snapshot 성공 시각이 없거나 26시간을 넘었습니다."
+          description: "acer-mgmt-db-backup.service, Vault seal 상태, 로컬 checksum/inspect 결과, MinIO db-backup/vault-raft 경로와 offsite encryption preflight를 확인하세요."
+
+      - alert: VaultIntermediateExpiresWithin180Days
+        expr: absent(vault_pki_intermediate_expiration_timestamp_seconds{job="mgmt-node"}) or (vault_pki_intermediate_expiration_timestamp_seconds{job="mgmt-node"} - time() < 15552000)
+        for: 1h
+        labels:
+          severity: warning
+          team: platform
+          channel: infra
+          service: vault
+          scope: pki
+          cluster: mgmt
+          runbook: "docs/runbooks/vault-pki-operations.md"
+        annotations:
+          title: "[pki] Vault Intermediate 교체 기간 진입"
+          summary: "Vault Intermediate 만료가 180일 이내이거나 만료 metric이 없습니다."
+          description: "중복 발급자와 dual-trust 기간을 확보하도록 즉시 Intermediate rotation 절차를 시작하세요. 이미 만료된 Intermediate도 의도적으로 이 경보를 유지합니다."
+
+      - alert: CertificateExpiresWithin30Days
+        expr: (certmanager_certificate_expiration_timestamp_seconds - time() >= 1209600) and (certmanager_certificate_expiration_timestamp_seconds - time() < 2592000)
+        for: 15m
+        labels:
+          severity: warning
+          team: platform
+          channel: infra
+          service: cert-manager
+          scope: pki
+          runbook: "docs/runbooks/vault-pki-operations.md"
+        annotations:
+          title: "[pki] 내부 인증서 만료 30일 미만"
+          summary: "{{ $labels.cluster }}/{{ $labels.namespace }}/{{ $labels.name }} 인증서의 남은 기간이 14일 이상 30일 미만입니다."
+          description: "Certificate와 CertificateRequest 이벤트, vault-internal ClusterIssuer Ready 상태를 확인하세요. 정상 구성에서는 renewBefore 30일 전에 자동 갱신됩니다."
+
+      - alert: CertificateExpiresWithin14Days
+        expr: (certmanager_certificate_expiration_timestamp_seconds - time() >= 604800) and (certmanager_certificate_expiration_timestamp_seconds - time() < 1209600)
+        for: 15m
+        labels:
+          severity: warning
+          team: platform
+          channel: infra
+          service: cert-manager
+          scope: pki
+          runbook: "docs/runbooks/vault-pki-operations.md"
+        annotations:
+          title: "[pki] 내부 인증서 만료 14일 미만"
+          summary: "{{ $labels.cluster }}/{{ $labels.namespace }}/{{ $labels.name }} 인증서의 남은 기간이 7일 이상 14일 미만입니다."
+          description: "cert-manager controller sync 오류, Vault health/seal 상태, Kubernetes auth와 팀별 sign policy를 우선 점검하세요."
+
+      - alert: CertificateExpiresWithin7Days
+        expr: (certmanager_certificate_expiration_timestamp_seconds - time() > 0) and (certmanager_certificate_expiration_timestamp_seconds - time() < 604800)
+        for: 15m
+        labels:
+          severity: critical
+          team: platform
+          channel: infra
+          service: cert-manager
+          scope: pki
+          runbook: "docs/runbooks/vault-pki-operations.md"
+        annotations:
+          title: "[pki] 내부 인증서 만료 7일 미만"
+          summary: "{{ $labels.cluster }}/{{ $labels.namespace }}/{{ $labels.name }} 인증서의 남은 기간이 7일 미만입니다."
+          description: "서비스 영향이 임박했습니다. CertificateRequest 거부 원인과 Vault issuer 경로를 확인하고 안전한 재발급을 수행하세요. 이미 만료된 표본은 Ready 경보로 대응합니다."
+
+      - alert: CertificateNotReady
+        expr: certmanager_certificate_ready_status{condition="True"} == 0
+        for: 15m
+        labels:
+          severity: warning
+          team: platform
+          channel: infra
+          service: cert-manager
+          scope: pki
+          runbook: "docs/runbooks/vault-pki-operations.md"
+        annotations:
+          title: "[pki] Certificate가 Ready가 아님"
+          summary: "{{ $labels.cluster }}/{{ $labels.namespace }}/{{ $labels.name }} Certificate가 15분 이상 Ready가 아닙니다."
+          description: "Certificate, CertificateRequest 이벤트와 cert-manager 로그를 확인하세요. Secret 내용은 알림이나 티켓에 복사하지 마세요."
+
+      - alert: ClusterIssuerNotReady
+        expr: certmanager_clusterissuer_ready_status{name="vault-internal",condition="True"} == 0
+        for: 15m
+        labels:
+          severity: critical
+          team: platform
+          channel: infra
+          service: cert-manager
+          scope: pki
+          runbook: "docs/runbooks/vault-pki-operations.md"
+        annotations:
+          title: "[pki] vault-internal ClusterIssuer가 Ready가 아님"
+          summary: "{{ $labels.cluster }} 클러스터의 vault-internal ClusterIssuer가 15분 이상 Ready가 아닙니다."
+          description: "Vault health/seal 상태, 네트워크, vault-issuer ServiceAccount TokenRequest audience와 팀별 Kubernetes auth role을 확인하세요."
+
+      - alert: CertManagerVaultSyncErrors
+        expr: increase(certmanager_controller_sync_error_count{controller=~"certificates-.*|certificaterequests-issuer-vault"}[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          channel: infra
+          service: cert-manager
+          scope: pki
+          runbook: "docs/runbooks/vault-pki-operations.md"
+        annotations:
+          title: "[pki] cert-manager Vault 동기화 오류"
+          summary: "{{ $labels.cluster }} 클러스터에서 최근 15분 내 Vault 발급 동기화 오류가 발생했습니다."
+          description: "controller 로그, CertificateRequest 이벤트, Vault auth/sign audit 결과를 확인하되 token, JWT, CSR 또는 Secret 데이터는 기록하지 마세요."
