@@ -8,11 +8,11 @@ ALERT = os.getenv("ALERTMANAGER_URL", "http://alertmanager:9093").rstrip("/")
 CLUSTERS = ["ggg", "khb", "ljw", "nmg", "oje"]
 CHAOS_UPSTREAMS = {
     "mgmt": ("http://k3d-mgmt-serverlb:80/", {"Host": "chaos.imcherry5778.xyz"}),
-    "ggg": ("https://ggg-chaos.tailc0244b.ts.net", {}),
-    "khb": ("https://khb-chaos.tailc0244b.ts.net", {}),
-    "ljw": ("https://ljw-chaos.tailc0244b.ts.net", {}),
-    "nmg": ("https://nmg-chaos.tailc0244b.ts.net", {}),
-    "oje": ("https://oje-chaos.tailc0244b.ts.net", {}),
+    "ggg": ("https://ggg-ingress.tailc0244b.ts.net", {"Host": "ggg-chaos.imcherry5778.xyz"}),
+    "khb": ("https://khb-ingress.tailc0244b.ts.net", {"Host": "khb-chaos.imcherry5778.xyz"}),
+    "ljw": ("https://ljw-ingress.tailc0244b.ts.net", {"Host": "ljw-chaos.imcherry5778.xyz"}),
+    "nmg": ("https://nmg-ingress.tailc0244b.ts.net", {"Host": "nmg-chaos.imcherry5778.xyz"}),
+    "oje": ("https://oje-ingress.tailc0244b.ts.net", {"Host": "oje-chaos.imcherry5778.xyz"}),
 }
 
 def get_json(url):
