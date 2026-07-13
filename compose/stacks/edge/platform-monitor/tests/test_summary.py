@@ -48,6 +48,20 @@ class ProbeSummaryTests(unittest.TestCase):
         self.assertEqual(summary["clusters"]["khb"], {"healthy": False, "healthy_count": 0, "total": 2})
         self.assertEqual(summary["cluster_endpoint_totals"], {"healthy": 2, "total": 4})
 
+    def test_chaos_upstreams_use_team_ingress_with_public_host(self):
+        server = load_server_module()
+        expected = {
+            team: (
+                f"https://{team}-ingress.tailc0244b.ts.net",
+                {"Host": f"{team}-chaos.imcherry5778.xyz"},
+            )
+            for team in ("ggg", "khb", "ljw", "nmg", "oje")
+        }
+
+        actual = {team: server.CHAOS_UPSTREAMS[team] for team in expected}
+
+        self.assertEqual(actual, expected)
+
     def test_chaos_health_requires_a_successful_upstream_response(self):
         server = load_server_module()
 
