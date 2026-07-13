@@ -60,6 +60,12 @@ Kibana default Space에서 `Security Audit Overview`를 연다. 기본 범위는
 인덱스와 알림 라우팅 인덱스에 함께 기록되므로, 복제본을 제외하지 않으면 KPI가 이중
 집계된다. 고신호 여부는 원본 문서의 `labels.audit_alert`로 판단한다.
 
+Wazuh는 원본 숫자 레벨을 `app.rule.level`에 유지한다. level 11은 `medium`,
+12~13은 `high`, 14 이상은 `critical` 우선순위로 `labels.alert_severity`에 기록하고
+`Immediate investigation`에 올린다. `labels.alert_severity`는 제품 공통 관제
+우선순위이며 Wazuh 원본 레벨을 대체하지 않는다. 과거 문자열 `event.severity`는
+삭제하거나 재색인하지 않지만 새 이벤트와 대시보드에서는 사용하지 않는다.
+
 Traefik·oauth2-proxy·Keycloak 컨테이너의 모든 stdout을 감사 이벤트로 취급하지 않는다.
 실제 접근 또는 Keycloak 이벤트 형식으로 파싱된 행만 `acer-audit-*`로 승격하며, 내부
 서비스 로그와 스택 트레이스는 일반 Docker 로그에 남긴다. 팀은 `labels.team`, 실제

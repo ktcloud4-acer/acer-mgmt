@@ -36,7 +36,8 @@
     },
     "labels": {
       "properties": {
-        "audit_alert": { "type": "keyword" }
+        "audit_alert": { "type": "keyword" },
+        "alert_severity": { "type": "keyword" }
       }
     },
     "observer": {

@@ -194,6 +194,42 @@ function validate(path) {
     serializedDashboard.includes("actor.name"),
     "dashboard must use the normalized actor field",
   );
+  assert(
+    !serializedDashboard.includes("event.severity"),
+    "dashboard must not use string event.severity as a cross-source priority",
+  );
+
+  const panelByTitle = new Map(
+    sections.flatMap((section) => section.panels).map((panel) => [panel.config.title, panel.config]),
+  );
+  const immediate = panelByTitle.get("Recent high-signal events");
+  assert(immediate, "missing Recent high-signal events panel");
+  assert(
+    immediate.data_source.query.includes("labels.alert_severity") &&
+      immediate.data_source.query.includes("app.rule.level"),
+    "Immediate investigation must show priority and Wazuh level",
+  );
+  assert(
+    immediate.rows.some(
+      (row) => row.column === "labels.alert_severity" && row.label === "Priority",
+    ),
+    "Immediate investigation is missing the Priority column",
+  );
+  assert(
+    immediate.rows.some((row) => row.column === "app.rule.level" && row.label === "Wazuh Level"),
+    "Immediate investigation is missing the Wazuh Level column",
+  );
+
+  const wazuhHost = panelByTitle.get("Wazuh host security");
+  assert(wazuhHost, "missing Wazuh host security panel");
+  assert(
+    wazuhHost.data_source.query.includes("app.rule.level"),
+    "Wazuh host security must query the original Wazuh level",
+  );
+  assert(
+    wazuhHost.rows.some((row) => row.column === "app.rule.level" && row.label === "Wazuh Level"),
+    "Wazuh host security is missing the Wazuh Level column",
+  );
 
   const queries = [];
   collectEsqlQueries(dashboard, queries);

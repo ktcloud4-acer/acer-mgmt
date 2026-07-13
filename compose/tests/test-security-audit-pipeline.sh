@@ -83,6 +83,9 @@ assert_not_contains "$dashboard" 'labels.audit_alert.keyword'
 assert_not_contains "$dashboard" 'user.name'
 assert_not_contains "$dashboard" 'user.keyword'
 assert_contains "$dashboard" '"column": "actor.name"'
+assert_contains "$dashboard" '"column": "labels.alert_severity"'
+assert_contains "$dashboard" '"column": "app.rule.level"'
+assert_not_contains "$dashboard" 'event.severity'
 assert_contains "$dashboard" '"title": "Wazuh audit events"'
 assert_contains "$dashboard" 'SET unmapped_fields=\"NULLIFY\"; FROM acer-audit-* METADATA _index'
 assert_contains "$dashboard" "Current situation"
@@ -148,6 +151,7 @@ node -e '
     "http.request.method": actual?.http?.properties?.request?.properties?.method?.type,
     "http.response.status_code": actual?.http?.properties?.response?.properties?.status_code?.type,
     "event.outcome": actual?.event?.properties?.outcome?.type,
+    "labels.alert_severity": actual?.labels?.properties?.alert_severity?.type,
   };
   for (const [field, type] of Object.entries(required)) {
     if (!type) throw new Error(`missing explicit mapping for ${field}`);
@@ -170,7 +174,15 @@ assert_contains "$snap_bootstrap" "_slm/policy/acer-audit-snapshot"
 
 # ── W0 P3: 탐지 + 전용 알림 인덱스 ──────────────────────────────────────────
 assert_contains "$alerts" "vault-root-token-used"
+assert_contains "$alerts" "wazuh-investigation-required"
 assert_contains "$alerts" "wazuh-high-severity"
+assert_contains "$alerts" "wazuh-critical"
+assert_contains "$alerts" '"[labels][alert_severity]"'
+assert_contains "$alerts" 'if [app][rule][level] >= 14'
+assert_contains "$alerts" 'else if [app][rule][level] >= 12'
+assert_contains "$alerts" 'else if [app][rule][level] >= 11'
+assert_not_contains "$alerts" '"[event][severity]"'
+assert_contains "$audit_mapping" '"alert_severity": { "type": "keyword" }'
 assert_contains "$outputs" "acer-audit-alerts-%{[labels][team]}"
 
 echo "security audit pipeline tests passed"
