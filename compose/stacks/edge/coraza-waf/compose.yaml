@@ -1,0 +1,26 @@
+# Standalone Coraza WAF (CRS 팀 유지 turnkey 이미지) — origin WAF 리버스 프록시.
+# 배선: traefik → coraza-waf:8080 → k3d-mgmt-serverlb:80. DetectionOnly 로 시작(차단 안 함).
+#
+# 네트워크 주석: 이 mgmt 호스트에서 k3d-mgmt-serverlb 는 별도 k3d 네트워크가 아니라
+# mgmt-proxy 에 붙어 있다(traefik 도 mgmt-proxy 에 있음). 따라서 coraza-waf 는
+# mgmt-proxy 하나만 있으면 (a) traefik 이 coraza-waf 에 도달하고 (b) coraza-waf 가
+# k3d-mgmt-serverlb 에 도달한다. (브리프의 <K3D_NET> 은 여기서 mgmt-proxy 로 수렴)
+#
+# WASM 플러그인 방식은 prod traefik 을 크래시시켜 폐기됨. 이 컨테이너는 traefik 프로세스와
+# 분리된 별도 컨테이너라 크래시해도 traefik 자체엔 영향 없다(단 argocd 라우팅엔 영향 가능).
+services:
+  coraza-waf:
+    image: ghcr.io/coreruleset/coraza-crs:4.25.0-caddy-alpine-202604120304
+    container_name: coraza-waf
+    restart: unless-stopped
+    environment:
+      - BACKEND=k3d-mgmt-serverlb:80
+      - PORT=8080
+      - CORAZA_RULE_ENGINE=DetectionOnly
+    networks:
+      - mgmt-proxy
+
+networks:
+  mgmt-proxy:
+    name: ${PROXY_NET:-mgmt-proxy}
+    external: true

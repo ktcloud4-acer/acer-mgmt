@@ -1,0 +1,2 @@
+zone_id              = "88a4ef16a8b524e9a4a048017423862a" # imcherry5778.xyz (비밀 아님)
+cloudflare_api_token = "<vault: kv/mgmt/traefik 필드 cf_dns_api_token — 기존 토큰 재사용>"
