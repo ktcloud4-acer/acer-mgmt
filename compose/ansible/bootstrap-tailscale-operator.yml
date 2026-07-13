@@ -7,6 +7,8 @@
     tailscale_kubeconfig: /home/ubuntu/.kube/config
     tailscale_operator_values: /run/acer-bootstrap/tailscale-operator-values.yaml
     tailscale_proxy_manifest: /run/acer-bootstrap/tailscale-proxygroup.yaml
+    tailscale_proxy_mode: "{{ 'inprocess' if tailnet_team == 'ggg' else 'proxygroup' }}"
+    tailscale_proxy_hostname: "{{ 'ggg-operator-0' if tailnet_team == 'ggg' else tailnet_team ~ '-operator' }}"
   pre_tasks:
     - name: Validate selected team and target group
       ansible.builtin.assert:
@@ -77,7 +79,13 @@
                 clientId: {{ tailscale_operator_client_id | to_json }}
                 clientSecret: {{ tailscale_operator_client_secret | to_json }}
               apiServerProxyConfig:
+              {% if tailscale_proxy_mode == 'inprocess' %}
+                mode: noauth
+              operatorConfig:
+                hostname: {{ tailscale_proxy_hostname }}
+              {% else %}
                 allowImpersonation: true
+              {% endif %}
           become: true
           no_log: true
 
@@ -109,28 +117,31 @@
               apiVersion: tailscale.com/v1alpha1
               kind: ProxyGroup
               metadata:
-                name: {{ tailnet_team }}-operator
+                name: {{ tailscale_proxy_hostname }}
               spec:
                 type: kube-apiserver
                 replicas: 1
                 tags: ["tag:k8s"]
                 kubeAPIServer:
-                  hostname: {{ tailnet_team }}-operator
+                  hostname: {{ tailscale_proxy_hostname }}
                   mode: noauth
           become: true
+          when: tailscale_proxy_mode == 'proxygroup'
 
         - name: Apply API ProxyGroup
           ansible.builtin.command: >-
             kubectl --kubeconfig {{ tailscale_kubeconfig }}
             apply -f {{ tailscale_proxy_manifest }}
           become: true
+          when: tailscale_proxy_mode == 'proxygroup'
 
         - name: Wait for API ProxyGroup readiness
           ansible.builtin.command: >-
             kubectl --kubeconfig {{ tailscale_kubeconfig }}
-            wait proxygroup/{{ tailnet_team }}-operator
+            wait proxygroup/{{ tailscale_proxy_hostname }}
             --for=condition=ProxyGroupReady=true --timeout=240s
           become: true
+          when: tailscale_proxy_mode == 'proxygroup'
       always:
         - name: Remove temporary Helm values containing OAuth credentials
           ansible.builtin.file:

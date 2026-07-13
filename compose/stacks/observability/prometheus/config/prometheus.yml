@@ -72,7 +72,7 @@ scrape_configs:
         labels: {team: nmg, channel: infra, service: nmg-api, scope: team, cluster: nmg, lifecycle: standby}
       - targets: ['https://nmg.imcherry5778.xyz/']
         labels: {team: nmg, channel: infra, service: nmg-dashboard, scope: team, cluster: nmg, lifecycle: standby}
-      - targets: ['https://ggg-operator.tailc0244b.ts.net/livez']
+      - targets: ['https://ggg-operator-0.tailc0244b.ts.net/livez']
         labels: {team: ggg, channel: infra, service: ggg-api, scope: team, cluster: ggg, lifecycle: active}
       - targets: ['https://ggg.imcherry5778.xyz/']
         labels: {team: ggg, channel: infra, service: ggg-dashboard, scope: team, cluster: ggg, lifecycle: active}

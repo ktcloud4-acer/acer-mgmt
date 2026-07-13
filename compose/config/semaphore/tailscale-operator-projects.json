@@ -1,7 +1,7 @@
 [
-  {"team":"ggg","project":"acer-aio-ggg","operator_vault_path":"mgmt/tailscale/operators/ggg","bootstrap_vault_path":"mgmt/tailscale/bootstrap/ggg","argocd_vault_path":"mgmt/argocd/clusters/ggg","proxy_hostname":"ggg-operator"},
-  {"team":"khb","project":"acer-aio-khb","operator_vault_path":"mgmt/tailscale/operators/khb","bootstrap_vault_path":"mgmt/tailscale/bootstrap/khb","argocd_vault_path":"mgmt/argocd/clusters/khb","proxy_hostname":"khb-operator"},
-  {"team":"ljw","project":"acer-aio-ljw","operator_vault_path":"mgmt/tailscale/operators/ljw","bootstrap_vault_path":"mgmt/tailscale/bootstrap/ljw","argocd_vault_path":"mgmt/argocd/clusters/ljw","proxy_hostname":"ljw-operator"},
-  {"team":"nmg","project":"acer-aio-nmg","operator_vault_path":"mgmt/tailscale/operators/nmg","bootstrap_vault_path":"mgmt/tailscale/bootstrap/nmg","argocd_vault_path":"mgmt/argocd/clusters/nmg","proxy_hostname":"nmg-operator"},
-  {"team":"oje","project":"acer-aio-oje","operator_vault_path":"mgmt/tailscale/operators/oje","bootstrap_vault_path":"mgmt/tailscale/bootstrap/oje","argocd_vault_path":"mgmt/argocd/clusters/oje","proxy_hostname":"oje-operator"}
+  {"team":"ggg","project":"acer-aio-ggg","operator_vault_path":"mgmt/tailscale/operators/ggg","bootstrap_vault_path":"mgmt/tailscale/bootstrap/ggg","argocd_vault_path":"mgmt/argocd/clusters/ggg","proxy_mode":"inprocess","proxy_hostname":"ggg-operator-0"},
+  {"team":"khb","project":"acer-aio-khb","operator_vault_path":"mgmt/tailscale/operators/khb","bootstrap_vault_path":"mgmt/tailscale/bootstrap/khb","argocd_vault_path":"mgmt/argocd/clusters/khb","proxy_mode":"proxygroup","proxy_hostname":"khb-operator"},
+  {"team":"ljw","project":"acer-aio-ljw","operator_vault_path":"mgmt/tailscale/operators/ljw","bootstrap_vault_path":"mgmt/tailscale/bootstrap/ljw","argocd_vault_path":"mgmt/argocd/clusters/ljw","proxy_mode":"proxygroup","proxy_hostname":"ljw-operator"},
+  {"team":"nmg","project":"acer-aio-nmg","operator_vault_path":"mgmt/tailscale/operators/nmg","bootstrap_vault_path":"mgmt/tailscale/bootstrap/nmg","argocd_vault_path":"mgmt/argocd/clusters/nmg","proxy_mode":"proxygroup","proxy_hostname":"nmg-operator"},
+  {"team":"oje","project":"acer-aio-oje","operator_vault_path":"mgmt/tailscale/operators/oje","bootstrap_vault_path":"mgmt/tailscale/bootstrap/oje","argocd_vault_path":"mgmt/argocd/clusters/oje","proxy_mode":"proxygroup","proxy_hostname":"oje-operator"}
 ]
