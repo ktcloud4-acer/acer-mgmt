@@ -17,7 +17,8 @@ http:
       middlewares:
         - sso-auth
         - secure-headers
-      service: k3d-ingress
+      # WAF 파일럿 확산: chaos 트래픽도 standalone Coraza(CRS) WAF 경유(DetectionOnly).
+      service: coraza-waf
     nmg-chaos-dashboard:
       rule: "Host(`nmg-chaos.imcherry5778.xyz`)"
       entryPoints:
