@@ -16,6 +16,7 @@ operator_path="$(jq -er '.operator_vault_path' <<<"$entry")"
 bootstrap_path="$(jq -er '.bootstrap_vault_path' <<<"$entry")"
 argocd_path="$(jq -er '.argocd_vault_path' <<<"$entry")"
 proxy_hostname="$(jq -er '.proxy_hostname' <<<"$entry")"
+proxy_mode="$(jq -er '.proxy_mode' <<<"$entry")"
 vault_addr=https://vault.imcherry5778.xyz
 vault_token="$(curl -fsS -H 'Content-Type: application/json' \
   --data "$(jq -cn --arg role "$VAULT_ROLE_ID" --arg secret "$VAULT_SECRET_ID" '{role_id:$role,secret_id:$secret}')" \
@@ -33,12 +34,20 @@ api_server="$(kubectl --kubeconfig "$kubeconfig" config view --raw -o json | jq 
 api_host="${api_server#https://}"; api_host="${api_host%%:*}"
 kubectl_recovery() { kubectl --kubeconfig "$kubeconfig" "$@"; }
 helm repo add tailscale https://pkgs.tailscale.com/helmcharts >/dev/null
+proxy_args=(--set-string apiServerProxyConfig.allowImpersonation="true")
+if [[ "$proxy_mode" == inprocess ]]; then
+  proxy_args=(
+    --set-string apiServerProxyConfig.mode="noauth"
+    --set-string operatorConfig.hostname="$proxy_hostname"
+  )
+fi
 helm upgrade --install tailscale-operator tailscale/tailscale-operator \
   --kubeconfig "$kubeconfig" --namespace tailscale --create-namespace \
   --version "$TAILSCALE_OPERATOR_CHART_VERSION" \
   --set-string oauth.clientId="$oauth_id" --set-string oauth.clientSecret="$oauth_secret" \
-  --set-string apiServerProxyConfig.allowImpersonation="true" --wait --timeout 180s
+  "${proxy_args[@]}" --wait --timeout 180s
 unset oauth_id oauth_secret operator_json bootstrap_json
+if [[ "$proxy_mode" == proxygroup ]]; then
 cat <<YAML | kubectl_recovery apply -f -
 apiVersion: tailscale.com/v1alpha1
 kind: ProxyGroup
@@ -53,6 +62,7 @@ spec:
     mode: noauth
 YAML
 kubectl_recovery wait proxygroup/$proxy_hostname --for=condition=ProxyGroupReady=true --timeout=240s
+fi
 cat <<'YAML' | kubectl_recovery apply -f -
 apiVersion: v1
 kind: ServiceAccount

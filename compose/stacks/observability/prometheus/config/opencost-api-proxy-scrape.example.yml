@@ -58,7 +58,7 @@
   bearer_token_file: /etc/prometheus/cluster-tokens/ggg.token
   static_configs:
     - targets:
-        - ggg-operator.tailc0244b.ts.net
+        - ggg-operator-0.tailc0244b.ts.net
       labels:
         cluster: ggg
         source: opencost
