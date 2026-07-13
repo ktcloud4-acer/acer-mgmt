@@ -10,6 +10,8 @@
 |----------|--------|
 | `k8s`    | `k8s-logs-<user>-YYYY.MM.dd` |
 | `infra`  | `infra-logs-<user>-YYYY.MM.dd` |
+| `audit`  | `acer-audit-<team>-YYYY.MM.dd` |
+| 고신호 감사 복제본 | `acer-audit-alerts-<team>-YYYY.MM.dd` |
 | (그 외)  | `service-logs-mgmt-v2-YYYY.MM.dd` |
 
 `<user>` = 테넌트 식별자(팀원 클러스터명). Filebeat 가 `fields.user` 로 주입.
@@ -33,13 +35,36 @@ bash compose/stacks/observability/elk/scripts/apply-observability.sh
 4. **Kibana 팀원별 Space** (`ggg`/`khb`/`ljw`/`nmg`/`oje`) + Space별 **data view**
    (`k8s-logs-<user>-*`, `infra-logs-<user>-*`) + **`errors` 저장검색**(ERROR/FATAL/CRITICAL).
    default(admin) Space 에는 전체 조회용 `k8s-logs-*,infra-logs-*` / `service-logs-mgmt-*` data view.
+5. **보안 감사 data view + 대시보드** — default Space에 고정 ID `acer-audit` /
+   `security-audit-overview`를 생성 또는 전체 교체하고 GET으로 재검증한다.
+
+## Security Audit Overview
+
+Kibana default Space에서 `Security Audit Overview`를 연다. 기본 범위는 최근 24시간,
+자동 새로고침은 60초다.
+
+관제 순서는 다음과 같다.
+
+1. 상단 고정 컨트롤에서 감사 소스, 팀, 탐지 시그니처, 사용자, 호스트를 좁힌다.
+2. `Current situation`의 전체 이벤트, 고신호 이벤트, Wazuh 알림, 활성 소스 수를 본다.
+3. `Trend and collection coverage`에서 소스별 추세와 마지막 수집 시각을 확인한다.
+4. `Immediate investigation`에서 최신 고신호 이벤트를 우선 조사한다.
+5. 행위/사용자/호스트 피벗 후 전체 감사 타임라인에서 원문 맥락을 확인한다.
+
+분석용 data view는 `acer-audit-*,-acer-audit-alerts-*`다. 고신호 이벤트는 원본 감사
+인덱스와 알림 라우팅 인덱스에 함께 기록되므로, 복제본을 제외하지 않으면 KPI가 이중
+집계된다. 고신호 여부는 원본 문서의 `labels.audit_alert`로 판단한다.
+
+대시보드는 저장 객체 내부 구조를 직접 수정하지 않고 Kibana 9.4 Dashboards API로
+선언적으로 적용한다. 이 API는 9.4에서 Technical Preview이므로 현재 스택은 9.4.3에
+고정하며, 버전 변경 시 `security-audit.dashboard.json`을 대상 API로 다시 검증해야 한다.
 
 ## ⚠️ 보안 주의 — Space 는 접근제어가 아니다
 
-이 스택은 `compose.yaml` 에서 `xpack.security.enabled: false` 다. 따라서 Kibana Space 는
-**조직적(화면) 분리**일 뿐 **접근 제어가 아니며**, 누구나 우상단에서 Space 를 전환해 타 팀
-로그를 볼 수 있다. 팀원별 진짜 격리가 필요하면 `xpack.security` 활성화 + role/space 권한
-매핑이 별도로 필요하다(ES 비밀번호·Logstash/Kibana 인증 재구성 수반).
+이 스택은 `compose.yaml`에서 `xpack.security.enabled: true`이며 Elasticsearch/Kibana
+서비스 계정 인증을 사용한다. 하지만 현재 팀별 Space는 여전히 **조직적 화면 분리**이고,
+사람별 Kibana role/space 권한 매핑을 대신하지 않는다. 앞단 SSO를 통과한 사용자의 팀별
+열람 범위를 강제하려면 native 사용자/역할 또는 별도의 라이선스·realm 설계가 필요하다.
 
 ## 미적용/후속 과제
 

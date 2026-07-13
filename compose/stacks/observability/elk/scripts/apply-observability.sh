@@ -2,7 +2,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # mgmt 호스트에서 실행. 로그 파이프라인의 "보존정책 + 시각화 발판"을 idempotent 하게 적용한다.
 #   1) ES  : ILM 정책(14일 삭제) + k8s-logs-*/infra-logs-* 인덱스 템플릿(replica0) + 기존 인덱스 보정
-#   2) Kibana : 팀원별 Space + Space별 data view(k8s/infra) + "errors" 저장검색
+#   2) Kibana : 팀원별 Space/data view/저장검색 + 관리자용 보안 감사 대시보드
 #
 # 주의: W0 부터 xpack.security 가 켜진다. 이 스크립트가 ES/Kibana API 를 호출하므로
 #       ES_USER/ES_PASSWORD(예: elastic) 를 export 하고 실행해야 한다:
@@ -10,7 +10,8 @@
 #         ES_USER=elastic ES_PASSWORD="$ELK_ELASTIC_PASSWORD" ./apply-observability.sh
 #       Kibana Space 는 여전히 "조직적 분리"이며, 사람 접근 게이트는 앞단 oauth2-proxy 다.
 #       팀별 문서레벨 격리(감사 인덱스 제외)는 Basic 에선 native 계정/역할로 별도 설계.
-# 재실행 안전: data view/저장검색은 고정 id + overwrite, Space 는 이미 있으면 409(무시).
+# 재실행 안전: data view/저장검색/대시보드는 고정 id + 전체 상태 교체,
+#              Space 는 이미 있으면 409(무시).
 # ─────────────────────────────────────────────────────────────────────────────
 set -uo pipefail
 
@@ -18,6 +19,7 @@ ES=${ES:-http://127.0.0.1:9200}
 KB=${KB:-http://127.0.0.1:5601}
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"   # .../elk
 CFG="$DIR/config"
+AUDIT_DASHBOARD="$CFG/kibana/security-audit.dashboard.json"
 USERS=(ggg khb ljw nmg oje)
 
 # xpack.security 가 켜져 있으면 ES_USER/ES_PASSWORD 로 인증한다(끄면 무시).
@@ -26,6 +28,7 @@ AUTH=()
 [ -n "${ES_USER:-}" ] && AUTH=(-u "${ES_USER}:${ES_PASSWORD:-}")
 
 say() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
+die() { printf '\nERROR: %s\n' "$*" >&2; exit 1; }
 
 # ── 1) Elasticsearch: 보존정책 ──────────────────────────────────────────────
 say "ILM 정책 logs-retention-14d"
@@ -70,9 +73,13 @@ KBH=(-H 'kbn-xsrf: true' -H 'Content-Type: application/json' "${AUTH[@]}")
 mk_dataview() {  # space title id
   local space=$1 title=$2 id=$3 base=$KB
   [ "$space" != "-" ] && base="$KB/s/$space"
-  curl -s -X POST "$base/api/data_views/data_view" "${KBH[@]}" \
-    -d "{\"data_view\":{\"id\":\"$id\",\"title\":\"$title\",\"name\":\"$title\",\"timeFieldName\":\"@timestamp\"}}" \
-    -o /dev/null -w "    data_view $id http=%{http_code}\n"
+  if curl -sf -X POST "$base/api/data_views/data_view" "${KBH[@]}" \
+    -d "{\"data_view\":{\"id\":\"$id\",\"title\":\"$title\",\"name\":\"$title\",\"timeFieldName\":\"@timestamp\",\"allowNoIndex\":true},\"override\":true}" \
+    -o /dev/null; then
+    echo "    data_view $id ok"
+  else
+    die "data view $id provisioning failed"
+  fi
 }
 
 for u in "${USERS[@]}"; do
@@ -104,5 +111,33 @@ done
 say "default space: 전체 조회용 data view"
 mk_dataview "-" "k8s-logs-*,infra-logs-*" "dv-all-cluster-logs"
 mk_dataview "-" "service-logs-mgmt-*"      "dv-mgmt-service-logs"
+mk_dataview "-" "acer-audit-*,-acer-audit-alerts-*" "acer-audit"
 
-say "완료. Kibana → 우상단 Space 전환 → Discover 에서 팀별 로그 확인."
+say "보안 감사 대시보드: security-audit-overview"
+[[ -r "$AUDIT_DASHBOARD" ]] || die "dashboard payload not readable: $AUDIT_DASHBOARD"
+
+dashboard_result=""
+if ! dashboard_result=$(curl -sS -X PUT "$KB/api/dashboards/security-audit-overview" \
+  "${KBH[@]}" -d @"$AUDIT_DASHBOARD" -w $'\n%{http_code}'); then
+  die "security audit dashboard provisioning failed"
+fi
+dashboard_status=${dashboard_result##*$'\n'}
+dashboard_body=${dashboard_result%$'\n'*}
+case "$dashboard_status" in
+  200|201) echo "    dashboard security-audit-overview ok" ;;
+  *)
+    printf '%s\n' "$dashboard_body" >&2
+    die "security audit dashboard provisioning failed (http=$dashboard_status)"
+    ;;
+esac
+
+if ! dashboard_state=$(curl -sf "$KB/api/dashboards/security-audit-overview" "${KBH[@]}"); then
+  die "dashboard verification failed: GET request"
+fi
+if ! grep -Eq '"id"[[:space:]]*:[[:space:]]*"security-audit-overview"' <<<"$dashboard_state" \
+  || ! grep -Eq '"title"[[:space:]]*:[[:space:]]*"Security Audit Overview"' <<<"$dashboard_state"; then
+  die "dashboard verification failed: unexpected id or title"
+fi
+echo "    dashboard verification ok"
+
+say "완료. Kibana default Space → Security Audit Overview 또는 팀 Space → Discover 확인."
