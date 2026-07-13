@@ -16,6 +16,13 @@ if [[ -e "$out" ]]; then
   exit 1
 fi
 
+out_parent="$(dirname "$out")"
+out_name="$(basename "$out")"
+if [[ ! -d "$out_parent" ]]; then
+  echo "Output parent directory is missing: $out_parent" >&2
+  exit 1
+fi
+
 passin=()
 passout=()
 if [[ -n "${ROOT_CA_PASS_FILE:-}" ]]; then
@@ -27,10 +34,26 @@ if [[ -n "${ROOT_CA_PASS_FILE:-}" ]]; then
   passout=(-pass "file:$ROOT_CA_PASS_FILE")
 fi
 
-mkdir "$out"
+work=""
+cleanup() {
+  if [[ -n "$work" && -d "$work" ]]; then
+    rm -rf -- "$work"
+  fi
+}
+trap cleanup EXIT
+
+work="$(mktemp -d "$out_parent/.${out_name}.tmp.XXXXXX")"
 openssl genpkey -algorithm RSA -aes-256-cbc \
-  -pkeyopt rsa_keygen_bits:4096 "${passout[@]}" -out "$out/root-ca.key"
+  -pkeyopt rsa_keygen_bits:4096 "${passout[@]}" -out "$work/root-ca.key"
 openssl req -new -x509 -sha384 -days 3650 \
-  -key "$out/root-ca.key" "${passin[@]}" \
-  -config "$config" -extensions v3_root_ca -out "$out/root-ca.crt"
-openssl x509 -in "$out/root-ca.crt" -outform DER | sha256sum | awk '{print $1}' >"$out/root-ca.sha256"
+  -key "$work/root-ca.key" "${passin[@]}" \
+  -config "$config" -extensions v3_root_ca -out "$work/root-ca.crt"
+openssl x509 -in "$work/root-ca.crt" -outform DER | sha256sum | awk '{print $1}' >"$work/root-ca.sha256"
+
+if [[ -e "$out" ]]; then
+  echo "Output appeared during generation: $out" >&2
+  exit 1
+fi
+mv -- "$work" "$out"
+work=""
+trap - EXIT

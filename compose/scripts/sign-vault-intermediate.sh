@@ -18,6 +18,13 @@ if [[ -e "$out" ]]; then
   exit 1
 fi
 
+out_parent="$(dirname "$out")"
+out_name="$(basename "$out")"
+if [[ ! -d "$out_parent" ]]; then
+  echo "Output parent directory is missing: $out_parent" >&2
+  exit 1
+fi
+
 passin=()
 if [[ -n "${ROOT_CA_PASS_FILE:-}" ]]; then
   [[ -f "$ROOT_CA_PASS_FILE" ]] || { echo 'ROOT_CA_PASS_FILE is missing' >&2; exit 1; }
@@ -28,15 +35,38 @@ if [[ -n "${ROOT_CA_PASS_FILE:-}" ]]; then
 fi
 
 openssl req -in "$csr" -noout -verify
-if [[ "$(openssl req -in "$csr" -noout -text | sed -n 's/.*Public-Key: (\([0-9]*\) bit).*/\1/p' | head -1)" != 3072 ]]; then
+csr_text="$(openssl req -in "$csr" -noout -text)"
+if ! grep -Fq 'Public Key Algorithm: rsaEncryption' <<<"$csr_text"; then
+  echo 'Intermediate CSR must use RSA' >&2
+  exit 1
+fi
+if [[ "$(sed -n 's/.*Public-Key: (\([0-9]*\) bit).*/\1/p' <<<"$csr_text" | head -1)" != 3072 ]]; then
   echo 'Intermediate CSR must use RSA 3072' >&2
   exit 1
 fi
 
-mkdir "$out"
+work=""
+cleanup() {
+  if [[ -n "$work" && -d "$work" ]]; then
+    rm -rf -- "$work"
+  fi
+}
+trap cleanup EXIT
+
+work="$(mktemp -d "$out_parent/.${out_name}.tmp.XXXXXX")"
+serial="$work/ca-serial"
 openssl x509 -req -sha384 -days 1095 -in "$csr" \
   -CA "$root_dir/root-ca.crt" -CAkey "$root_dir/root-ca.key" "${passin[@]}" \
-  -CAcreateserial -extfile "$config" -extensions v3_intermediate_ca \
-  -out "$out/vault-intermediate.crt"
-cat "$out/vault-intermediate.crt" "$root_dir/root-ca.crt" >"$out/vault-intermediate-chain.pem"
-rm -f "$root_dir/root-ca.srl"
+  -CAserial "$serial" -CAcreateserial \
+  -extfile "$config" -extensions v3_intermediate_ca \
+  -out "$work/vault-intermediate.crt"
+cat "$work/vault-intermediate.crt" "$root_dir/root-ca.crt" >"$work/vault-intermediate-chain.pem"
+rm -f "$serial"
+
+if [[ -e "$out" ]]; then
+  echo "Output appeared during signing: $out" >&2
+  exit 1
+fi
+mv -- "$work" "$out"
+work=""
+trap - EXIT
