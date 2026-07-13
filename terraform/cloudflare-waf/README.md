@@ -74,3 +74,12 @@ Cloudflare API 접근과 유효한 토큰이 필요하므로, 이 리포지토�
 - Custom rules ≤ 5개 (`custom_fw`에서 4개 사용 중, 여유 1개)
 - Rate limit rule 1개만 (`ratelimit`에서 이미 사용)
 - Logpush 불가
+
+## ⚠️ state 관리 (2026-07-13 적용 후)
+- 이 모듈은 **로컬 state**로 apply됨(custom_fw/managed_fw/ratelimit 3 리소스 live). 
+- 부트스트랩 state 백업: `/home/imcherry/tfstate/cloudflare-waf/terraform.tfstate` (worktree 유실 대비).
+- **권고**: 프로덕션은 원격 backend(MinIO S3 등)로 이관 후 `terraform init -migrate-state`. 예:
+  ```
+  terraform { backend "s3" { bucket="tfstate" key="cloudflare-waf.tfstate" endpoint="<minio>" ... skip_credentials_validation=true } }
+  ```
+- 토큰은 Vault `kv/mgmt/traefik.cf_dns_api_token`에서 `TF_VAR_cloudflare_api_token`으로 주입, `TF_VAR_zone_id=88a4ef16a8b524e9a4a048017423862a`.
