@@ -1,6 +1,12 @@
 # Traefik static config — Cloudflare DNS-01 HTTPS / Tailscale 전용 접근
 # *.imcherry5778.xyz 는 Cloudflare DNS 에서 Tailscale IP(100.117.59.96)로 해석되어
 # 테일넷 멤버만 도달한다. Traefik 이 실제 LE 와일드카드 인증서로 HTTPS 를 종단한다.
+experimental:
+  plugins:
+    coraza-http-wasm-traefik:
+      moduleName: github.com/jcchavezs/coraza-http-wasm-traefik
+      version: v0.3.0
+
 api:
   dashboard: true
 
