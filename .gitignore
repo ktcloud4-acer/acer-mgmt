@@ -33,4 +33,4 @@ compose/stacks/edge/homepage/config/proxmox.yaml
 *.swp
 
 # ── 로컬 격리 작업공간 ───────────────────────────
-.worktrees/
+/.worktrees/
