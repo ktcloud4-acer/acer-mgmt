@@ -1,7 +1,7 @@
 services:
 
   rustfs:
-    image: rustfs/rustfs:latest@sha256:a3e68dbb19cdc118c7ab01aca2151de67eb5c1f12e2da0235ee2bcbdf59161a7
+    image: rustfs/rustfs:latest@sha256:60f4f2f41ce95216f8cac676e69f9d90c0bfec458a3bc7fd7fb9b7c2452ac57a
     environment:
       RUSTFS_ACCESS_KEY: ${MINIO_ROOT_USER}
       RUSTFS_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
