@@ -18,7 +18,7 @@ services:
       - minio-data:/data
 
   minio-createbucket:
-    image: cgr.dev/chainguard/minio-client:latest-dev@sha256:01482024bee2b2b4d93c17337f1d2a016a6d4c14d0d215f480f8c1666cf14588
+    image: cgr.dev/chainguard/minio-client:latest-dev@sha256:981c26002e9abcff2451e9d2a40ff0b0e8adecd8fff09e40147ba6fe40889e40
     depends_on:
       minio:
         condition: service_healthy
