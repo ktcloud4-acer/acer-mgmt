@@ -1,4 +1,4 @@
-FROM semaphoreui/semaphore:v2.18.27
+FROM semaphoreui/semaphore:v2.18.28
 
 ARG K6_VERSION=v1.0.0-rc2
 ARG KUBECTL_VERSION=v1.35.6
