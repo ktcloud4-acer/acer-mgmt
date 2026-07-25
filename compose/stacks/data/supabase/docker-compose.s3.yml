@@ -1,7 +1,7 @@
 services:
 
   minio:
-    image: cgr.dev/chainguard/minio:latest@sha256:ee5be92259ea459c3058985696ac5aa8c950e78869a7f0a71e47d4f36b33d32d
+    image: cgr.dev/chainguard/minio:latest@sha256:f9f8efcbeddc713fff0706a5ffffa635da308df8cc3049d8e4375aa09d643c36
     #ports:
     #  - '9000:9000'
     #  - '9001:9001'
